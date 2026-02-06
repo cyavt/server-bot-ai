@@ -1,0 +1,122 @@
+# Hot reload (HMR) for manager-web (Vue) while keeping backend (manager-api + nginx) in Docker.
+#
+# Usage (from E:\_\SERVER\main\xiaozhi-server):
+#   docker compose -f docker-compose_hotreload.yml up -d
+#   open http://localhost:8001  (HMR)
+#
+version: '3'
+
+services:
+  # Server模块 (Python) - keep same as dev mode (mount local code)
+  xiaozhi-esp32-server:
+    image: ghcr.nju.edu.cn/xinnan-tech/xiaozhi-esp32-server:server_latest
+    container_name: xiaozhi-esp32-server
+    depends_on:
+      - xiaozhi-esp32-server-db
+      - xiaozhi-esp32-server-redis
+    restart: always
+    networks:
+      - default
+    ports:
+      - "8000:8000"
+      - "8003:8003"
+    security_opt:
+      - seccomp:unconfined
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - ../../main/xiaozhi-server:/opt/xiaozhi-esp32-server
+      - ./data:/opt/xiaozhi-esp32-server/data
+      - ./models:/opt/xiaozhi-esp32-server/models
+
+  # Backend (manager-api + nginx) - stable docker runtime at :8002
+  xiaozhi-esp32-server-web:
+    image: ghcr.nju.edu.cn/xinnan-tech/xiaozhi-esp32-server:web_latest
+    container_name: xiaozhi-esp32-server-web
+    restart: always
+    networks:
+      - default
+    depends_on:
+      xiaozhi-esp32-server-db:
+        condition: service_healthy
+      xiaozhi-esp32-server-redis:
+        condition: service_healthy
+    ports:
+      - "8002:8002"
+    environment:
+      - TZ=Asia/Shanghai
+      - SPRING_DATASOURCE_DRUID_URL=jdbc:mysql://xiaozhi-esp32-server-db:3306/xiaozhi_esp32_server?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&nullCatalogMeansCurrent=true&connectTimeout=30000&socketTimeout=30000&autoReconnect=true&failOverReadOnly=false&maxReconnects=10
+      - SPRING_DATASOURCE_DRUID_USERNAME=root
+      - SPRING_DATASOURCE_DRUID_PASSWORD=123456
+      - SPRING_DATA_REDIS_HOST=xiaozhi-esp32-server-redis
+      - SPRING_DATA_REDIS_PASSWORD=
+      - SPRING_DATA_REDIS_PORT=6379
+    volumes:
+      - ./uploadfile:/uploadfile
+
+  # Frontend dev server (Vue CLI) - HMR at :8001
+  manager-web-dev:
+    image: node:18
+    container_name: xiaozhi-esp32-manager-web-dev
+    working_dir: /app
+    restart: unless-stopped
+    networks:
+      - default
+    ports:
+      - "8001:8001"
+    environment:
+      - TZ=Asia/Shanghai
+      # Make file watching reliable on Windows bind mounts
+      - CHOKIDAR_USEPOLLING=true
+      - CHOKIDAR_INTERVAL=1000
+      # Vue dev server settings (read by vue.config.js)
+      - VUE_APP_DEV_HOST=0.0.0.0
+      - VUE_APP_DEV_PORT=8001
+      - VUE_APP_API_PROXY_TARGET=http://xiaozhi-esp32-server-web:8002
+    volumes:
+      - ../manager-web:/app
+      # Keep node_modules inside container (avoid Windows fs perf issues)
+      - manager-web-node-modules:/app/node_modules
+    command: sh -lc "npm install && npm run serve"
+
+  xiaozhi-esp32-server-db:
+    image: mysql:latest
+    container_name: xiaozhi-esp32-server-db
+    healthcheck:
+      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+      timeout: 45s
+      interval: 10s
+      retries: 10
+    restart: always
+    networks:
+      - default
+    expose:
+      - 3306
+    volumes:
+      - ./mysql/data:/var/lib/mysql
+    environment:
+      - TZ=Asia/Shanghai
+      - MYSQL_ROOT_PASSWORD=123456
+      - MYSQL_DATABASE=xiaozhi_esp32_server
+      - MYSQL_INITDB_ARGS="--character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci"
+
+  xiaozhi-esp32-server-redis:
+    image: redis:8.0
+    expose:
+      - 6379
+    container_name: xiaozhi-esp32-server-redis
+    restart: always
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - default
+
+volumes:
+  manager-web-node-modules:
+
+networks:
+  default:
+
