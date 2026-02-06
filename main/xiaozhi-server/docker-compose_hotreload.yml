@@ -2,7 +2,8 @@
 #
 # Usage (from E:\_\SERVER\main\xiaozhi-server):
 #   docker compose -f docker-compose_hotreload.yml up -d
-#   open http://localhost:8001  (HMR)
+#   open http://localhost:8001  (HMR - Vue dev server)
+#   open http://localhost:8006/test_page.html  (Test page)
 #
 version: '3'
 
@@ -78,6 +79,25 @@ services:
       # Keep node_modules inside container (avoid Windows fs perf issues)
       - manager-web-node-modules:/app/node_modules
     command: sh -lc "npm install && npm run serve"
+
+  # Test page static server - serve test_page.html at :8006 with auto-reload
+  test-page:
+    image: node:18-alpine
+    container_name: xiaozhi-esp32-test-page
+    working_dir: /app
+    restart: unless-stopped
+    networks:
+      - default
+    ports:
+      - "8006:8006"
+    volumes:
+      - ./test:/app
+    environment:
+      - TZ=Asia/Shanghai
+      # Make file watching reliable on Windows bind mounts
+      - CHOKIDAR_USEPOLLING=true
+      - CHOKIDAR_INTERVAL=1000
+    command: sh -lc "npm install -g live-server && live-server --port=8006 --host=0.0.0.0 --open=/test_page.html --watch=/app --no-browser"
 
   xiaozhi-esp32-server-db:
     image: mysql:latest

@@ -1,85 +1,85 @@
 import { log } from '../../utils/logger.js?v=0205';
 
 
-// 检查Opus库是否已加载
+// Kiểm tra xem thư viện Opus đã được tải chưa
 export function checkOpusLoaded() {
     try {
-        // 检查Module是否存在（本地库导出的全局变量）
+        // Kiểm tra xem Module có tồn tại không (biến toàn cục được xuất từ thư viện cục bộ)
         if (typeof Module === 'undefined') {
-            throw new Error('Opus库未加载，Module对象不存在');
+            throw new Error('Thư viện Opus chưa được tải, đối tượng Module không tồn tại');
         }
 
-        // 尝试先使用Module.instance（libopus.js最后一行导出方式）
+        // Thử sử dụng Module.instance trước (cách xuất ở dòng cuối của libopus.js)
         if (typeof Module.instance !== 'undefined' && typeof Module.instance._opus_decoder_get_size === 'function') {
-            // 使用Module.instance对象替换全局Module对象
+            // Sử dụng đối tượng Module.instance thay thế đối tượng Module toàn cục
             window.ModuleInstance = Module.instance;
-            log('Opus库加载成功（使用Module.instance）', 'success');
+            log('Tải thư viện Opus thành công (sử dụng Module.instance)', 'success');
 
-            // 3秒后隐藏状态
+            // Ẩn trạng thái sau 3 giây
             const statusElement = document.getElementById('scriptStatus');
             if (statusElement) statusElement.style.display = 'none';
             return;
         }
 
-        // 如果没有Module.instance，检查全局Module函数
+        // Nếu không có Module.instance, kiểm tra hàm Module toàn cục
         if (typeof Module._opus_decoder_get_size === 'function') {
             window.ModuleInstance = Module;
-            log('Opus库加载成功（使用全局Module）', 'success');
+            log('Tải thư viện Opus thành công (sử dụng Module toàn cục)', 'success');
 
-            // 3秒后隐藏状态
+            // Ẩn trạng thái sau 3 giây
             const statusElement = document.getElementById('scriptStatus');
             if (statusElement) statusElement.style.display = 'none';
             return;
         }
 
-        throw new Error('Opus解码函数未找到，可能Module结构不正确');
+        throw new Error('Không tìm thấy hàm giải mã Opus, có thể cấu trúc Module không đúng');
     } catch (err) {
-        log(`Opus库加载失败，请检查libopus.js文件是否存在且正确: ${err.message}`, 'error');
+        log(`Tải thư viện Opus thất bại, vui lòng kiểm tra xem tệp libopus.js có tồn tại và đúng không: ${err.message}`, 'error');
     }
 }
 
 
-// 创建一个Opus编码器
+// Tạo một bộ mã hóa Opus
 let opusEncoder = null;
 export function initOpusEncoder() {
     try {
         if (opusEncoder) {
-            return opusEncoder; // 已经初始化过
+            return opusEncoder; // Đã được khởi tạo
         }
 
         if (!window.ModuleInstance) {
-            log('无法创建Opus编码器：ModuleInstance不可用', 'error');
+            log('Không thể tạo bộ mã hóa Opus: ModuleInstance không khả dụng', 'error');
             return;
         }
 
-        // 初始化一个Opus编码器
+        // Khởi tạo một bộ mã hóa Opus
         const mod = window.ModuleInstance;
-        const sampleRate = 16000; // 16kHz采样率
-        const channels = 1;       // 单声道
+        const sampleRate = 16000; // Tần số lấy mẫu 16kHz
+        const channels = 1;       // Kênh đơn
         const application = 2048; // OPUS_APPLICATION_VOIP = 2048
 
-        // 创建编码器
+        // Tạo bộ mã hóa
         opusEncoder = {
             channels: channels,
             sampleRate: sampleRate,
             frameSize: 960, // 60ms @ 16kHz = 60 * 16 = 960 samples
-            maxPacketSize: 4000, // 最大包大小
+            maxPacketSize: 4000, // Kích thước gói tối đa
             module: mod,
 
-            // 初始化编码器
+            // Khởi tạo bộ mã hóa
             init: function () {
                 try {
-                    // 获取编码器大小
+                    // Lấy kích thước bộ mã hóa
                     const encoderSize = mod._opus_encoder_get_size(this.channels);
-                    log(`Opus编码器大小: ${encoderSize}字节`, 'info');
+                    log(`Kích thước bộ mã hóa Opus: ${encoderSize} byte`, 'info');
 
-                    // 分配内存
+                    // Cấp phát bộ nhớ
                     this.encoderPtr = mod._malloc(encoderSize);
                     if (!this.encoderPtr) {
-                        throw new Error("无法分配编码器内存");
+                        throw new Error("Không thể cấp phát bộ nhớ cho bộ mã hóa");
                     }
 
-                    // 初始化编码器
+                    // Khởi tạo bộ mã hóa
                     const err = mod._opus_encoder_init(
                         this.encoderPtr,
                         this.sampleRate,
@@ -88,31 +88,31 @@ export function initOpusEncoder() {
                     );
 
                     if (err < 0) {
-                        throw new Error(`Opus编码器初始化失败: ${err}`);
+                        throw new Error(`Khởi tạo bộ mã hóa Opus thất bại: ${err}`);
                     }
 
-                    // 设置位率 (16kbps)
+                    // Thiết lập tốc độ bit (16kbps)
                     mod._opus_encoder_ctl(this.encoderPtr, 4002, 16000); // OPUS_SET_BITRATE
 
-                    // 设置复杂度 (0-10, 越高质量越好但CPU使用越多)
+                    // Thiết lập độ phức tạp (0-10, chất lượng càng cao càng tốt nhưng CPU sử dụng càng nhiều)
                     mod._opus_encoder_ctl(this.encoderPtr, 4010, 5);     // OPUS_SET_COMPLEXITY
 
-                    // 设置使用DTX (不传输静音帧)
+                    // Thiết lập sử dụng DTX (không truyền khung im lặng)
                     mod._opus_encoder_ctl(this.encoderPtr, 4016, 1);     // OPUS_SET_DTX
 
-                    log("Opus编码器初始化成功", 'success');
+                    log("Khởi tạo bộ mã hóa Opus thành công", 'success');
                     return true;
                 } catch (error) {
                     if (this.encoderPtr) {
                         mod._free(this.encoderPtr);
                         this.encoderPtr = null;
                     }
-                    log(`Opus编码器初始化失败: ${error.message}`, 'error');
+                    log(`Khởi tạo bộ mã hóa Opus thất bại: ${error.message}`, 'error');
                     return false;
                 }
             },
 
-            // 编码PCM数据为Opus
+            // Mã hóa dữ liệu PCM thành Opus
             encode: function (pcmData) {
                 if (!this.encoderPtr) {
                     if (!this.init()) {
@@ -123,18 +123,18 @@ export function initOpusEncoder() {
                 try {
                     const mod = this.module;
 
-                    // 为PCM数据分配内存
-                    const pcmPtr = mod._malloc(pcmData.length * 2); // 2字节/int16
+                    // Cấp phát bộ nhớ cho dữ liệu PCM
+                    const pcmPtr = mod._malloc(pcmData.length * 2); // 2 byte/int16
 
-                    // 将PCM数据复制到HEAP
+                    // Sao chép dữ liệu PCM vào HEAP
                     for (let i = 0; i < pcmData.length; i++) {
                         mod.HEAP16[(pcmPtr >> 1) + i] = pcmData[i];
                     }
 
-                    // 为输出分配内存
+                    // Cấp phát bộ nhớ cho đầu ra
                     const outPtr = mod._malloc(this.maxPacketSize);
 
-                    // 进行编码
+                    // Thực hiện mã hóa
                     const encodedLen = mod._opus_encode(
                         this.encoderPtr,
                         pcmPtr,
@@ -144,27 +144,27 @@ export function initOpusEncoder() {
                     );
 
                     if (encodedLen < 0) {
-                        throw new Error(`Opus编码失败: ${encodedLen}`);
+                        throw new Error(`Mã hóa Opus thất bại: ${encodedLen}`);
                     }
 
-                    // 复制编码后的数据
+                    // Sao chép dữ liệu đã mã hóa
                     const opusData = new Uint8Array(encodedLen);
                     for (let i = 0; i < encodedLen; i++) {
                         opusData[i] = mod.HEAPU8[outPtr + i];
                     }
 
-                    // 释放内存
+                    // Giải phóng bộ nhớ
                     mod._free(pcmPtr);
                     mod._free(outPtr);
 
                     return opusData;
                 } catch (error) {
-                    log(`Opus编码出错: ${error.message}`, 'error');
+                    log(`Lỗi mã hóa Opus: ${error.message}`, 'error');
                     return null;
                 }
             },
 
-            // 销毁编码器
+            // Hủy bộ mã hóa
             destroy: function () {
                 if (this.encoderPtr) {
                     this.module._free(this.encoderPtr);
@@ -176,7 +176,7 @@ export function initOpusEncoder() {
         opusEncoder.init();
         return opusEncoder;
     } catch (error) {
-        log(`创建Opus编码器失败: ${error.message}`, 'error');
+        log(`Tạo bộ mã hóa Opus thất bại: ${error.message}`, 'error');
         return false;
     }
 }

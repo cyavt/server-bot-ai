@@ -1,18 +1,18 @@
-// 音频播放模块
+// Mô-đun phát âm thanh
 import BlockingQueue from '../../utils/blocking-queue.js?v=0205';
 import { log } from '../../utils/logger.js?v=0205';
 import { createStreamingContext } from './stream-context.js?v=0205';
 
-// 音频播放器类
+// Lớp trình phát âm thanh
 export class AudioPlayer {
     constructor() {
-        // 音频参数
+        // Tham số âm thanh
         this.SAMPLE_RATE = 16000;
         this.CHANNELS = 1;
         this.FRAME_SIZE = 960;
         this.MIN_AUDIO_DURATION = 0.12;
 
-        // 状态
+        // Trạng thái
         this.audioContext = null;
         this.opusDecoder = null;
         this.streamingContext = null;
@@ -20,19 +20,19 @@ export class AudioPlayer {
         this.isPlaying = false;
     }
 
-    // 获取或创建AudioContext
+    // Lấy hoặc tạo AudioContext
     getAudioContext() {
         if (!this.audioContext) {
             this.audioContext = new (window.AudioContext || window.webkitAudioContext)({
                 sampleRate: this.SAMPLE_RATE,
                 latencyHint: 'interactive'
             });
-            log('创建音频上下文，采样率: ' + this.SAMPLE_RATE + 'Hz', 'debug');
+            log('Đã tạo ngữ cảnh âm thanh, tần số lấy mẫu: ' + this.SAMPLE_RATE + 'Hz', 'debug');
         }
         return this.audioContext;
     }
 
-    // 初始化Opus解码器
+    // Khởi tạo bộ giải mã Opus
     async initOpusDecoder() {
         if (this.opusDecoder) return this.opusDecoder;
 
@@ -40,9 +40,9 @@ export class AudioPlayer {
             if (typeof window.ModuleInstance === 'undefined') {
                 if (typeof Module !== 'undefined') {
                     window.ModuleInstance = Module;
-                    log('使用全局Module作为ModuleInstance', 'info');
+                    log('Sử dụng Module toàn cục làm ModuleInstance', 'info');
                 } else {
-                    throw new Error('Opus库未加载，ModuleInstance和Module对象都不存在');
+                    throw new Error('Thư viện Opus chưa được tải, cả ModuleInstance và Module đều không tồn tại');
                 }
             }
 
@@ -59,11 +59,11 @@ export class AudioPlayer {
                     if (this.decoderPtr) return true;
 
                     const decoderSize = mod._opus_decoder_get_size(this.channels);
-                    log(`Opus解码器大小: ${decoderSize}字节`, 'debug');
+                    log(`Kích thước bộ giải mã Opus: ${decoderSize} byte`, 'debug');
 
                     this.decoderPtr = mod._malloc(decoderSize);
                     if (!this.decoderPtr) {
-                        throw new Error("无法分配解码器内存");
+                        throw new Error("Không thể cấp phát bộ nhớ cho bộ giải mã");
                     }
 
                     const err = mod._opus_decoder_init(
@@ -74,17 +74,17 @@ export class AudioPlayer {
 
                     if (err < 0) {
                         this.destroy();
-                        throw new Error(`Opus解码器初始化失败: ${err}`);
+                        throw new Error(`Khởi tạo bộ giải mã Opus thất bại: ${err}`);
                     }
 
-                    log("Opus解码器初始化成功", 'success');
+                    log("Khởi tạo bộ giải mã Opus thành công", 'success');
                     return true;
                 },
 
                 decode: function (opusData) {
                     if (!this.decoderPtr) {
                         if (!this.init()) {
-                            throw new Error("解码器未初始化且无法初始化");
+                            throw new Error("Bộ giải mã chưa được khởi tạo và không thể khởi tạo");
                         }
                     }
 
@@ -108,7 +108,7 @@ export class AudioPlayer {
                         if (decodedSamples < 0) {
                             mod._free(opusPtr);
                             mod._free(pcmPtr);
-                            throw new Error(`Opus解码失败: ${decodedSamples}`);
+                            throw new Error(`Giải mã Opus thất bại: ${decodedSamples}`);
                         }
 
                         const decodedData = new Int16Array(decodedSamples);
@@ -121,7 +121,7 @@ export class AudioPlayer {
 
                         return decodedData;
                     } catch (error) {
-                        log(`Opus解码错误: ${error.message}`, 'error');
+                        log(`Lỗi giải mã Opus: ${error.message}`, 'error');
                         return new Int16Array(0);
                     }
                 },
@@ -135,24 +135,24 @@ export class AudioPlayer {
             };
 
             if (!this.opusDecoder.init()) {
-                throw new Error("Opus解码器初始化失败");
+                throw new Error("Khởi tạo bộ giải mã Opus thất bại");
             }
 
             return this.opusDecoder;
 
         } catch (error) {
-            log(`Opus解码器初始化失败: ${error.message}`, 'error');
+            log(`Khởi tạo bộ giải mã Opus thất bại: ${error.message}`, 'error');
             this.opusDecoder = null;
             throw error;
         }
     }
 
-    // 启动音频缓冲
+    // Khởi động đệm âm thanh
     async startAudioBuffering() {
-        log("开始音频缓冲...", 'info');
+        log("Bắt đầu đệm âm thanh...", 'info');
 
         this.initOpusDecoder().catch(error => {
-            log(`预初始化Opus解码器失败: ${error.message}`, 'warning');
+            log(`Khởi tạo trước bộ giải mã Opus thất bại: ${error.message}`, 'warning');
         });
 
         const timeout = 400;
@@ -161,11 +161,11 @@ export class AudioPlayer {
                 6,
                 timeout,
                 (count) => {
-                    log(`缓冲超时，当前缓冲包数: ${count}，开始播放`, 'info');
+                    log(`Đệm hết thời gian chờ, số gói đệm hiện tại: ${count}, bắt đầu phát`, 'info');
                 }
             );
             if (packets.length) {
-                log(`已缓冲 ${packets.length} 个音频包，开始播放`, 'info');
+                log(`Đã đệm ${packets.length} gói âm thanh, bắt đầu phát`, 'info');
                 this.streamingContext.pushAudioBuffer(packets);
             }
 
@@ -180,21 +180,21 @@ export class AudioPlayer {
         }
     }
 
-    // 播放已缓冲的音频
+    // Phát âm thanh đã được đệm
     async playBufferedAudio() {
         try {
             this.audioContext = this.getAudioContext();
 
             if (!this.opusDecoder) {
-                log('初始化Opus解码器...', 'info');
+                log('Đang khởi tạo bộ giải mã Opus...', 'info');
                 try {
                     this.opusDecoder = await this.initOpusDecoder();
                     if (!this.opusDecoder) {
-                        throw new Error('解码器初始化失败');
+                        throw new Error('Khởi tạo bộ giải mã thất bại');
                     }
-                    log('Opus解码器初始化成功', 'success');
+                    log('Khởi tạo bộ giải mã Opus thành công', 'success');
                 } catch (error) {
-                    log('Opus解码器初始化失败: ' + error.message, 'error');
+                    log('Khởi tạo bộ giải mã Opus thất bại: ' + error.message, 'error');
                     this.isPlaying = false;
                     return;
                 }
@@ -214,43 +214,43 @@ export class AudioPlayer {
             this.streamingContext.startPlaying();
 
         } catch (error) {
-            log(`播放已缓冲的音频出错: ${error.message}`, 'error');
+            log(`Lỗi phát âm thanh đã được đệm: ${error.message}`, 'error');
             this.isPlaying = false;
             this.streamingContext = null;
         }
     }
 
-    // 添加音频数据到队列
+    // Thêm dữ liệu âm thanh vào hàng đợi
     enqueueAudioData(opusData) {
         if (opusData.length > 0) {
             this.queue.enqueue(opusData);
         } else {
-            log('收到空音频数据帧，可能是结束标志', 'warning');
+            log('Nhận được khung dữ liệu âm thanh rỗng, có thể là dấu hiệu kết thúc', 'warning');
             if (this.isPlaying && this.streamingContext) {
                 this.streamingContext.endOfStream = true;
             }
         }
     }
 
-    // 预加载解码器
+    // Tải trước bộ giải mã
     async preload() {
-        log('预加载Opus解码器...', 'info');
+        log('Đang tải trước bộ giải mã Opus...', 'info');
         try {
             await this.initOpusDecoder();
-            log('Opus解码器预加载成功', 'success');
+            log('Tải trước bộ giải mã Opus thành công', 'success');
         } catch (error) {
-            log(`Opus解码器预加载失败: ${error.message}，将在需要时重试`, 'warning');
+            log(`Tải trước bộ giải mã Opus thất bại: ${error.message}, sẽ thử lại khi cần`, 'warning');
         }
     }
 
-    // 启动播放系统
+    // Khởi động hệ thống phát
     async start() {
         await this.preload();
         this.playBufferedAudio();
         this.startAudioBuffering();
     }
 
-    // 获取音频包统计信息
+    // Lấy thông tin thống kê gói âm thanh
     getAudioStats() {
         if (!this.streamingContext) {
             return {
@@ -264,29 +264,29 @@ export class AudioPlayer {
         const pendingPlay = this.streamingContext.getPendingPlayCount();
 
         return {
-            pendingDecode,  // 待解码包数
-            pendingPlay,    // 待播放包数
-            totalPending: pendingDecode + pendingPlay  // 总待处理包数
+            pendingDecode,  // Số gói chờ giải mã
+            pendingPlay,    // Số gói chờ phát
+            totalPending: pendingDecode + pendingPlay  // Tổng số gói chờ xử lý
         };
     }
 
-    // 清空所有音频缓冲并停止播放
+    // Xóa tất cả đệm âm thanh và dừng phát
     clearAllAudio() {
-        log('AudioPlayer: 清空所有音频', 'info');
+        log('AudioPlayer: Đang xóa tất cả âm thanh', 'info');
 
-        // 清空接收队列（使用clear方法保持对象引用）
+        // Xóa hàng đợi nhận (sử dụng phương thức clear để giữ tham chiếu đối tượng)
         this.queue.clear();
 
-        // 清空流上下文的所有缓冲
+        // Xóa tất cả đệm của ngữ cảnh luồng
         if (this.streamingContext) {
             this.streamingContext.clearAllBuffers();
         }
 
-        log('AudioPlayer: 音频已清空', 'success');
+        log('AudioPlayer: Âm thanh đã được xóa', 'success');
     }
 }
 
-// 创建单例
+// Tạo singleton
 let audioPlayerInstance = null;
 
 export function getAudioPlayer() {

@@ -1,4 +1,4 @@
-// WebSocket消息处理模块
+// Mô-đun xử lý tin nhắn WebSocket
 import { getConfig, saveConnectionUrls } from '../../config/manager.js?v=0205';
 import { uiController } from '../../ui/controller.js?v=0205';
 import { log } from '../../utils/logger.js?v=0205';
@@ -7,7 +7,7 @@ import { getAudioRecorder } from '../audio/recorder.js?v=0205';
 import { executeMcpTool, getMcpTools, setWebSocket as setMcpWebSocket } from '../mcp/tools.js?v=0205';
 import { webSocketConnect } from './ota-connector.js?v=0205';
 
-// WebSocket处理器类
+// Lớp xử lý WebSocket
 export class WebSocketHandler {
     constructor() {
         this.websocket = null;
@@ -15,12 +15,12 @@ export class WebSocketHandler {
         this.onRecordButtonStateChange = null;
         this.onSessionStateChange = null;
         this.onSessionEmotionChange = null;
-        this.onChatMessage = null; // 新增：聊天消息回调
+        this.onChatMessage = null; // Mới thêm: Callback tin nhắn chat
         this.currentSessionId = null;
         this.isRemoteSpeaking = false;
     }
 
-    // 发送hello握手消息
+    // Gửi tin nhắn bắt tay hello
     async sendHelloMessage() {
         if (!this.websocket || this.websocket.readyState !== WebSocket.OPEN) return false;
 
@@ -38,13 +38,13 @@ export class WebSocketHandler {
                 }
             };
 
-            log('发送hello握手消息', 'info');
+            log('Gửi tin nhắn bắt tay hello', 'info');
             this.websocket.send(JSON.stringify(helloMessage));
 
             return new Promise(resolve => {
                 const timeout = setTimeout(() => {
-                    log('等待hello响应超时', 'error');
-                    log('提示: 请尝试点击"测试认证"按钮进行连接排查', 'info');
+                    log('Chờ phản hồi hello hết thời gian', 'error');
+                    log('Gợi ý: Vui lòng thử nhấp nút "Kiểm tra xác thực" để kiểm tra kết nối', 'info');
                     resolve(false);
                 }, 5000);
 
@@ -52,83 +52,83 @@ export class WebSocketHandler {
                     try {
                         const response = JSON.parse(event.data);
                         if (response.type === 'hello' && response.session_id) {
-                            log(`服务器握手成功，会话ID: ${response.session_id}`, 'success');
+                            log(`Máy chủ bắt tay thành công, ID phiên: ${response.session_id}`, 'success');
                             clearTimeout(timeout);
                             this.websocket.removeEventListener('message', onMessageHandler);
                             resolve(true);
                         }
                     } catch (e) {
-                        // 忽略非JSON消息
+                        // Bỏ qua tin nhắn không phải JSON
                     }
                 };
 
                 this.websocket.addEventListener('message', onMessageHandler);
             });
         } catch (error) {
-            log(`发送hello消息错误: ${error.message}`, 'error');
+            log(`Lỗi gửi tin nhắn hello: ${error.message}`, 'error');
             return false;
         }
     }
 
-    // 处理文本消息
+    // Xử lý tin nhắn văn bản
     handleTextMessage(message) {
         if (message.type === 'hello') {
-            log(`服务器回应：${JSON.stringify(message, null, 2)}`, 'success');
+            log(`Máy chủ phản hồi：${JSON.stringify(message, null, 2)}`, 'success');
             window.cameraAvailable = true;
-            log('连接成功，摄像头已可用', 'success');
+            log('Kết nối thành công, camera đã khả dụng', 'success');
             uiController.updateDialButton(true);
             uiController.startAIChatSession();
         } else if (message.type === 'tts') {
             this.handleTTSMessage(message);
         } else if (message.type === 'audio') {
-            log(`收到音频控制消息: ${JSON.stringify(message)}`, 'info');
+            log(`Nhận được tin nhắn điều khiển âm thanh: ${JSON.stringify(message)}`, 'info');
         } else if (message.type === 'stt') {
-            log(`识别结果: ${message.text}`, 'info');
-            // 检查是否需要绑定设备
-            if (message.text && (message.text.includes('绑定') || message.text.includes('bind'))) {
-                log('收到设备绑定提示，更新摄像头状态', 'warning');
+            log(`Kết quả nhận dạng: ${message.text}`, 'info');
+            // Kiểm tra xem có cần liên kết thiết bị không
+            if (message.text && (message.text.includes('liên kết') || message.text.includes('bind'))) {
+                log('Nhận được thông báo liên kết thiết bị, cập nhật trạng thái camera', 'warning');
                 window.cameraAvailable = false;
-                // 关闭摄像头
+                // Đóng camera
                 if (typeof window.stopCamera === 'function') {
                     window.stopCamera();
                 }
-                // 更新摄像头按钮状态
+                // Cập nhật trạng thái nút camera
                 const cameraBtn = document.getElementById('cameraBtn');
                 if (cameraBtn) {
                     cameraBtn.classList.remove('camera-active');
-                    cameraBtn.querySelector('.btn-text').textContent = '摄像头';
+                    cameraBtn.querySelector('.btn-text').textContent = 'Camera';
                     cameraBtn.disabled = true;
-                    cameraBtn.title = '请先绑定验证码';
+                    cameraBtn.title = 'Vui lòng liên kết mã xác thực trước';
                 }
             }
-            // 使用新的聊天消息回调显示STT消息
+            // Sử dụng callback tin nhắn chat mới để hiển thị tin nhắn STT
             if (this.onChatMessage && message.text) {
                 this.onChatMessage(message.text, true);
             }
         } else if (message.type === 'llm') {
-            log(`大模型回复: ${message.text}`, 'info');
-            // 使用新的聊天消息回调显示LLM回复
+            log(`Mô hình lớn phản hồi: ${message.text}`, 'info');
+            // Sử dụng callback tin nhắn chat mới để hiển thị phản hồi LLM
             if (this.onChatMessage && message.text) {
                 this.onChatMessage(message.text, false);
             }
 
-            // 如果包含表情，更新sessionStatus表情并触发Live2D动作
+            // Nếu chứa biểu cảm, cập nhật biểu cảm sessionStatus và kích hoạt hành động Live2D
             if (message.text && /[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/u.test(message.text)) {
-                // 提取表情符号
+                // Trích xuất biểu tượng cảm xúc
                 const emojiMatch = message.text.match(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/u);
                 if (emojiMatch && this.onSessionEmotionChange) {
                     this.onSessionEmotionChange(emojiMatch[0]);
                 }
 
-                // 触发Live2D情绪动作
+                // Kích hoạt hành động cảm xúc Live2D
                 if (message.emotion) {
-                    console.log(`收到情绪消息: emotion=${message.emotion}, text=${message.text}`);
+                    console.log(`Nhận được tin nhắn cảm xúc: emotion=${message.emotion}, text=${message.text}`);
                     this.triggerLive2DEmotionAction(message.emotion);
                 }
             }
 
-            // 只有当文本不仅仅是表情时，才添加到对话中
-            // 移除文本中的表情后检查是否还有内容
+            // Chỉ thêm vào cuộc trò chuyện khi văn bản không chỉ là biểu cảm
+            // Kiểm tra xem còn nội dung sau khi loại bỏ biểu cảm khỏi văn bản
             const textWithoutEmoji = message.text ? message.text.replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/gu, '').trim() : '';
             if (textWithoutEmoji && this.onChatMessage) {
                 this.onChatMessage(message.text, false);
@@ -136,46 +136,46 @@ export class WebSocketHandler {
         } else if (message.type === 'mcp') {
             this.handleMCPMessage(message);
         } else {
-            log(`未知消息类型: ${message.type}`, 'info');
+            log(`Loại tin nhắn không xác định: ${message.type}`, 'info');
             if (this.onChatMessage) {
-                this.onChatMessage(`未知消息类型: ${message.type}\n${JSON.stringify(message, null, 2)}`, false);
+                this.onChatMessage(`Loại tin nhắn không xác định: ${message.type}\n${JSON.stringify(message, null, 2)}`, false);
             }
         }
     }
 
-    // 处理TTS消息
+    // Xử lý tin nhắn TTS
     handleTTSMessage(message) {
         if (message.state === 'start') {
-            log('服务器开始发送语音', 'info');
+            log('Máy chủ bắt đầu gửi giọng nói', 'info');
             this.currentSessionId = message.session_id;
             this.isRemoteSpeaking = true;
             if (this.onSessionStateChange) {
                 this.onSessionStateChange(true);
             }
 
-            // 启动Live2D说话动画
+            // Khởi động hoạt hình nói Live2D
             this.startLive2DTalking();
         } else if (message.state === 'sentence_start') {
-            log(`服务器发送语音段: ${message.text}`, 'info');
+            log(`Máy chủ gửi đoạn giọng nói: ${message.text}`, 'info');
             this.ttsSentenceCount = (this.ttsSentenceCount || 0) + 1;
 
             if (message.text && this.onChatMessage) {
                 this.onChatMessage(message.text, false);
             }
 
-            // 确保动画在句子开始时运行
+            // Đảm bảo hoạt hình chạy khi câu bắt đầu
             const live2dManager = window.chatApp?.live2dManager;
             if (live2dManager && !live2dManager.isTalking) {
                 this.startLive2DTalking();
             }
         } else if (message.state === 'sentence_end') {
-            log(`语音段结束: ${message.text}`, 'info');
+            log(`Đoạn giọng nói kết thúc: ${message.text}`, 'info');
 
-            // 句子结束时不清除动画，等待下一个句子或最终停止
+            // Khi câu kết thúc không xóa hoạt hình, đợi câu tiếp theo hoặc dừng cuối cùng
         } else if (message.state === 'stop') {
-            log('服务器语音传输结束，清空所有音频缓冲', 'info');
+            log('Máy chủ kết thúc truyền giọng nói, xóa tất cả bộ đệm âm thanh', 'info');
 
-            // 清空所有音频缓冲并停止播放
+            // Xóa tất cả bộ đệm âm thanh và dừng phát
             const audioPlayer = getAudioPlayer();
             audioPlayer.clearAllAudio();
 
@@ -187,63 +187,63 @@ export class WebSocketHandler {
                 this.onSessionStateChange(false);
             }
 
-            // 延迟停止Live2D说话动画，确保所有句子都播放完毕
+            // Trì hoãn dừng hoạt hình nói Live2D, đảm bảo tất cả câu đã phát xong
             setTimeout(() => {
                 this.stopLive2DTalking();
-                this.ttsSentenceCount = 0; // 重置计数器
-            }, 1000); // 1秒延迟，确保所有句子都完成
+                this.ttsSentenceCount = 0; // Đặt lại bộ đếm
+            }, 1000); // Trì hoãn 1 giây, đảm bảo tất cả câu đã hoàn thành
         }
     }
 
-    // 启动Live2D说话动画
+    // Khởi động hoạt hình nói Live2D
     startLive2DTalking() {
         try {
-            // 获取Live2D管理器实例
+            // Lấy instance trình quản lý Live2D
             const live2dManager = window.chatApp?.live2dManager;
             if (live2dManager && live2dManager.live2dModel) {
-                // 使用音频播放器的分析器节点
+                // Sử dụng nút phân tích của trình phát âm thanh
                 live2dManager.startTalking();
-                log('Live2D说话动画已启动', 'info');
+                log('Hoạt hình nói Live2D đã khởi động', 'info');
             }
         } catch (error) {
-            log(`启动Live2D说话动画失败: ${error.message}`, 'error');
+            log(`Khởi động hoạt hình nói Live2D thất bại: ${error.message}`, 'error');
         }
     }
 
-    // 停止Live2D说话动画
+    // Dừng hoạt hình nói Live2D
     stopLive2DTalking() {
         try {
             const live2dManager = window.chatApp?.live2dManager;
             if (live2dManager) {
                 live2dManager.stopTalking();
-                log('Live2D说话动画已停止', 'info');
+                log('Hoạt hình nói Live2D đã dừng', 'info');
             }
         } catch (error) {
-            log(`停止Live2D说话动画失败: ${error.message}`, 'error');
+            log(`Dừng hoạt hình nói Live2D thất bại: ${error.message}`, 'error');
         }
     }
 
-    // 初始化Live2D音频分析器
+    // Khởi tạo bộ phân tích âm thanh Live2D
     initializeLive2DAudioAnalyzer() {
         try {
             const live2dManager = window.chatApp?.live2dManager;
             if (live2dManager) {
-                // 初始化音频分析器（使用音频播放器的上下文）
+                // Khởi tạo bộ phân tích âm thanh (sử dụng ngữ cảnh của trình phát âm thanh)
                 if (live2dManager.initializeAudioAnalyzer()) {
-                    log('Live2D音频分析器初始化完成，已连接到音频播放器', 'success');
+                    log('Khởi tạo bộ phân tích âm thanh Live2D hoàn tất, đã kết nối đến trình phát âm thanh', 'success');
                 } else {
-                    log('Live2D音频分析器初始化失败，将使用模拟动画', 'warning');
+                    log('Khởi tạo bộ phân tích âm thanh Live2D thất bại, sẽ sử dụng hoạt hình mô phỏng', 'warning');
                 }
             }
         } catch (error) {
-            log(`初始化Live2D音频分析器失败: ${error.message}`, 'error');
+            log(`Khởi tạo bộ phân tích âm thanh Live2D thất bại: ${error.message}`, 'error');
         }
     }
 
-    // 处理MCP消息
+    // Xử lý tin nhắn MCP
     handleMCPMessage(message) {
         const payload = message.payload || {};
-        log(`服务器下发: ${JSON.stringify(message)}`, 'info');
+        log(`Máy chủ gửi xuống: ${JSON.stringify(message)}`, 'info');
 
         if (payload.method === 'tools/list') {
             const tools = getMcpTools();
@@ -259,15 +259,15 @@ export class WebSocketHandler {
                     }
                 }
             });
-            log(`客户端上报: ${replyMessage}`, 'info');
+            log(`Khách hàng báo cáo: ${replyMessage}`, 'info');
             this.websocket.send(replyMessage);
-            log(`回复MCP工具列表: ${tools.length} 个工具`, 'info');
+            log(`Phản hồi danh sách công cụ MCP: ${tools.length} công cụ`, 'info');
 
         } else if (payload.method === 'tools/call') {
             const toolName = payload.params?.name;
             const toolArgs = payload.params?.arguments;
 
-            log(`调用工具: ${toolName} 参数: ${JSON.stringify(toolArgs)}`, 'info');
+            log(`Gọi công cụ: ${toolName} Tham số: ${JSON.stringify(toolArgs)}`, 'info');
 
             executeMcpTool(toolName, toolArgs).then(result => {
                 const replyMessage = JSON.stringify({
@@ -288,10 +288,10 @@ export class WebSocketHandler {
                     }
                 });
 
-                log(`客户端上报: ${replyMessage}`, 'info');
+                log(`Khách hàng báo cáo: ${replyMessage}`, 'info');
                 this.websocket.send(replyMessage);
             }).catch(error => {
-                log(`工具执行失败: ${error.message}`, 'error');
+                log(`Thực thi công cụ thất bại: ${error.message}`, 'error');
                 const errorReply = JSON.stringify({
                     "session_id": message.session_id || "",
                     "type": "mcp",
@@ -307,8 +307,8 @@ export class WebSocketHandler {
                 this.websocket.send(errorReply);
             });
         } else if (payload.method === 'initialize') {
-            log(`收到工具初始化请求: ${JSON.stringify(payload.params)}`, 'info');
-            // 保存视觉分析接口地址
+            log(`Nhận được yêu cầu khởi tạo công cụ: ${JSON.stringify(payload.params)}`, 'info');
+            // Lưu địa chỉ giao diện phân tích thị giác
             const visionUrl = document.getElementById('visionUrl');
             const visionConfig = payload?.params?.capabilities?.vision;
             if (visionConfig && typeof visionConfig === 'object' && visionConfig.url && visionConfig.token) {
@@ -338,14 +338,14 @@ export class WebSocketHandler {
                     }
                 }
             });
-            log(`回复初始化响应`, 'info');
+            log(`Phản hồi khởi tạo`, 'info');
             this.websocket.send(replyMessage);
         } else {
-            log(`未知的MCP方法: ${payload.method}`, 'warning');
+            log(`Phương thức MCP không xác định: ${payload.method}`, 'warning');
         }
     }
 
-    // 处理二进制消息
+    // Xử lý tin nhắn nhị phân
     async handleBinaryMessage(data) {
         try {
             let arrayBuffer;
@@ -353,9 +353,9 @@ export class WebSocketHandler {
                 arrayBuffer = data;
             } else if (data instanceof Blob) {
                 arrayBuffer = await data.arrayBuffer();
-                log(`收到Blob音频数据，大小: ${arrayBuffer.byteLength}字节`, 'debug');
+                log(`Nhận được dữ liệu âm thanh Blob, kích thước: ${arrayBuffer.byteLength} byte`, 'debug');
             } else {
-                log(`收到未知类型的二进制数据: ${typeof data}`, 'warning');
+                log(`Nhận được dữ liệu nhị phân loại không xác định: ${typeof data}`, 'warning');
                 return;
             }
 
@@ -363,14 +363,14 @@ export class WebSocketHandler {
             const audioPlayer = getAudioPlayer();
             audioPlayer.enqueueAudioData(opusData);
         } catch (error) {
-            log(`处理二进制消息出错: ${error.message}`, 'error');
+            log(`Lỗi xử lý tin nhắn nhị phân: ${error.message}`, 'error');
         }
     }
 
-    // 连接WebSocket服务器
+    // Kết nối máy chủ WebSocket
     async connect() {
         const config = getConfig();
-        log('正在检查OTA状态...', 'info');
+        log('Đang kiểm tra trạng thái OTA...', 'info');
         saveConnectionUrls();
 
         try {
@@ -381,13 +381,13 @@ export class WebSocketHandler {
             }
             this.websocket = ws;
 
-            // 设置接收二进制数据的类型为ArrayBuffer
+            // Thiết lập loại dữ liệu nhị phân nhận được là ArrayBuffer
             this.websocket.binaryType = 'arraybuffer';
 
-            // 设置 MCP 模块的 WebSocket 实例
+            // Thiết lập instance WebSocket cho mô-đun MCP
             setMcpWebSocket(this.websocket);
 
-            // 设置录音器的WebSocket
+            // Thiết lập WebSocket cho trình ghi âm
             const audioRecorder = getAudioRecorder();
             audioRecorder.setWebSocket(this.websocket);
 
@@ -395,7 +395,7 @@ export class WebSocketHandler {
 
             return true;
         } catch (error) {
-            log(`连接错误: ${error.message}`, 'error');
+            log(`Lỗi kết nối: ${error.message}`, 'error');
             if (this.onConnectionStateChange) {
                 this.onConnectionStateChange(false);
             }
@@ -403,30 +403,30 @@ export class WebSocketHandler {
         }
     }
 
-    // 设置事件处理器
+    // Thiết lập trình xử lý sự kiện
     setupEventHandlers() {
         this.websocket.onopen = async () => {
             const url = document.getElementById('serverUrl').value;
-            log(`已连接到服务器: ${url}`, 'success');
+            log(`Đã kết nối đến máy chủ: ${url}`, 'success');
 
             if (this.onConnectionStateChange) {
                 this.onConnectionStateChange(true);
             }
 
-            // 连接成功后，默认状态为聆听中
+            // Sau khi kết nối thành công, trạng thái mặc định là đang lắng nghe
             this.isRemoteSpeaking = false;
             if (this.onSessionStateChange) {
                 this.onSessionStateChange(false);
             }
 
-            // 在WebSocket连接成功时初始化Live2D音频分析器
+            // Khởi tạo bộ phân tích âm thanh Live2D khi WebSocket kết nối thành công
             this.initializeLive2DAudioAnalyzer();
 
             await this.sendHelloMessage();
         };
 
         this.websocket.onclose = () => {
-            log('已断开连接', 'info');
+            log('Đã ngắt kết nối', 'info');
 
             if (this.onConnectionStateChange) {
                 this.onConnectionStateChange(false);
@@ -435,12 +435,12 @@ export class WebSocketHandler {
             const audioRecorder = getAudioRecorder();
             audioRecorder.stop();
 
-            // 关闭摄像头
+            // Đóng camera
             if (typeof window.stopCamera === 'function') {
                 window.stopCamera();
             }
 
-            // 隐藏摄像头显示区域
+            // Ẩn vùng hiển thị camera
             const cameraContainer = document.getElementById('cameraContainer');
             if (cameraContainer) {
                 cameraContainer.classList.remove('active');
@@ -448,8 +448,8 @@ export class WebSocketHandler {
         };
 
         this.websocket.onerror = (error) => {
-            log(`WebSocket错误: ${error.message || '未知错误'}`, 'error');
-            uiController.addChatMessage(`⚠️ WebSocket错误: ${error.message || '未知错误'}`, false);
+            log(`Lỗi WebSocket: ${error.message || 'Lỗi không xác định'}`, 'error');
+            uiController.addChatMessage(`⚠️ Lỗi WebSocket: ${error.message || 'Lỗi không xác định'}`, false);
             if (this.onConnectionStateChange) {
                 this.onConnectionStateChange(false);
             }
@@ -464,14 +464,14 @@ export class WebSocketHandler {
                     this.handleBinaryMessage(event.data);
                 }
             } catch (error) {
-                log(`WebSocket消息处理错误: ${error.message}`, 'error');
-                // 不再使用旧的addMessage函数，因为conversationDiv元素不存在
-                // 错误消息将通过其他方式显示
+                log(`Lỗi xử lý tin nhắn WebSocket: ${error.message}`, 'error');
+                // Không còn sử dụng hàm addMessage cũ, vì phần tử conversationDiv không tồn tại
+                // Tin nhắn lỗi sẽ được hiển thị bằng cách khác
             }
         };
     }
 
-    // 断开连接
+    // Ngắt kết nối
     disconnect() {
         if (!this.websocket) return;
 
@@ -479,26 +479,26 @@ export class WebSocketHandler {
         const audioRecorder = getAudioRecorder();
         audioRecorder.stop();
 
-        // 关闭摄像头
+        // Đóng camera
         if (typeof window.stopCamera === 'function') {
             window.stopCamera();
         }
 
-        // 隐藏摄像头显示区域
+        // Ẩn vùng hiển thị camera
         const cameraContainer = document.getElementById('cameraContainer');
         if (cameraContainer) {
             cameraContainer.classList.remove('active');
         }
     }
 
-    // 发送文本消息
+    // Gửi tin nhắn văn bản
     sendTextMessage(text) {
         if (text === '' || !this.websocket || this.websocket.readyState !== WebSocket.OPEN) {
             return false;
         }
 
         try {
-            // 如果对方正在说话，先发送打断消息
+            // Nếu đối phương đang nói, gửi tin nhắn ngắt trước
             if (this.isRemoteSpeaking && this.currentSessionId) {
                 const abortMessage = {
                     session_id: this.currentSessionId,
@@ -506,7 +506,7 @@ export class WebSocketHandler {
                     reason: 'wake_word_detected'
                 };
                 this.websocket.send(JSON.stringify(abortMessage));
-                log('发送打断消息', 'info');
+                log('Gửi tin nhắn ngắt', 'info');
             }
 
             const listenMessage = {
@@ -516,45 +516,45 @@ export class WebSocketHandler {
             };
 
             this.websocket.send(JSON.stringify(listenMessage));
-            log(`发送文本消息: ${text}`, 'info');
+            log(`Gửi tin nhắn văn bản: ${text}`, 'info');
 
             return true;
         } catch (error) {
-            log(`发送消息错误: ${error.message}`, 'error');
+            log(`Lỗi gửi tin nhắn: ${error.message}`, 'error');
             return false;
         }
     }
 
     /**
-     * 触发Live2D情绪动作
-     * @param {string} emotion - 情绪名称
+     * Kích hoạt hành động cảm xúc Live2D
+     * @param {string} emotion - Tên cảm xúc
      */
     triggerLive2DEmotionAction(emotion) {
         try {
             const live2dManager = window.chatApp?.live2dManager;
             if (live2dManager && typeof live2dManager.triggerEmotionAction === 'function') {
                 live2dManager.triggerEmotionAction(emotion);
-                log(`触发Live2D情绪动作: ${emotion}`, 'info');
+                log(`Kích hoạt hành động cảm xúc Live2D: ${emotion}`, 'info');
             } else {
-                log(`无法触发Live2D情绪动作: Live2D管理器未找到或方法不可用`, 'warning');
+                log(`Không thể kích hoạt hành động cảm xúc Live2D: Trình quản lý Live2D không tìm thấy hoặc phương thức không khả dụng`, 'warning');
             }
         } catch (error) {
-            log(`触发Live2D情绪动作失败: ${error.message}`, 'error');
+            log(`Kích hoạt hành động cảm xúc Live2D thất bại: ${error.message}`, 'error');
         }
     }
 
-    // 获取WebSocket实例
+    // Lấy instance WebSocket
     getWebSocket() {
         return this.websocket;
     }
 
-    // 检查是否已连接
+    // Kiểm tra xem đã kết nối chưa
     isConnected() {
         return this.websocket && this.websocket.readyState === WebSocket.OPEN;
     }
 }
 
-// 创建单例
+// Tạo singleton
 let wsHandlerInstance = null;
 
 export function getWebSocketHandler() {

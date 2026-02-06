@@ -1,6 +1,6 @@
 /**
- * Live2D 管理器
- * 负责 Live2D 模型的初始化、嘴部动画控制等功能
+ * Trình quản lý Live2D
+ * Chịu trách nhiệm khởi tạo mô hình Live2D, điều khiển hoạt hình miệng và các chức năng khác
  */
 class Live2DManager {
     constructor() {
@@ -15,7 +15,7 @@ class Live2DManager {
         this.lastEmotionActionTime = null;
         this.currentModelName = null;
 
-        // 模型特定配置
+        // Cấu hình cụ thể cho mô hình
         this.modelConfig = {
             'hiyori_pro_zh': {
                 mouthParam: 'ParamMouthOpenY',
@@ -49,42 +49,42 @@ class Live2DManager {
             }
         };
 
-        // 情绪到动作的映射
+        // Ánh xạ cảm xúc đến hành động
         this.emotionToActionMap = {
-            'happy': 'FlickUp',      // 开心-向上轻扫动作
-            'laughing': 'FlickUp',   // 大笑-向上轻扫动作
-            'funny': 'FlickUp',      // 搞笑-向上轻扫动作
-            'sad': 'FlickDown',      // 伤心-向下轻扫动作
-            'crying': 'FlickDown',   // 哭泣-向下轻扫动作
-            'angry': 'Tap@Body',     // 生气-身体点击动作
-            'surprised': 'Tap',      // 惊讶-点击动作
-            'neutral': 'Flick',      // 平常-轻扫动作
-            'default': 'Flick@Body'  // 默认-身体轻扫动作
+            'happy': 'FlickUp',      // Vui vẻ - hành động vuốt lên
+            'laughing': 'FlickUp',   // Cười lớn - hành động vuốt lên
+            'funny': 'FlickUp',      // Hài hước - hành động vuốt lên
+            'sad': 'FlickDown',      // Buồn - hành động vuốt xuống
+            'crying': 'FlickDown',   // Khóc - hành động vuốt xuống
+            'angry': 'Tap@Body',     // Tức giận - hành động nhấp vào thân
+            'surprised': 'Tap',      // Ngạc nhiên - hành động nhấp
+            'neutral': 'Flick',      // Bình thường - hành động vuốt
+            'default': 'Flick@Body'  // Mặc định - hành động vuốt thân
         };
 
-        // 单/双击判定配置与状态
+        // Cấu hình và trạng thái phán đoán nhấp đơn/nhấp đôi
         this._lastClickTime = 0;
         this._lastClickPos = { x: 0, y: 0 };
         this._singleClickTimer = null;
-        this._doubleClickMs = 280; // 双击时间阈值(ms)
-        this._doubleClickDist = 16; // 双击允许的最大位移(px)
-        // 滑动判定
+        this._doubleClickMs = 280; // Ngưỡng thời gian nhấp đôi (ms)
+        this._doubleClickDist = 16; // Độ dịch chuyển tối đa cho phép khi nhấp đôi (px)
+        // Phán đoán vuốt
         this._pointerDown = false;
         this._downPos = { x: 0, y: 0 };
         this._downTime = 0;
         this._downArea = 'Body';
         this._movedBeyondClick = false;
-        this._swipeMinDist = 24; // 触发滑动的最小距离
+        this._swipeMinDist = 24; // Khoảng cách tối thiểu để kích hoạt vuốt
     }
 
     /**
-     * 初始化 Live2D
+     * Khởi tạo Live2D
      */
     async initializeLive2D() {
         try {
             const canvas = document.getElementById('live2d-stage');
 
-            // 供内部使用
+            // Dùng cho nội bộ
             window.PIXI = PIXI;
 
             this.live2dApp = new PIXI.Application({
@@ -97,13 +97,13 @@ class Live2DManager {
                 backgroundAlpha: 0,
             });
 
-            // 加载 Live2D 模型 - 动态检测当前目录，适配不同环境
-            // 获取当前HTML文件所在的目录路径
+            // Tải mô hình Live2D - phát hiện động thư mục hiện tại, thích ứng với các môi trường khác nhau
+            // Lấy đường dẫn thư mục chứa file HTML hiện tại
             const currentPath = window.location.pathname;
             const lastSlashIndex = currentPath.lastIndexOf('/');
             const basePath = currentPath.substring(0, lastSlashIndex + 1);
 
-            // 从 localStorage 读取上次选择的模型，如果没有则使用默认
+            // Đọc mô hình đã chọn lần trước từ localStorage, nếu không có thì dùng mặc định
             const savedModelName = localStorage.getItem('live2dModel') || 'hiyori_pro_zh';
             const modelFileMap = {
                 'hiyori_pro_zh': 'hiyori_pro_t11.model3.json',
@@ -115,26 +115,26 @@ class Live2DManager {
             this.live2dModel = await PIXI.live2d.Live2DModel.from(modelPath);
             this.live2dApp.stage.addChild(this.live2dModel);
 
-            // 保存当前模型名称
+            // Lưu tên mô hình hiện tại
             this.currentModelName = savedModelName;
 
-            // 更新下拉框显示
+            // Cập nhật hiển thị hộp chọn
             const modelSelect = document.getElementById('live2dModelSelect');
             if (modelSelect) {
                 modelSelect.value = savedModelName;
             }
 
-            // 设置模型特定的嘴部参数名
+            // Thiết lập tên tham số miệng cụ thể cho mô hình
             if (this.modelConfig[savedModelName]) {
                 this.mouthParam = this.modelConfig[savedModelName].mouthParam || 'ParamMouthOpenY';
             }
 
-            // 设置模型属性
+            // Thiết lập thuộc tính mô hình
             this.live2dModel.scale.set(0.33);
             this.live2dModel.x = (window.innerWidth - this.live2dModel.width) * 0.5;
             this.live2dModel.y = -50;
 
-            // 启用交互并监听点击命中（头部/身体等）
+            // Bật tương tác và lắng nghe nhấp trúng (đầu/thân, v.v.)
 
             this.live2dModel.interactive = true;
 
@@ -142,7 +142,7 @@ class Live2DManager {
             this.live2dModel.on('doublehit', (args) => {
                 const area = Array.isArray(args) ? args[0] : args;
 
-                // 触发双击动作
+                // Kích hoạt hành động nhấp đôi
                 if (area === 'Body') {
                     this.motion('Flick@Body');
                 } else if (area === 'Head' || area === 'Face') {
@@ -160,7 +160,7 @@ class Live2DManager {
             this.live2dModel.on('singlehit', (args) => {
                 const area = Array.isArray(args) ? args[0] : args;
 
-                // 触发单击动作
+                // Kích hoạt hành động nhấp đơn
                 if (area === 'Body') {
                     this.motion('Tap@Body');
                 } else if (area === 'Head' || area === 'Face') {
@@ -179,7 +179,7 @@ class Live2DManager {
                 const area = Array.isArray(args) ? args[0] : args;
                 const dir = Array.isArray(args) ? args[1] : undefined;
 
-                // 触发滑动动作
+                // Kích hoạt hành động vuốt
                 if (area === 'Body') {
                     if (dir === 'up') {
                         this.motion('FlickUp');
@@ -202,18 +202,18 @@ class Live2DManager {
 
             });
 
-            // 兜底：自定义"头部/身体"命中区域 + 单/双击/滑动区分
+            // Dự phòng: Vùng trúng tùy chỉnh "đầu/thân" + phân biệt nhấp đơn/nhấp đôi/vuốt
             this.live2dModel.on('pointerdown', (event) => {
                 try {
                     const global = event.data.global;
                     const bounds = this.live2dModel.getBounds();
-                    // 仅在点击落在模型可见范围内时判定
+                    // Chỉ phán đoán khi nhấp rơi vào phạm vi hiển thị của mô hình
                     if (!bounds || !bounds.contains(global.x, global.y)) return;
 
                     const relX = (global.x - bounds.x) / (bounds.width || 1);
                     const relY = (global.y - bounds.y) / (bounds.height || 1);
                     let area = '';
-                    // 经验阈值：模型可见矩形的上部 20% 视为"头部"区域
+                    // Ngưỡng kinh nghiệm: 20% trên của hình chữ nhật hiển thị mô hình được coi là vùng "đầu"
                     if (relX >= 0.4 && relX <= 0.6) {
                         if (relY <= 0.15) {
                             area = 'Head';
@@ -227,7 +227,7 @@ class Live2DManager {
                         return;
                     }
 
-                    // 记录按下状态用于滑动判定
+                    // Ghi lại trạng thái nhấn xuống để phán đoán vuốt
                     this._pointerDown = true;
                     this._downPos = { x: global.x, y: global.y };
                     this._downTime = performance.now();
@@ -240,9 +240,9 @@ class Live2DManager {
                     const dy = global.y - (this._lastClickPos?.y || 0);
                     const dist = Math.hypot(dx, dy);
 
-                    // 命中确认：仅当点击在模型上时做单/双击判断
+                    // Xác nhận trúng: Chỉ phán đoán nhấp đơn/nhấp đôi khi nhấp vào mô hình
                     if (this._lastClickTime && dt <= this._doubleClickMs && dist <= this._doubleClickDist) {
-                        // 判定为双击：取消待触发的单击事件
+                        // Phán đoán là nhấp đôi: Hủy sự kiện nhấp đơn đang chờ kích hoạt
                         if (this._singleClickTimer) {
                             clearTimeout(this._singleClickTimer);
                             this._singleClickTimer = null;
@@ -251,11 +251,11 @@ class Live2DManager {
                             this.live2dModel.emit('doublehit', [area]);
                         }
                         this._lastClickTime = 0;
-                        this._pointerDown = false; // 双击完成，重置状态
+                        this._pointerDown = false; // Nhấp đôi hoàn tất, đặt lại trạng thái
                         return;
                     }
 
-                    // 可能是单击：记录并延迟确认
+                    // Có thể là nhấp đơn: Ghi lại và xác nhận trễ
                     this._lastClickTime = now;
                     this._lastClickPos = { x: global.x, y: global.y };
                     if (this._singleClickTimer) {
@@ -263,7 +263,7 @@ class Live2DManager {
                         this._singleClickTimer = null;
                     }
                     this._singleClickTimer = setTimeout(() => {
-                        // 若在等待期间发生了移动超过阈值，则不再当作单击
+                        // Nếu trong thời gian chờ đợi đã di chuyển vượt ngưỡng, thì không coi là nhấp đơn nữa
                         if (!this._movedBeyondClick && typeof this.live2dModel.emit === 'function') {
                             this.live2dModel.emit('singlehit', [area]);
                         }
@@ -271,11 +271,11 @@ class Live2DManager {
                         this._lastClickTime = 0;
                     }, this._doubleClickMs);
                 } catch (e) {
-                    // 忽略自定义命中判断中的异常，避免影响主流程
+                    // Bỏ qua ngoại lệ trong phán đoán trúng tùy chỉnh, tránh ảnh hưởng đến luồng chính
                 }
             });
 
-            // 指针移动：用于判定是否从"点击"升级为"滑动"
+            // Di chuyển con trỏ: Dùng để phán đoán có nâng cấp từ "nhấp" thành "vuốt" không
             this.live2dModel.on('pointermove', (event) => {
                 try {
                     if (!this._pointerDown) return;
@@ -284,10 +284,10 @@ class Live2DManager {
                     const dy = global.y - this._downPos.y;
                     const dist = Math.hypot(dx, dy);
 
-                    // 使用 _doubleClickDist 作为点击/滑动的判定阈值
+                    // Sử dụng _doubleClickDist làm ngưỡng phán đoán nhấp/vuốt
                     if (dist > this._doubleClickDist) {
                         this._movedBeyondClick = true;
-                        // 若已超出点击阈值，取消可能的单击触发
+                        // Nếu đã vượt ngưỡng nhấp, hủy kích hoạt nhấp đơn có thể
                         if (this._singleClickTimer) {
                             clearTimeout(this._singleClickTimer);
                             this._singleClickTimer = null;
@@ -295,11 +295,11 @@ class Live2DManager {
                         this._lastClickTime = 0;
                     }
                 } catch (e) {
-                    // 忽略移动判定中的异常
+                    // Bỏ qua ngoại lệ trong phán đoán di chuyển
                 }
             });
 
-            // 指针抬起：确认是否为滑动
+            // Nâng con trỏ lên: Xác nhận có phải là vuốt không
             const handlePointerUp = (event) => {
                 try {
                     if (!this._pointerDown) return;
@@ -308,7 +308,7 @@ class Live2DManager {
                     const dy = global.y - this._downPos.y;
                     const dist = Math.hypot(dx, dy);
 
-                    // 滑动：超过滑动最小距离则触发 swipe 事件（携带方向与区域）
+                    // Vuốt: Vượt quá khoảng cách vuốt tối thiểu thì kích hoạt sự kiện swipe (mang theo hướng và vùng)
                     if (this._movedBeyondClick && dist >= this._swipeMinDist) {
                         if (typeof this.live2dModel.emit === 'function') {
                             const dir = Math.abs(dx) >= Math.abs(dy)
@@ -316,7 +316,7 @@ class Live2DManager {
                                 : (dy > 0 ? 'down' : 'up');
                             this.live2dModel.emit('swipe', [this._downArea, dir]);
                         }
-                        // 终止：不再让单击/双击触发
+                        // Kết thúc: Không để nhấp đơn/nhấp đôi kích hoạt nữa
                         if (this._singleClickTimer) {
                             clearTimeout(this._singleClickTimer);
                             this._singleClickTimer = null;
@@ -324,7 +324,7 @@ class Live2DManager {
                         this._lastClickTime = 0;
                     }
                 } catch (e) {
-                    // 忽略抬起判定中的异常
+                    // Bỏ qua ngoại lệ trong phán đoán nâng lên
                 }
                 finally {
                     this._pointerDown = false;
@@ -335,85 +335,85 @@ class Live2DManager {
             this.live2dModel.on('pointerup', handlePointerUp);
             this.live2dModel.on('pointerupoutside', handlePointerUp);
 
-            // 添加窗口大小变化监听器，保持模型在Canvas中间和底部
+            // Thêm trình lắng nghe thay đổi kích thước cửa sổ, giữ mô hình ở giữa và dưới Canvas
             window.addEventListener('resize', () => {
                 if (this.live2dModel) {
-                    // 使用窗口实际尺寸重新计算模型位置
+                    // Sử dụng kích thước thực tế của cửa sổ để tính lại vị trí mô hình
                     this.live2dModel.x = (window.innerWidth - this.live2dModel.width) * 0.5;
                     this.live2dModel.y = -50;
                 }
             });
 
         } catch (err) {
-            console.error('加载 Live2D 模型失败:', err);
+            console.error('Tải mô hình Live2D thất bại:', err);
         }
     }
 
     /**
-     * 初始化音频分析器 - 使用音频播放器的分析器节点
+     * Khởi tạo bộ phân tích âm thanh - Sử dụng nút phân tích của trình phát âm thanh
      */
     initializeAudioAnalyzer() {
         try {
-            // 获取音频播放器实例
+            // Lấy instance trình phát âm thanh
             const audioPlayer = window.chatApp?.audioPlayer;
             if (!audioPlayer) {
-                console.warn('音频播放器未初始化，无法获取分析器节点');
+                console.warn('Trình phát âm thanh chưa được khởi tạo, không thể lấy nút phân tích');
                 return false;
             }
 
-            // 获取音频播放器的音频上下文
+            // Lấy ngữ cảnh âm thanh của trình phát âm thanh
             this.audioContext = audioPlayer.getAudioContext();
             if (!this.audioContext) {
-                console.warn('无法获取音频播放器的音频上下文');
+                console.warn('Không thể lấy ngữ cảnh âm thanh của trình phát âm thanh');
                 return false;
             }
 
-            // 创建分析器节点
+            // Tạo nút phân tích
             this.analyser = this.audioContext.createAnalyser();
             this.analyser.fftSize = 256;
             this.dataArray = new Uint8Array(this.analyser.frequencyBinCount);
 
             return true;
         } catch (error) {
-            console.error('初始化音频分析器失败:', error);
+            console.error('Khởi tạo bộ phân tích âm thanh thất bại:', error);
             return false;
         }
     }
 
     /**
-     * 连接到音频播放器的输出节点
+     * Kết nối đến nút đầu ra của trình phát âm thanh
      */
     connectToAudioPlayer() {
         try {
-            // 获取音频播放器的流上下文
+            // Lấy ngữ cảnh luồng của trình phát âm thanh
             const audioPlayer = window.chatApp?.audioPlayer;
             if (!audioPlayer || !audioPlayer.streamingContext) {
-                console.warn('音频播放器或流上下文未初始化');
+                console.warn('Trình phát âm thanh hoặc ngữ cảnh luồng chưa được khởi tạo');
                 return false;
             }
 
-            // 获取音频播放器的流上下文
+            // Lấy ngữ cảnh luồng của trình phát âm thanh
             const streamingContext = audioPlayer.streamingContext;
 
-            // 获取分析器节点
+            // Lấy nút phân tích
             const analyser = streamingContext.getAnalyser();
             if (!analyser) {
-                console.warn('音频播放器尚未创建分析器节点，无法连接');
+                console.warn('Trình phát âm thanh chưa tạo nút phân tích, không thể kết nối');
                 return false;
             }
 
-            // 使用音频播放器的分析器节点
+            // Sử dụng nút phân tích của trình phát âm thanh
             this.analyser = analyser;
             this.dataArray = new Uint8Array(this.analyser.frequencyBinCount);
             return true;
         } catch (error) {
-            console.error('连接到音频播放器失败:', error);
+            console.error('Kết nối đến trình phát âm thanh thất bại:', error);
             return false;
         }
     }
 
     /**
-     * 嘴部动画循环
+     * Vòng lặp hoạt hình miệng
      */
     animateMouth() {
         if (!this.isTalking) return;
@@ -433,7 +433,7 @@ class Live2DManager {
 
                 const normalizedVolume = average / 255;
 
-                // 获取模型特定的阈值
+                // Lấy ngưỡng cụ thể cho mô hình
                 let lowThreshold = 0.3;
                 let highThreshold = 0.7;
                 if (this.currentModelName && this.modelConfig[this.currentModelName]) {
@@ -441,7 +441,7 @@ class Live2DManager {
                     highThreshold = this.modelConfig[this.currentModelName].mouthThresholds?.high || 0.7;
                 }
 
-                // 使用模型特定的阈值进行映射
+                // Sử dụng ngưỡng cụ thể cho mô hình để ánh xạ
                 let minOpenY = 0.1;
                 if (this.currentModelName && this.modelConfig[this.currentModelName]) {
                     minOpenY = this.modelConfig[this.currentModelName].mouthMinOpenY || 0.1;
@@ -455,7 +455,7 @@ class Live2DManager {
                     mouthOpenY = 0.8 + Math.pow((normalizedVolume - highThreshold) / (1 - highThreshold), 1.2) * 0.2;
                 }
 
-                // 应用模型特定的嘴部开合幅度
+                // Áp dụng biên độ mở/đóng miệng cụ thể cho mô hình
                 let amplitudeMultiplier = 1.0;
                 let maxOpenY = 2.5;
                 if (this.currentModelName && this.modelConfig[this.currentModelName]) {
@@ -465,40 +465,40 @@ class Live2DManager {
                 mouthOpenY = mouthOpenY * amplitudeMultiplier;
                 mouthOpenY = Math.min(Math.max(mouthOpenY, 0), maxOpenY);
 
-                // 计算嘴型参数（仅对支持嘴型变化的模型）
+                // Tính toán tham số hình dạng miệng (chỉ cho các mô hình hỗ trợ thay đổi hình dạng miệng)
                 if (this.currentModelName && this.modelConfig[this.currentModelName]?.mouthFormParam) {
                     const config = this.modelConfig[this.currentModelName];
                     const formAmplitude = config.mouthFormAmplitude || 0.5;
                     const form2Amplitude = config.mouthForm2Amplitude || 0;
 
-                    // 嘴型随音量变化：
-                    // 低音量：嘴型偏"一"字（负值）
-                    // 高音量：嘴型偏"o"字（正值）
-                    // 音量=0时：嘴型=0（自然状态）
+                    // Hình dạng miệng thay đổi theo âm lượng:
+                    // Âm lượng thấp: Hình dạng miệng nghiêng về chữ "một" (giá trị âm)
+                    // Âm lượng cao: Hình dạng miệng nghiêng về chữ "o" (giá trị dương)
+                    // Khi âm lượng=0: Hình dạng miệng=0 (trạng thái tự nhiên)
                     mouthForm = (normalizedVolume - 0.5) * 2 * formAmplitude;
                     mouthForm = Math.max(-formAmplitude, Math.min(formAmplitude, mouthForm));
 
-                    // 第二嘴型参数（natori特有）
+                    // Tham số hình dạng miệng thứ hai (đặc trưng của natori)
                     if (config.mouthForm2Param) {
                         mouthForm2 = (normalizedVolume - 0.3) * 2 * form2Amplitude;
                         mouthForm2 = Math.max(-form2Amplitude, Math.min(form2Amplitude, mouthForm2));
                     }
                 }
 
-                // 调试日志：输出嘴部参数
-                console.log(`[Live2D] 模型: ${this.currentModelName || 'unknown'}, 音量: ${average?.toFixed(0)}, OpenY: ${mouthOpenY.toFixed(3)}, Form: ${mouthForm.toFixed(3)}, Form2: ${mouthForm2.toFixed(3)}`);
+                // Log debug: Xuất tham số miệng
+                console.log(`[Live2D] Mô hình: ${this.currentModelName || 'unknown'}, Âm lượng: ${average?.toFixed(0)}, OpenY: ${mouthOpenY.toFixed(3)}, Form: ${mouthForm.toFixed(3)}, Form2: ${mouthForm2.toFixed(3)}`);
             }
 
-            // 设置嘴部开合参数
+            // Thiết lập tham số mở/đóng miệng
             coreModel.setParameterValueById(this.mouthParam, mouthOpenY);
 
-            // 设置嘴型参数（仅对支持嘴型变化的模型）
+            // Thiết lập tham số hình dạng miệng (chỉ cho các mô hình hỗ trợ thay đổi hình dạng miệng)
             if (this.currentModelName && this.modelConfig[this.currentModelName]?.mouthFormParam) {
                 const config = this.modelConfig[this.currentModelName];
                 const formParam = config.mouthFormParam;
                 coreModel.setParameterValueById(formParam, mouthForm);
 
-                // 设置第二嘴型参数（natori特有）
+                // Thiết lập tham số hình dạng miệng thứ hai (đặc trưng của natori)
                 if (config.mouthForm2Param) {
                     coreModel.setParameterValueById(config.mouthForm2Param, mouthForm2);
                 }
@@ -510,25 +510,25 @@ class Live2DManager {
     }
 
     /**
-     * 开始说话动画
+     * Bắt đầu hoạt hình nói
      */
     startTalking() {
         if (this.isTalking || !this.live2dModel) return;
 
-        // 确保音频分析器已初始化
+        // Đảm bảo bộ phân tích âm thanh đã được khởi tạo
         if (!this.analyser) {
             if (!this.initializeAudioAnalyzer()) {
-                console.warn('音频分析器初始化失败，将使用模拟动画');
-                // 即使分析器初始化失败，也启动动画（使用模拟数据）
+                console.warn('Khởi tạo bộ phân tích âm thanh thất bại, sẽ sử dụng hoạt hình mô phỏng');
+                // Ngay cả khi khởi tạo bộ phân tích thất bại, vẫn khởi động hoạt hình (sử dụng dữ liệu mô phỏng)
                 this.isTalking = true;
                 this.animateMouth();
                 return;
             }
         }
 
-        // 连接到音频播放器输出
+        // Kết nối đến đầu ra trình phát âm thanh
         if (!this.connectToAudioPlayer()) {
-            console.warn('无法连接到音频播放器输出，将使用模拟动画');
+            console.warn('Không thể kết nối đến đầu ra trình phát âm thanh, sẽ sử dụng hoạt hình mô phỏng');
         }
 
         this.isTalking = true;
@@ -536,7 +536,7 @@ class Live2DManager {
     }
 
     /**
-     * 停止说话动画
+     * Dừng hoạt hình nói
      */
     stopTalking() {
         this.isTalking = false;
@@ -545,7 +545,7 @@ class Live2DManager {
             this.mouthAnimationId = null;
         }
 
-        // 重置嘴部参数
+        // Đặt lại tham số miệng
         if (this.live2dModel) {
             const internal = this.live2dModel.internalModel;
             if (internal && internal.coreModel) {
@@ -557,22 +557,22 @@ class Live2DManager {
     }
 
     /**
-     * 基于情绪触发动作
-     * @param {string} emotion - 情绪名称
+     * Kích hoạt hành động dựa trên cảm xúc
+     * @param {string} emotion - Tên cảm xúc
      */
     triggerEmotionAction(emotion) {
         if (!this.live2dModel) return;
 
-        // 添加冷却时间控制，避免过于频繁触发
+        // Thêm kiểm soát thời gian làm mát để tránh kích hoạt quá thường xuyên
         const now = Date.now();
-        if (this.lastEmotionActionTime && now - this.lastEmotionActionTime < 5000) { // 5秒冷却时间
+        if (this.lastEmotionActionTime && now - this.lastEmotionActionTime < 5000) { // Thời gian làm mát 5 giây
             return;
         }
 
-        // 根据情绪获取对应的动作
+        // Lấy hành động tương ứng dựa trên cảm xúc
         const action = this.emotionToActionMap[emotion] || this.emotionToActionMap['default'];
 
-        // 触发动作并记录时间
+        // Kích hoạt hành động và ghi lại thời gian
         this.motion(action);
         this.lastEmotionActionTime = now;
     }
@@ -580,14 +580,14 @@ class Live2DManager {
 
 
     /**
-     * 触发模型动作（Motion）
-     * @param {string} name - 动作分组名称，如 'TapBody'、'FlickUp'、'Idle' 等
+     * Kích hoạt hành động mô hình (Motion)
+     * @param {string} name - Tên nhóm hành động, như 'TapBody'、'FlickUp'、'Idle' và các loại khác
      */
     motion(name) {
         try {
             if (!this.live2dModel) return;
 
-            // 根据当前模型获取对应的动作名称
+            // Lấy tên hành động tương ứng dựa trên mô hình hiện tại
             let actualMotionName = name;
             if (this.currentModelName && this.modelConfig[this.currentModelName]) {
                 const motionMap = this.modelConfig[this.currentModelName].motionMap;
@@ -596,12 +596,12 @@ class Live2DManager {
 
             this.live2dModel.motion(actualMotionName);
         } catch (error) {
-            console.error('触发动作失败:', error);
+            console.error('Kích hoạt hành động thất bại:', error);
         }
     }
 
     /**
-     * 设置模型交互事件
+     * Thiết lập sự kiện tương tác mô hình
      */
     setupModelInteractions() {
         if (!this.live2dModel) return;
@@ -704,18 +704,18 @@ class Live2DManager {
                     }, this._doubleClickMs);
                 }
             } catch (e) {
-                console.warn('pointerdown 处理出错:', e);
+                console.warn('Xử lý pointerdown lỗi:', e);
             }
         });
     }
 
     /**
-     * 清理资源
+     * Dọn dẹp tài nguyên
      */
     destroy() {
         this.stopTalking();
 
-        // 清理音频分析器
+        // Dọn dẹp bộ phân tích âm thanh
         if (this.audioContext) {
             this.audioContext.close();
             this.audioContext = null;
@@ -723,7 +723,7 @@ class Live2DManager {
         this.analyser = null;
         this.dataArray = null;
 
-        // 清理 Live2D 应用
+        // Dọn dẹp ứng dụng Live2D
         if (this.live2dApp) {
             this.live2dApp.destroy(true);
             this.live2dApp = null;
@@ -732,13 +732,13 @@ class Live2DManager {
     }
 
     /**
-     * 切换 Live2D 模型
-     * @param {string} modelName - 模型目录名称，如 'hiyori_pro_zh'、'natori_pro_zh'
-     * @returns {Promise<boolean>} - 切换是否成功
+     * Chuyển đổi mô hình Live2D
+     * @param {string} modelName - Tên thư mục mô hình, như 'hiyori_pro_zh'、'natori_pro_zh'
+     * @returns {Promise<boolean>} - Chuyển đổi có thành công không
      */
     async switchModel(modelName) {
         try {
-            // 获取模型文件名映射
+            // Lấy ánh xạ tên file mô hình
             const modelFileMap = {
                 'hiyori_pro_zh': 'hiyori_pro_t11.model3.json',
                 'natori_pro_zh': 'natori_pro_t06.model3.json',
@@ -748,67 +748,67 @@ class Live2DManager {
 
             const modelFileName = modelFileMap[modelName];
             if (!modelFileName) {
-                console.error('未知的模型名称:', modelName);
+                console.error('Tên mô hình không xác định:', modelName);
                 return false;
             }
 
-            // 获取基础路径
+            // Lấy đường dẫn cơ sở
             const currentPath = window.location.pathname;
             const lastSlashIndex = currentPath.lastIndexOf('/');
             const basePath = currentPath.substring(0, lastSlashIndex + 1);
             const modelPath = basePath + 'resources/' + modelName + '/runtime/' + modelFileName;
 
-            // 如果已存在模型，先移除
+            // Nếu đã tồn tại mô hình, xóa trước
             if (this.live2dModel) {
                 this.live2dApp.stage.removeChild(this.live2dModel);
                 this.live2dModel.destroy();
                 this.live2dModel = null;
             }
 
-            // 显示加载状态
+            // Hiển thị trạng thái tải
             const app = window.chatApp;
             if (app) {
                 app.setModelLoadingStatus(true);
             }
 
-            // 加载新模型
+            // Tải mô hình mới
             this.live2dModel = await PIXI.live2d.Live2DModel.from(modelPath);
             this.live2dApp.stage.addChild(this.live2dModel);
 
-            // 设置模型属性
+            // Thiết lập thuộc tính mô hình
             this.live2dModel.scale.set(0.33);
             this.live2dModel.x = (window.innerWidth - this.live2dModel.width) * 0.5;
             this.live2dModel.y = -50;
 
-            // 重新绑定交互事件
+            // Liên kết lại sự kiện tương tác
             this.setupModelInteractions();
 
-            // 隐藏加载状态
+            // Ẩn trạng thái tải
             if (app) {
                 app.setModelLoadingStatus(false);
             }
 
-            // 保存当前模型名称
+            // Lưu tên mô hình hiện tại
             this.currentModelName = modelName;
 
-            // 设置模型特定的嘴部参数名
+            // Thiết lập tên tham số miệng cụ thể cho mô hình
             if (this.modelConfig[modelName]) {
                 this.mouthParam = this.modelConfig[modelName].mouthParam || 'ParamMouthOpenY';
             }
 
-            // 保存到 localStorage
+            // Lưu vào localStorage
             localStorage.setItem('live2dModel', modelName);
 
-            // 更新下拉框显示
+            // Cập nhật hiển thị hộp chọn
             const modelSelect = document.getElementById('live2dModelSelect');
             if (modelSelect) {
                 modelSelect.value = modelName;
             }
 
-            console.log('模型切换成功:', modelName);
+            console.log('Chuyển đổi mô hình thành công:', modelName);
             return true;
         } catch (error) {
-            console.error('切换模型失败:', error);
+            console.error('Chuyển đổi mô hình thất bại:', error);
             const app = window.chatApp;
             if (app) {
                 app.setModelLoadingStatus(false);
@@ -820,5 +820,5 @@ class Live2DManager {
 
 }
 
-// 导出全局实例
+// Xuất instance toàn cục
 window.Live2DManager = Live2DManager;

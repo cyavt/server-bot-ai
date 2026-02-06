@@ -145,35 +145,35 @@ class UIController {
                 cameraTimer = setTimeout(() => {
                     const cameraContainer = document.getElementById('cameraContainer');
                     if (!cameraContainer) {
-                        log('摄像头容器不存在', 'warning');
+                        log('Container camera không tồn tại', 'warning');
                         return;
                     }
 
                     const isActive = cameraContainer.classList.contains('active');
                     if (isActive) {
-                        // 关闭摄像头
+                        // Đóng camera
                         if (typeof window.stopCamera === 'function') {
                             window.stopCamera();
                         }
                         cameraContainer.classList.remove('active');
                         cameraBtn.classList.remove('camera-active');
-                        cameraBtn.querySelector('.btn-text').textContent = '摄像头';
-                        log('摄像头已关闭', 'info');
+                        cameraBtn.querySelector('.btn-text').textContent = 'Camera';
+                        log('Camera đã đóng', 'info');
                     } else {
-                        // 打开摄像头
+                        // Mở camera
                         if (typeof window.startCamera === 'function') {
                             window.startCamera().then(success => {
                                 if (success) {
                                     cameraBtn.classList.add('camera-active');
-                                    cameraBtn.querySelector('.btn-text').textContent = '关闭';
+                                    cameraBtn.querySelector('.btn-text').textContent = 'Đóng';
                                 } else {
-                                    this.addChatMessage('⚠️ 摄像头启动失败，请检查浏览器权限', false);
+                                    this.addChatMessage('⚠️ Khởi động camera thất bại, vui lòng kiểm tra quyền trình duyệt', false);
                                 }
                             }).catch(error => {
-                                log(`启动摄像头异常: ${error.message}`, 'error');
+                                log(`Khởi động camera bất thường: ${error.message}`, 'error');
                             });
                         } else {
-                            log('startCamera函数未定义', 'warning');
+                            log('Hàm startCamera chưa được định nghĩa', 'warning');
                         }
                     }
                 }, 300);
@@ -193,13 +193,13 @@ class UIController {
                     const audioRecorder = getAudioRecorder();
                     if (audioRecorder.isRecording) {
                         audioRecorder.stop();
-                        // Restore record button to normal state
+                        // Khôi phục nút ghi âm về trạng thái bình thường
                         recordBtn.classList.remove('recording');
-                        recordBtn.querySelector('.btn-text').textContent = '录音';
+                        recordBtn.querySelector('.btn-text').textContent = 'Ghi âm';
                     } else {
-                        // Update button state to recording
+                        // Cập nhật trạng thái nút sang đang ghi âm
                         recordBtn.classList.add('recording');
-                        recordBtn.querySelector('.btn-text').textContent = '录音中';
+                        recordBtn.querySelector('.btn-text').textContent = 'Đang ghi âm';
 
                         // Start recording, update button state after delay
                         setTimeout(() => {
@@ -248,15 +248,15 @@ class UIController {
             });
         });
 
-        // 点击模态框背景关闭（仅对特定模态框禁用此功能）
+        // Nhấp vào nền modal để đóng (chỉ vô hiệu hóa chức năng này cho các modal cụ thể)
         const modals = document.querySelectorAll('.modal');
         modals.forEach(modal => {
             modal.addEventListener('click', (e) => {
                 if (e.target === modal) {
-                    // settingsModal、mcpToolModal、mcpPropertyModal 只能通过点击X关闭
+                    // settingsModal、mcpToolModal、mcpPropertyModal chỉ có thể đóng bằng cách nhấp vào X
                     const nonClosableModals = ['settingsModal', 'mcpToolModal', 'mcpPropertyModal'];
                     if (nonClosableModals.includes(modal.id)) {
-                        return; // 禁止点击背景关闭
+                        return; // Cấm nhấp vào nền để đóng
                     }
                     this.hideModal(modal.id);
                 }
@@ -282,12 +282,12 @@ class UIController {
 
         if (connectionStatus) {
             if (isConnected) {
-                connectionStatus.textContent = '已连接';
+                connectionStatus.textContent = 'Đã kết nối';
                 if (statusDot) {
                     statusDot.className = 'status-dot status-connected';
                 }
             } else {
-                connectionStatus.textContent = '离线';
+                connectionStatus.textContent = 'Ngoại tuyến';
                 if (statusDot) {
                     statusDot.className = 'status-dot status-disconnected';
                 }
@@ -304,83 +304,83 @@ class UIController {
         if (dialBtn) {
             if (isConnected) {
                 dialBtn.classList.add('dial-active');
-                dialBtn.querySelector('.btn-text').textContent = '挂断';
-                // Update dial button icon to hang up icon
+                dialBtn.querySelector('.btn-text').textContent = 'Ngắt kết nối';
+                // Cập nhật icon nút quay số thành icon ngắt kết nối
                 dialBtn.querySelector('svg').innerHTML = `
                     <path d="M12,9C10.4,9 9,10.4 9,12C9,13.6 10.4,15 12,15C13.6,15 15,13.6 15,12C15,10.4 13.6,9 12,9M12,17C9.2,17 7,14.8 7,12C7,9.2 9.2,7 12,7C14.8,7 17,9.2 17,12C17,14.8 14.8,17 12,17M12,4.5C7,4.5 2.7,7.6 1,12C2.7,16.4 7,19.5 12,19.5C17,19.5 21.3,16.4 23,12C21.3,7.6 17,4.5 12,4.5Z"/>
                 `;
             } else {
                 dialBtn.classList.remove('dial-active');
-                dialBtn.querySelector('.btn-text').textContent = '拨号';
-                // Restore dial button icon
+                dialBtn.querySelector('.btn-text').textContent = 'Quay số';
+                // Khôi phục icon nút quay số
                 dialBtn.querySelector('svg').innerHTML = `
                     <path d="M6.62,10.79C8.06,13.62 10.38,15.94 13.21,17.38L15.41,15.18C15.69,14.9 16.08,14.82 16.43,14.93C17.55,15.3 18.75,15.5 20,15.5A1,1 0 0,1 21,16.5V20A1,1 0 0,1 20,21A17,17 0 0,1 3,4A1,1 0 0,1 4,3H7.5A1,1 0 0,1 8.5,4C8.5,5.25 8.7,6.45 9.07,7.57C9.18,7.92 9.1,8.31 8.82,8.59L6.62,10.79Z"/>
                 `;
             }
         }
 
-        // Update camera button state - reset to default when disconnected
+        // Cập nhật trạng thái nút camera - đặt lại về mặc định khi ngắt kết nối
         if (cameraBtn && !isConnected) {
             const cameraContainer = document.getElementById('cameraContainer');
             if (cameraContainer && cameraContainer.classList.contains('active')) {
                 cameraContainer.classList.remove('active');
             }
             cameraBtn.classList.remove('camera-active');
-            cameraBtn.querySelector('.btn-text').textContent = '摄像头';
+            cameraBtn.querySelector('.btn-text').textContent = 'Camera';
             cameraBtn.disabled = true;
-            cameraBtn.title = '请先连接服务器';
-            // 关闭摄像头
+            cameraBtn.title = 'Vui lòng kết nối máy chủ trước';
+            // Đóng camera
             if (typeof window.stopCamera === 'function') {
                 window.stopCamera();
             }
         }
 
-        // Update camera button state - enable when connected and camera is available
+        // Cập nhật trạng thái nút camera - bật khi đã kết nối và camera khả dụng
         if (cameraBtn && isConnected) {
             if (window.cameraAvailable) {
                 cameraBtn.disabled = false;
-                cameraBtn.title = '打开/关闭摄像头';
+                cameraBtn.title = 'Mở/Đóng camera';
             } else {
                 cameraBtn.disabled = true;
-                cameraBtn.title = '请先绑定验证码';
+                cameraBtn.title = 'Vui lòng liên kết mã xác thực trước';
             }
         }
 
-        // Update record button state
+        // Cập nhật trạng thái nút ghi âm
         if (recordBtn) {
             const microphoneAvailable = window.microphoneAvailable !== false;
             if (isConnected && microphoneAvailable) {
                 recordBtn.disabled = false;
-                recordBtn.title = '开始录音';
-                // Restore record button to normal state
-                recordBtn.querySelector('.btn-text').textContent = '录音';
+                recordBtn.title = 'Bắt đầu ghi âm';
+                // Khôi phục nút ghi âm về trạng thái bình thường
+                recordBtn.querySelector('.btn-text').textContent = 'Ghi âm';
                 recordBtn.classList.remove('recording');
             } else {
                 recordBtn.disabled = true;
                 if (!microphoneAvailable) {
-                    recordBtn.title = window.isHttpNonLocalhost ? '当前由于是http访问，无法录音，只能用文字交互' : '麦克风不可用';
+                    recordBtn.title = window.isHttpNonLocalhost ? 'Hiện tại do truy cập http, không thể ghi âm, chỉ có thể tương tác bằng văn bản' : 'Microphone không khả dụng';
                 } else {
-                    recordBtn.title = '请先连接服务器';
+                    recordBtn.title = 'Vui lòng kết nối máy chủ trước';
                 }
-                // Restore record button to normal state
-                recordBtn.querySelector('.btn-text').textContent = '录音';
+                // Khôi phục nút ghi âm về trạng thái bình thường
+                recordBtn.querySelector('.btn-text').textContent = 'Ghi âm';
                 recordBtn.classList.remove('recording');
             }
         }
     }
 
-    // Update record button state
+    // Cập nhật trạng thái nút ghi âm
     updateRecordButtonState(isRecording, seconds = 0) {
         const recordBtn = document.getElementById('recordBtn');
         if (recordBtn) {
             if (isRecording) {
-                recordBtn.querySelector('.btn-text').textContent = `录音中`;
+                recordBtn.querySelector('.btn-text').textContent = `Đang ghi âm`;
                 recordBtn.classList.add('recording');
             } else {
-                recordBtn.querySelector('.btn-text').textContent = '录音';
+                recordBtn.querySelector('.btn-text').textContent = 'Ghi âm';
                 recordBtn.classList.remove('recording');
             }
-            // Only enable button when microphone is available
+            // Chỉ bật nút khi microphone khả dụng
             recordBtn.disabled = window.microphoneAvailable === false;
         }
     }
@@ -394,18 +394,18 @@ class UIController {
         const recordBtn = document.getElementById('recordBtn');
         if (!recordBtn) return;
         if (!isAvailable) {
-            // Disable record button
+            // Vô hiệu hóa nút ghi âm
             recordBtn.disabled = true;
-            // Update button text and title
-            recordBtn.querySelector('.btn-text').textContent = '录音';
-            recordBtn.title = isHttpNonLocalhost ? '当前由于是http访问，无法录音，只能用文字交互' : '麦克风不可用';
+            // Cập nhật văn bản và tiêu đề nút
+            recordBtn.querySelector('.btn-text').textContent = 'Ghi âm';
+            recordBtn.title = isHttpNonLocalhost ? 'Hiện tại do truy cập http, không thể ghi âm, chỉ có thể tương tác bằng văn bản' : 'Microphone không khả dụng';
 
         } else {
-            // If connected, enable record button
+            // Nếu đã kết nối, bật nút ghi âm
             const wsHandler = getWebSocketHandler();
             if (wsHandler && wsHandler.isConnected()) {
                 recordBtn.disabled = false;
-                recordBtn.title = '开始录音';
+                recordBtn.title = 'Bắt đầu ghi âm';
             }
         }
     }
@@ -434,11 +434,11 @@ class UIController {
         localStorage.setItem('backgroundIndex', this.currentBackgroundIndex);
     }
 
-    // Switch Live2D model
+    // Chuyển đổi mô hình Live2D
     switchLive2DModel() {
         const modelSelect = document.getElementById('live2dModelSelect');
         if (!modelSelect) {
-            console.error('模型选择下拉框不存在');
+            console.error('Hộp chọn mô hình không tồn tại');
             return;
         }
 
@@ -449,17 +449,17 @@ class UIController {
             app.live2dManager.switchModel(selectedModel)
                 .then(success => {
                     if (success) {
-                        this.addChatMessage(`已切换到模型: ${selectedModel}`, false);
+                        this.addChatMessage(`Đã chuyển sang mô hình: ${selectedModel}`, false);
                     } else {
-                        this.addChatMessage('模型切换失败', false);
+                        this.addChatMessage('Chuyển đổi mô hình thất bại', false);
                     }
                 })
                 .catch(error => {
-                    console.error('模型切换错误:', error);
-                    this.addChatMessage('模型切换出错', false);
+                    console.error('Lỗi chuyển đổi mô hình:', error);
+                    this.addChatMessage('Lỗi chuyển đổi mô hình', false);
                 });
         } else {
-            this.addChatMessage('Live2D管理器未初始化', false);
+            this.addChatMessage('Trình quản lý Live2D chưa được khởi tạo', false);
         }
     }
 
@@ -498,38 +498,38 @@ class UIController {
         }
     }
 
-    // Start AI chat session after connection
+    // Bắt đầu phiên chat AI sau khi kết nối
     startAIChatSession() {
-        this.addChatMessage('连接成功，开始聊天吧~😊', false);
-        // Check microphone availability and show error messages if needed
+        this.addChatMessage('Kết nối thành công, bắt đầu trò chuyện nhé~😊', false);
+        // Kiểm tra tính khả dụng của microphone và hiển thị thông báo lỗi nếu cần
         if (!window.microphoneAvailable) {
             if (window.isHttpNonLocalhost) {
-                this.addChatMessage('⚠️ 当前由于是http访问，无法录音，只能用文字交互', false);
+                this.addChatMessage('⚠️ Hiện tại do truy cập http, không thể ghi âm, chỉ có thể tương tác bằng văn bản', false);
             } else {
-                this.addChatMessage('⚠️ 麦克风不可用，请检查权限设置，只能用文字交互', false);
+                this.addChatMessage('⚠️ Microphone không khả dụng, vui lòng kiểm tra cài đặt quyền, chỉ có thể tương tác bằng văn bản', false);
             }
         }
-        // Start recording only if microphone is available
+        // Chỉ bắt đầu ghi âm nếu microphone khả dụng
         if (window.microphoneAvailable) {
             const recordBtn = document.getElementById('recordBtn');
             if (recordBtn) {
                 recordBtn.click();
             }
         }
-        // Start camera only if camera is available (bound with verification code)
+        // Chỉ khởi động camera nếu camera khả dụng (đã liên kết với mã xác thực)
         if (window.cameraAvailable && typeof window.startCamera === 'function') {
             window.startCamera().then(success => {
                 if (success) {
                     const cameraBtn = document.getElementById('cameraBtn');
                     if (cameraBtn) {
                         cameraBtn.classList.add('camera-active');
-                        cameraBtn.querySelector('.btn-text').textContent = '关闭';
+                        cameraBtn.querySelector('.btn-text').textContent = 'Đóng';
                     }
                 } else {
-                    this.addChatMessage('⚠️ 摄像头启动失败，可能被浏览器拒绝', false);
+                    this.addChatMessage('⚠️ Khởi động camera thất bại, có thể bị trình duyệt từ chối', false);
                 }
             }).catch(error => {
-                log(`启动摄像头异常: ${error.message}`, 'error');
+                log(`Khởi động camera bất thường: ${error.message}`, 'error');
             });
         }
     }
@@ -549,23 +549,23 @@ class UIController {
         console.log('otaUrl element:', otaUrlInput);
 
         if (!otaUrlInput || !otaUrlInput.value) {
-            this.addChatMessage('请输入OTA服务器地址', false);
+            this.addChatMessage('Vui lòng nhập địa chỉ máy chủ OTA', false);
             return;
         }
 
         const otaUrl = otaUrlInput.value;
         console.log('otaUrl value:', otaUrl);
 
-        // Update dial button state to connecting
+        // Cập nhật trạng thái nút quay số sang đang kết nối
         const dialBtn = document.getElementById('dialBtn');
         if (dialBtn) {
             dialBtn.classList.add('dial-active');
-            dialBtn.querySelector('.btn-text').textContent = '连接中...';
+            dialBtn.querySelector('.btn-text').textContent = 'Đang kết nối...';
             dialBtn.disabled = true;
         }
 
-        // Show connecting message
-        this.addChatMessage('正在连接服务器...', false);
+        // Hiển thị thông báo đang kết nối
+        this.addChatMessage('Đang kết nối máy chủ...', false);
 
         const chatIpt = document.getElementById('chatIpt');
         if (chatIpt) {
@@ -588,16 +588,16 @@ class UIController {
                 this.addChatMessage(text, isUser);
             };
 
-            // Register record button state callback BEFORE connecting
+            // Đăng ký callback trạng thái nút ghi âm TRƯỚC KHI kết nối
             wsHandler.onRecordButtonStateChange = (isRecording) => {
                 const recordBtn = document.getElementById('recordBtn');
                 if (recordBtn) {
                     if (isRecording) {
                         recordBtn.classList.add('recording');
-                        recordBtn.querySelector('.btn-text').textContent = '录音中';
+                        recordBtn.querySelector('.btn-text').textContent = 'Đang ghi âm';
                     } else {
                         recordBtn.classList.remove('recording');
-                        recordBtn.querySelector('.btn-text').textContent = '录音';
+                        recordBtn.querySelector('.btn-text').textContent = 'Ghi âm';
                     }
                 }
             };
@@ -605,32 +605,32 @@ class UIController {
             const isConnected = await wsHandler.connect();
 
             if (isConnected) {
-                // Check microphone availability (check again after connection)
+                // Kiểm tra tính khả dụng của microphone (kiểm tra lại sau khi kết nối)
                 const { checkMicrophoneAvailability } = await import('../core/audio/recorder.js?v=0205');
                 const micAvailable = await checkMicrophoneAvailability();
 
                 if (!micAvailable) {
                     const isHttp = window.isHttpNonLocalhost;
                     if (isHttp) {
-                        this.addChatMessage('⚠️ 当前由于是http访问，无法录音，只能用文字交互', false);
+                        this.addChatMessage('⚠️ Hiện tại do truy cập http, không thể ghi âm, chỉ có thể tương tác bằng văn bản', false);
                     }
-                    // Update global state
+                    // Cập nhật trạng thái toàn cục
                     window.microphoneAvailable = false;
                 }
 
-                // Update dial button state
+                // Cập nhật trạng thái nút quay số
                 const dialBtn = document.getElementById('dialBtn');
                 if (dialBtn) {
                     if (!this.dialBtnDisabled) {
                         dialBtn.disabled = false;
                     }
-                    dialBtn.querySelector('.btn-text').textContent = '挂断';
+                    dialBtn.querySelector('.btn-text').textContent = 'Ngắt kết nối';
                     dialBtn.classList.add('dial-active');
                 }
 
                 this.hideModal('settingsModal');
             } else {
-                throw new Error('OTA连接失败');
+                throw new Error('Kết nối OTA thất bại');
             }
         } catch (error) {
             console.error('Connection error details:', {
@@ -639,20 +639,20 @@ class UIController {
                 name: error.name
             });
 
-            // Show error message
+            // Hiển thị thông báo lỗi
             const errorMessage = error.message.includes('Cannot set properties of null')
-                ? '连接失败：请检查设备连接'
-                : `连接失败: ${error.message}`;
+                ? 'Kết nối thất bại: Vui lòng kiểm tra kết nối thiết bị'
+                : `Kết nối thất bại: ${error.message}`;
 
             this.addChatMessage(errorMessage, false);
 
-            // Restore dial button state
+            // Khôi phục trạng thái nút quay số
             const dialBtn = document.getElementById('dialBtn');
             if (dialBtn) {
                 if (!this.dialBtnDisabled) {
                     dialBtn.disabled = false;
                 }
-                dialBtn.querySelector('.btn-text').textContent = '拨号';
+                dialBtn.querySelector('.btn-text').textContent = 'Quay số';
                 dialBtn.classList.remove('dial-active');
                 console.log('Dial button state restored successfully');
             }
@@ -669,9 +669,9 @@ class UIController {
         toolDiv.className = 'properties-container';
         toolDiv.innerHTML = `
             <div class="property-item">
-                <input type="text" placeholder="工具名称" value="新工具">
-                <input type="text" placeholder="工具描述" value="工具描述">
-                <button class="remove-property" onclick="uiController.removeMCPTool('${toolId}')">删除</button>
+                <input type="text" placeholder="Tên công cụ" value="Công cụ mới">
+                <input type="text" placeholder="Mô tả công cụ" value="Mô tả công cụ">
+                <button class="remove-property" onclick="uiController.removeMCPTool('${toolId}')">Xóa</button>
             </div>
         `;
 

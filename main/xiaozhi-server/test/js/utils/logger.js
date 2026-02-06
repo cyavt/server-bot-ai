@@ -1,28 +1,28 @@
-// 日志记录函数
+// Hàm ghi log
 export function log(message, type = 'info') {
-    // 将消息按换行符分割成多行
+    // Chia tin nhắn thành nhiều dòng theo ký tự xuống dòng
     const lines = message.split('\n');
     const now = new Date();
     // const timestamp = `[${now.toLocaleTimeString()}] `;
     const timestamp = `[${now.toLocaleTimeString()}.${now.getMilliseconds().toString().padStart(3, '0')}] `;
 
-    // 检查是否存在日志容器
+    // Kiểm tra xem container log có tồn tại không
     const logContainer = document.getElementById('logContainer');
     if (!logContainer) {
-        // 如果日志容器不存在，只输出到控制台
+        // Nếu container log không tồn tại, chỉ xuất ra console
         console.log(`[${type.toUpperCase()}] ${message}`);
         return;
     }
 
-    // 为每一行创建日志条目
+    // Tạo mục log cho mỗi dòng
     lines.forEach((line, index) => {
         const logEntry = document.createElement('div');
         logEntry.className = `log-entry log-${type}`;
-        // 如果是第一条日志，显示时间戳
+        // Nếu là log đầu tiên, hiển thị timestamp
         const prefix = index === 0 ? timestamp : ' '.repeat(timestamp.length);
         logEntry.textContent = `${prefix}${line}`;
         // logEntry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
-        // logEntry.style 保留起始的空格
+        // logEntry.style giữ lại khoảng trắng ở đầu
         logEntry.style.whiteSpace = 'pre';
         if (type === 'error') {
             logEntry.style.color = 'red';

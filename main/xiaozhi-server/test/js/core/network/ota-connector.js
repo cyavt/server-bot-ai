@@ -1,30 +1,30 @@
 import { log } from '../../utils/logger.js?v=0205';
 
-// WebSocket 连接
+// Kết nối WebSocket
 export async function webSocketConnect(otaUrl, config) {
 
     if (!validateConfig(config)) {
         return;
     }
 
-    // 发送OTA请求并获取返回的websocket信息
+    // Gửi yêu cầu OTA và lấy thông tin websocket trả về
     const otaResult = await sendOTA(otaUrl, config);
     if (!otaResult) {
-        log('无法从OTA服务器获取信息', 'error');
+        log('Không thể lấy thông tin từ máy chủ OTA', 'error');
         return;
     }
 
-    // 从OTA响应中提取websocket信息
+    // Trích xuất thông tin websocket từ phản hồi OTA
     const { websocket } = otaResult;
     if (!websocket || !websocket.url) {
-        log('OTA响应中缺少websocket信息', 'error');
+        log('Thiếu thông tin websocket trong phản hồi OTA', 'error');
         return;
     }
 
-    // 使用OTA返回的websocket URL
+    // Sử dụng URL websocket trả về từ OTA
     let connUrl = new URL(websocket.url);
 
-    // 添加token参数（从OTA响应中获取）
+    // Thêm tham số token (lấy từ phản hồi OTA)
     if (websocket.token) {
         if (websocket.token.startsWith("Bearer ")) {
             connUrl.searchParams.append('authorization', websocket.token);
@@ -33,13 +33,13 @@ export async function webSocketConnect(otaUrl, config) {
         }
     }
 
-    // 添加认证参数（保持原有逻辑）
+    // Thêm tham số xác thực (giữ nguyên logic ban đầu)
     connUrl.searchParams.append('device-id', config.deviceId);
     connUrl.searchParams.append('client-id', config.clientId);
 
     const wsurl = connUrl.toString()
 
-    log(`正在连接: ${wsurl}`, 'info');
+    log(`Đang kết nối: ${wsurl}`, 'info');
 
     if (wsurl) {
         document.getElementById('serverUrl').value = wsurl;
@@ -48,20 +48,20 @@ export async function webSocketConnect(otaUrl, config) {
     return new WebSocket(connUrl.toString());
 }
 
-// 验证配置
+// Xác thực cấu hình
 function validateConfig(config) {
     if (!config.deviceMac) {
-        log('设备MAC地址不能为空', 'error');
+        log('Địa chỉ MAC thiết bị không được để trống', 'error');
         return false;
     }
     if (!config.clientId) {
-        log('客户端ID不能为空', 'error');
+        log('ID khách hàng không được để trống', 'error');
         return false;
     }
     return true;
 }
 
-// OTA发送请求，验证状态，并返回响应数据
+// OTA gửi yêu cầu, xác thực trạng thái, và trả về dữ liệu phản hồi
 async function sendOTA(otaUrl, config) {
     try {
         const res = await fetch(otaUrl, {
@@ -102,8 +102,8 @@ async function sendOTA(otaUrl, config) {
         if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
 
         const result = await res.json();
-        return result; // 返回完整的响应数据
+        return result; // Trả về dữ liệu phản hồi đầy đủ
     } catch (err) {
-        return null; // 失败返回null
+        return null; // Thất bại trả về null
     }
 }

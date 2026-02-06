@@ -172,6 +172,9 @@ main/manager-api/.vscode
 main/manager-web/.webpack_cache/
 main/xiaozhi-server/mysql
 uploadfile
+# Backup files
+backups/
+main/xiaozhi-server/backups/
 *.json
 .vscode
 .cursor

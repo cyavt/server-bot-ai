@@ -1,13 +1,13 @@
-// 背景图加载检测
+// Kiểm tra tải hình nền
 (function() {
     const backgroundContainer = document.getElementById('backgroundContainer');
 
-    // 提取背景图片URL
+    // Trích xuất URL hình nền
     let bgImageUrl = window.getComputedStyle(backgroundContainer).backgroundImage;
     const urlMatch = bgImageUrl && bgImageUrl.match(/url\(["']?(.*?)["']?\)/);
     
     if (!urlMatch || !urlMatch[1]) {
-        console.warn('未提取到有效的背景图片URL');
+        console.warn('Không trích xuất được URL hình nền hợp lệ');
         return;
     }
     
@@ -15,10 +15,10 @@
     
     const bgImage = new Image();
     bgImage.onerror = function() {
-        console.error('背景图片加载失败:', bgImageUrl);
+        console.error('Tải hình nền thất bại:', bgImageUrl);
     };
 
-    // 加载成功显示模型加载
+    // Tải thành công hiển thị tải mô hình
     bgImage.onload = function() {
         modelLoading.style.display = 'flex';
     };

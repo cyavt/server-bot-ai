@@ -1,36 +1,36 @@
 import { log } from '../../utils/logger.js?v=0205';
 
 // ==========================================
-// MCP 工具管理逻辑
+// Logic quản lý công cụ MCP
 // ==========================================
 
-// 全局变量
+// Biến toàn cục
 let mcpTools = [];
 let mcpEditingIndex = null;
 let mcpProperties = [];
-let websocket = null; // 将从外部设置
+let websocket = null; // Sẽ được thiết lập từ bên ngoài
 
 /**
- * 设置 WebSocket 实例
- * @param {WebSocket} ws - WebSocket 连接实例
+ * Thiết lập instance WebSocket
+ * @param {WebSocket} ws - Instance kết nối WebSocket
  */
 export function setWebSocket(ws) {
     websocket = ws;
 }
 
 /**
- * 初始化 MCP 工具
+ * Khởi tạo công cụ MCP
  */
 export async function initMcpTools() {
-    // 加载默认工具数据
+    // Tải dữ liệu công cụ mặc định
     const defaultMcpTools = await fetch("js/config/default-mcp-tools.json").then(res => res.json());
     const savedTools = localStorage.getItem('mcpTools');
     if (savedTools) {
         try {
             const parsedTools = JSON.parse(savedTools);
-            // 合并默认工具和用户保存的工具，保留用户自定义的工具
+            // Hợp nhất công cụ mặc định và công cụ người dùng đã lưu, giữ lại công cụ tùy chỉnh của người dùng
             const defaultToolNames = new Set(defaultMcpTools.map(t => t.name));
-            // 添加默认工具中不存在的新工具
+            // Thêm công cụ mới không tồn tại trong công cụ mặc định
             parsedTools.forEach(tool => {
                 if (!defaultToolNames.has(tool.name)) {
                     defaultMcpTools.push(tool);
@@ -38,7 +38,7 @@ export async function initMcpTools() {
             });
             mcpTools = defaultMcpTools;
         } catch (e) {
-            log('加载MCP工具失败，使用默认工具', 'warning');
+            log('Tải công cụ MCP thất bại, sử dụng công cụ mặc định', 'warning');
             mcpTools = [...defaultMcpTools];
         }
     } else {
@@ -49,7 +49,7 @@ export async function initMcpTools() {
 }
 
 /**
- * 渲染工具列表
+ * Render danh sách công cụ
  */
 function renderMcpTools() {
     const container = document.getElementById('mcpToolsContainer');
@@ -58,10 +58,10 @@ function renderMcpTools() {
         return; // Container not found, skip rendering
     }
     if (countSpan) {
-        countSpan.textContent = `${mcpTools.length} 个工具`;
+        countSpan.textContent = `${mcpTools.length} công cụ`;
     }
     if (mcpTools.length === 0) {
-        container.innerHTML = '<div style="text-align: center; padding: 30px; color: #999;">暂无工具，点击下方按钮添加新工具</div>';
+        container.innerHTML = '<div style="text-align: center; padding: 30px; color: #999;">Chưa có công cụ, nhấp nút bên dưới để thêm công cụ mới</div>';
         return;
     }
     container.innerHTML = mcpTools.map((tool, index) => {
@@ -74,22 +74,22 @@ function renderMcpTools() {
                     <div class="mcp-tool-name">${tool.name}</div>
                     <div class="mcp-tool-actions">
                         <button class="mcp-edit-btn" onclick="window.mcpModule.editMcpTool(${index})">
-                            ✏️ 编辑
+                            ✏️ Chỉnh sửa
                         </button>
                         <button class="mcp-delete-btn" onclick="window.mcpModule.deleteMcpTool(${index})">
-                            🗑️ 删除
+                            🗑️ Xóa
                         </button>
                     </div>
                 </div>
                 <div class="mcp-tool-description">${tool.description}</div>
                 <div class="mcp-tool-info">
                     <div class="mcp-tool-info-row">
-                        <span class="mcp-tool-info-label">参数数量:</span>
-                        <span class="mcp-tool-info-value">${paramCount} 个 ${requiredCount > 0 ? `(${requiredCount} 个必填)` : ''}</span>
+                        <span class="mcp-tool-info-label">Số lượng tham số:</span>
+                        <span class="mcp-tool-info-value">${paramCount} ${requiredCount > 0 ? `(${requiredCount} bắt buộc)` : ''}</span>
                     </div>
                     <div class="mcp-tool-info-row">
-                        <span class="mcp-tool-info-label">模拟返回:</span>
-                        <span class="mcp-tool-info-value">${hasMockResponse ? '✅ 已配置: ' + JSON.stringify(tool.mockResponse) : '⚪ 使用默认'}</span>
+                        <span class="mcp-tool-info-label">Kết quả trả về mô phỏng:</span>
+                        <span class="mcp-tool-info-value">${hasMockResponse ? '✅ Đã cấu hình: ' + JSON.stringify(tool.mockResponse) : '⚪ Sử dụng mặc định'}</span>
                     </div>
                 </div>
             </div>
@@ -98,7 +98,7 @@ function renderMcpTools() {
 }
 
 /**
- * 渲染参数列表
+ * Render danh sách tham số
  */
 function renderMcpProperties() {
     const container = document.getElementById('mcpPropertiesContainer');
@@ -119,55 +119,55 @@ function renderMcpProperties() {
     container.innerHTML = mcpProperties.map((prop, index) => `
         <div class="mcp-property-card" onclick="window.mcpModule.editMcpProperty(${index})">
             <div class="mcp-property-row-label">
-                <span class="mcp-property-label">参数名称</span>
-                <span class="mcp-property-value">${prop.name}${prop.required ? ' <span class="mcp-property-required-badge">[必填]</span>' : ''}</span>
+                <span class="mcp-property-label">Tên tham số</span>
+                <span class="mcp-property-value">${prop.name}${prop.required ? ' <span class="mcp-property-required-badge">[Bắt buộc]</span>' : ''}</span>
             </div>
             <div class="mcp-property-row-label">
-                <span class="mcp-property-label">数据类型</span>
+                <span class="mcp-property-label">Kiểu dữ liệu</span>
                 <span class="mcp-property-value">${getTypeLabel(prop.type)}</span>
             </div>
             <div class="mcp-property-row-label">
-                <span class="mcp-property-label">描述</span>
+                <span class="mcp-property-label">Mô tả</span>
                 <span class="mcp-property-value">${prop.description || '-'}</span>
             </div>
             <div class="mcp-property-row-action">
-                <button class="mcp-property-delete-btn" onclick="event.stopPropagation(); window.mcpModule.deleteMcpProperty(${index})">删除</button>
+                <button class="mcp-property-delete-btn" onclick="event.stopPropagation(); window.mcpModule.deleteMcpProperty(${index})">Xóa</button>
             </div>
         </div>
     `).join('');
 }
 
 /**
- * 获取数据类型标签
+ * Lấy nhãn kiểu dữ liệu
  */
 function getTypeLabel(type) {
     const typeMap = {
-        'string': '字符串',
-        'integer': '整数',
-        'number': '数字',
-        'boolean': '布尔值',
-        'array': '数组',
-        'object': '对象'
+        'string': 'Chuỗi',
+        'integer': 'Số nguyên',
+        'number': 'Số',
+        'boolean': 'Boolean',
+        'array': 'Mảng',
+        'object': 'Đối tượng'
     };
     return typeMap[type] || type;
 }
 
 /**
- * 添加参数 - 打开参数编辑模态框
+ * Thêm tham số - Mở hộp thoại chỉnh sửa tham số
  */
 function addMcpProperty() {
     openPropertyModal();
 }
 
 /**
- * 编辑参数 - 打开参数编辑模态框
+ * Chỉnh sửa tham số - Mở hộp thoại chỉnh sửa tham số
  */
 function editMcpProperty(index) {
     openPropertyModal(index);
 }
 
 /**
- * 打开参数编辑模态框
+ * Mở hộp thoại chỉnh sửa tham số
  */
 function openPropertyModal(index = null) {
     const form = document.getElementById('mcpPropertyForm');
@@ -176,7 +176,7 @@ function openPropertyModal(index = null) {
 
     if (index !== null) {
         const prop = mcpProperties[index];
-        title.textContent = '编辑参数';
+        title.textContent = 'Chỉnh sửa tham số';
         document.getElementById('mcpPropertyName').value = prop.name;
         document.getElementById('mcpPropertyType').value = prop.type || 'string';
         document.getElementById('mcpPropertyMinimum').value = prop.minimum !== undefined ? prop.minimum : '';
@@ -184,7 +184,7 @@ function openPropertyModal(index = null) {
         document.getElementById('mcpPropertyDescription').value = prop.description || '';
         document.getElementById('mcpPropertyRequired').checked = prop.required || false;
     } else {
-        title.textContent = '添加参数';
+        title.textContent = 'Thêm tham số';
         form.reset();
         document.getElementById('mcpPropertyName').value = `param_${mcpProperties.length + 1}`;
         document.getElementById('mcpPropertyType').value = 'string';
@@ -199,14 +199,14 @@ function openPropertyModal(index = null) {
 }
 
 /**
- * 关闭参数编辑模态框
+ * Đóng hộp thoại chỉnh sửa tham số
  */
 function closePropertyModal() {
     document.getElementById('mcpPropertyModal').style.display = 'none';
 }
 
 /**
- * 更新数值范围输入框的可见性
+ * Cập nhật khả năng hiển thị của hộp nhập phạm vi giá trị
  */
 function updatePropertyRangeVisibility() {
     const type = document.getElementById('mcpPropertyType').value;
@@ -219,7 +219,7 @@ function updatePropertyRangeVisibility() {
 }
 
 /**
- * 处理参数表单提交
+ * Xử lý gửi form tham số
  */
 function handlePropertySubmit(e) {
     e.preventDefault();
@@ -231,10 +231,10 @@ function handlePropertySubmit(e) {
     const description = document.getElementById('mcpPropertyDescription').value.trim();
     const required = document.getElementById('mcpPropertyRequired').checked;
 
-    // 检查名称重复
+    // Kiểm tra tên trùng lặp
     const isDuplicate = mcpProperties.some((p, i) => i !== index && p.name === name);
     if (isDuplicate) {
-        alert('参数名称已存在，请使用不同的名称');
+        alert('Tên tham số đã tồn tại, vui lòng sử dụng tên khác');
         return;
     }
 
@@ -245,7 +245,7 @@ function handlePropertySubmit(e) {
         required
     };
 
-    // 数值类型添加范围限制
+    // Thêm giới hạn phạm vi cho kiểu số
     if (type === 'integer' || type === 'number') {
         if (minimum !== '') {
             propData.minimum = parseFloat(minimum);
@@ -266,7 +266,7 @@ function handlePropertySubmit(e) {
 }
 
 /**
- * 删除参数
+ * Xóa tham số
  */
 function deleteMcpProperty(index) {
     mcpProperties.splice(index, 1);
@@ -274,7 +274,7 @@ function deleteMcpProperty(index) {
 }
 
 /**
- * 设置事件监听
+ * Thiết lập trình lắng nghe sự kiện
  */
 function setupMcpEventListeners() {
     const panel = document.getElementById('mcpToolsPanel');
@@ -285,7 +285,7 @@ function setupMcpEventListeners() {
     const form = document.getElementById('mcpToolForm');
     const addPropertyBtn = document.getElementById('addMcpPropertyBtn');
 
-    // 参数编辑模态框相关元素
+    // Các phần tử liên quan đến hộp thoại chỉnh sửa tham số
     const propertyModal = document.getElementById('mcpPropertyModal');
     const closePropertyBtn = document.getElementById('closeMcpPropertyModalBtn');
     const cancelPropertyBtn = document.getElementById('cancelMcpPropertyBtn');
@@ -302,7 +302,7 @@ function setupMcpEventListeners() {
     addPropertyBtn.addEventListener('click', addMcpProperty);
     form.addEventListener('submit', handleMcpSubmit);
 
-    // 参数编辑模态框事件
+    // Sự kiện hộp thoại chỉnh sửa tham số
     if (propertyModal && closePropertyBtn && cancelPropertyBtn && propertyForm && propertyTypeSelect) {
         closePropertyBtn.addEventListener('click', closePropertyModal);
         cancelPropertyBtn.addEventListener('click', closePropertyModal);
@@ -312,19 +312,19 @@ function setupMcpEventListeners() {
 }
 
 /**
- * 打开模态框
+ * Mở hộp thoại
  */
 function openMcpModal(index = null) {
     const isConnected = websocket && websocket.readyState === WebSocket.OPEN;
     if (isConnected) {
-        alert('WebSocket 已连接，无法编辑工具');
+        alert('WebSocket đã kết nối, không thể chỉnh sửa công cụ');
         return;
     }
     mcpEditingIndex = index;
     const errorContainer = document.getElementById('mcpErrorContainer');
     errorContainer.innerHTML = '';
     if (index !== null) {
-        document.getElementById('mcpModalTitle').textContent = '编辑工具';
+        document.getElementById('mcpModalTitle').textContent = 'Chỉnh sửa công cụ';
         const tool = mcpTools[index];
         document.getElementById('mcpToolName').value = tool.name;
         document.getElementById('mcpToolDescription').value = tool.description;
@@ -345,7 +345,7 @@ function openMcpModal(index = null) {
             });
         }
     } else {
-        document.getElementById('mcpModalTitle').textContent = '添加工具';
+        document.getElementById('mcpModalTitle').textContent = 'Thêm công cụ';
         document.getElementById('mcpToolForm').reset();
         mcpProperties = [];
     }
@@ -354,7 +354,7 @@ function openMcpModal(index = null) {
 }
 
 /**
- * 关闭模态框
+ * Đóng hộp thoại
  */
 function closeMcpModal() {
     document.getElementById('mcpToolModal').style.display = 'none';
@@ -365,7 +365,7 @@ function closeMcpModal() {
 }
 
 /**
- * 处理表单提交
+ * Xử lý gửi form
  */
 function handleMcpSubmit(e) {
     e.preventDefault();
@@ -374,23 +374,23 @@ function handleMcpSubmit(e) {
     const name = document.getElementById('mcpToolName').value.trim();
     const description = document.getElementById('mcpToolDescription').value.trim();
     const mockResponseText = document.getElementById('mcpMockResponse').value.trim();
-    // 检查名称重复
+    // Kiểm tra tên trùng lặp
     const isDuplicate = mcpTools.some((tool, index) => tool.name === name && index !== mcpEditingIndex);
     if (isDuplicate) {
-        showMcpError('工具名称已存在，请使用不同的名称');
+        showMcpError('Tên công cụ đã tồn tại, vui lòng sử dụng tên khác');
         return;
     }
-    // 解析模拟返回结果
+    // Phân tích kết quả trả về mô phỏng
     let mockResponse = null;
     if (mockResponseText) {
         try {
             mockResponse = JSON.parse(mockResponseText);
         } catch (e) {
-            showMcpError('模拟返回结果不是有效的 JSON 格式: ' + e.message);
+            showMcpError('Kết quả trả về mô phỏng không phải định dạng JSON hợp lệ: ' + e.message);
             return;
         }
     }
-    // 构建 inputSchema
+    // Xây dựng inputSchema
     const inputSchema = { type: "object", properties: {}, required: [] };
     mcpProperties.forEach(prop => {
         const propSchema = { type: prop.type };
@@ -416,10 +416,10 @@ function handleMcpSubmit(e) {
     const tool = { name, description, inputSchema, mockResponse };
     if (mcpEditingIndex !== null) {
         mcpTools[mcpEditingIndex] = tool;
-        log(`已更新工具: ${name}`, 'success');
+        log(`Đã cập nhật công cụ: ${name}`, 'success');
     } else {
         mcpTools.push(tool);
-        log(`已添加工具: ${name}`, 'success');
+        log(`Đã thêm công cụ: ${name}`, 'success');
     }
     saveMcpTools();
     renderMcpTools();
@@ -427,7 +427,7 @@ function handleMcpSubmit(e) {
 }
 
 /**
- * 显示错误
+ * Hiển thị lỗi
  */
 function showMcpError(message) {
     const errorContainer = document.getElementById('mcpErrorContainer');
@@ -435,72 +435,72 @@ function showMcpError(message) {
 }
 
 /**
- * 编辑工具
+ * Chỉnh sửa công cụ
  */
 function editMcpTool(index) {
     openMcpModal(index);
 }
 
 /**
- * 删除工具
+ * Xóa công cụ
  */
 function deleteMcpTool(index) {
     const isConnected = websocket && websocket.readyState === WebSocket.OPEN;
     if (isConnected) {
-        alert('WebSocket 已连接，无法编辑工具');
+        alert('WebSocket đã kết nối, không thể chỉnh sửa công cụ');
         return;
     }
-    if (confirm(`确定要删除工具 "${mcpTools[index].name}" 吗？`)) {
+    if (confirm(`Bạn có chắc chắn muốn xóa công cụ "${mcpTools[index].name}" không?`)) {
         const toolName = mcpTools[index].name;
         mcpTools.splice(index, 1);
         saveMcpTools();
         renderMcpTools();
-        log(`已删除工具: ${toolName}`, 'info');
+        log(`Đã xóa công cụ: ${toolName}`, 'info');
     }
 }
 
 /**
- * 保存工具
+ * Lưu công cụ
  */
 function saveMcpTools() {
     localStorage.setItem('mcpTools', JSON.stringify(mcpTools));
 }
 
 /**
- * 获取工具列表
+ * Lấy danh sách công cụ
  */
 export function getMcpTools() {
     return mcpTools.map(tool => ({ name: tool.name, description: tool.description, inputSchema: tool.inputSchema }));
 }
 
 /**
- * 执行工具调用
+ * Thực thi gọi công cụ
  */
 export async function executeMcpTool(toolName, toolArgs) {
     const tool = mcpTools.find(t => t.name === toolName);
     if (!tool) {
-        log(`未找到工具: ${toolName}`, 'error');
-        return { success: false, error: `未知工具: ${toolName}` };
+        log(`Không tìm thấy công cụ: ${toolName}`, 'error');
+        return { success: false, error: `Công cụ không xác định: ${toolName}` };
     }
 
-    // 处理拍照工具
+    // Xử lý công cụ chụp ảnh
     if (toolName === 'self_camera_take_photo') {
         if (typeof window.takePhoto === 'function') {
-            const question = toolArgs && toolArgs.question ? toolArgs.question : '描述一下看到的物品';
-            log(`正在执行拍照: ${question}`, 'info');
+            const question = toolArgs && toolArgs.question ? toolArgs.question : 'Mô tả vật phẩm bạn nhìn thấy';
+            log(`Đang thực thi chụp ảnh: ${question}`, 'info');
             const result = await window.takePhoto(question);
             return result;
         } else {
-            log('拍照功能不可用', 'warning');
-            return { success: false, error: '摄像头未启动或不支持拍照功能' };
+            log('Chức năng chụp ảnh không khả dụng', 'warning');
+            return { success: false, error: 'Camera chưa khởi động hoặc không hỗ trợ chức năng chụp ảnh' };
         }
     }
 
-    // 如果有模拟返回结果，使用它
+    // Nếu có kết quả trả về mô phỏng, sử dụng nó
     if (tool.mockResponse) {
-        // 替换模板变量
+        // Thay thế biến mẫu
         let responseStr = JSON.stringify(tool.mockResponse);
-        // 替换 ${paramName} 格式的变量
+        // Thay thế biến định dạng ${paramName}
         if (toolArgs) {
             Object.keys(toolArgs).forEach(key => {
                 const regex = new RegExp(`\\$\\{${key}\\}`, 'g');
@@ -509,17 +509,17 @@ export async function executeMcpTool(toolName, toolArgs) {
         }
         try {
             const response = JSON.parse(responseStr);
-            log(`工具 ${toolName} 执行成功，返回模拟结果: ${responseStr}`, 'success');
+            log(`Công cụ ${toolName} thực thi thành công, trả về kết quả mô phỏng: ${responseStr}`, 'success');
             return response;
         } catch (e) {
-            log(`解析模拟返回结果失败: ${e.message}`, 'error');
+            log(`Phân tích kết quả trả về mô phỏng thất bại: ${e.message}`, 'error');
             return tool.mockResponse;
         }
     }
-    // 没有模拟返回结果，返回默认成功消息
-    log(`工具 ${toolName} 执行成功，返回默认结果`, 'success');
-    return { success: true, message: `工具 ${toolName} 执行成功`, tool: toolName, arguments: toolArgs };
+    // Không có kết quả trả về mô phỏng, trả về thông báo thành công mặc định
+    log(`Công cụ ${toolName} thực thi thành công, trả về kết quả mặc định`, 'success');
+    return { success: true, message: `Công cụ ${toolName} thực thi thành công`, tool: toolName, arguments: toolArgs };
 }
 
-// 暴露全局方法供 HTML 内联事件调用
+// Phơi bày phương thức toàn cục để HTML gọi sự kiện nội tuyến
 window.mcpModule = { addMcpProperty, editMcpProperty, deleteMcpProperty, editMcpTool, deleteMcpTool };

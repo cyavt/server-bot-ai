@@ -1,4 +1,4 @@
-/* ==================== 全局样式重置 ==================== */
+/* ==================== Đặt lại kiểu toàn cục ==================== */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -14,7 +14,7 @@ body {
     width: 100vw;
 }
 
-/* ==================== 背景容器 ==================== */
+/* ==================== Container nền ==================== */
 .background-container {
     position: fixed;
     top: 0;
@@ -39,7 +39,7 @@ body {
     z-index: -1;
 }
 
-/* ==================== 主容器 ==================== */
+/* ==================== Container chính ==================== */
 .container {
     position: relative;
     width: 100vw;
@@ -48,13 +48,13 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: flex-end;
-    /* 从底部开始排列 */
+    /* Sắp xếp từ dưới lên */
     padding: 20px;
     padding-bottom: 0;
-    /* 移除底部padding，让模型可以延伸到页面底部 */
+    /* Loại bỏ padding dưới để mô hình có thể mở rộng đến cuối trang */
 }
 
-/* ==================== 模型加载区 ==================== */
+/* ==================== Vùng tải mô hình ==================== */
 .model-container {
     position: absolute;
     top: 50%;
@@ -172,7 +172,7 @@ body {
     }
 }
 
-/* ==================== Live2D显示区域 ==================== */
+/* ==================== Vùng hiển thị Live2D ==================== */
 #live2d-stage {
     position: fixed;
     top: 0;
@@ -234,7 +234,7 @@ body {
     }
 }
 
-/* ==================== 聊天消息流（弹幕样式） ==================== */
+/* ==================== Luồng tin nhắn chat (kiểu danmaku) ==================== */
 .chat-container {
     position: absolute;
     bottom: 150px;
@@ -359,7 +359,7 @@ body {
     }
 }
 
-/* ==================== 底部控制栏 ==================== */
+/* ==================== Thanh điều khiển dưới ==================== */
 .control-bar {
     position: fixed;
     bottom: 20px;
@@ -374,7 +374,7 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     z-index: 1000;
-    /* 确保控制栏在最上层 */
+    /* Đảm bảo thanh điều khiển ở lớp trên cùng */
 }
 
 .control-btn {
@@ -425,7 +425,7 @@ body {
     font-weight: 500;
 }
 
-/* 拨号按钮特殊样式 */
+/* Kiểu đặc biệt cho nút quay số */
 .dial-btn.dial-active {
     background: rgba(237, 66, 69, 0.9);
 }
@@ -434,7 +434,7 @@ body {
     background: rgba(237, 66, 69, 1);
 }
 
-/* 录音按钮特殊样式 */
+/* Kiểu đặc biệt cho nút ghi âm */
 .control-btn.recording {
     background: rgba(237, 66, 69, 0.9);
     animation: pulse 1.5s infinite;
@@ -444,7 +444,7 @@ body {
     background: rgba(237, 66, 69, 1);
 }
 
-/* 摄像头按钮特殊样式 */
+/* Kiểu đặc biệt cho nút camera */
 #cameraBtn.camera-active {
     background: rgba(237, 66, 69, 0.9);
 }
@@ -453,7 +453,7 @@ body {
     background: rgba(237, 66, 69, 1);
 }
 
-/* 录音按钮脉冲动画 */
+/* Hiệu ứng xung cho nút ghi âm */
 @keyframes pulse {
     0% {
         box-shadow: 0 0 0 0 rgba(237, 66, 69, 0.7);
@@ -468,7 +468,7 @@ body {
     }
 }
 
-/* ==================== 弹窗样式 ==================== */
+/* ==================== Kiểu cửa sổ popup ==================== */
 .modal {
     display: none;
     position: fixed;
@@ -553,7 +553,7 @@ body {
     overflow-y: auto;
 }
 
-/* ==================== 输入组样式 ==================== */
+/* ==================== Kiểu nhóm nhập liệu ==================== */
 .input-group {
     margin-bottom: 20px;
 }
@@ -590,7 +590,7 @@ body {
     font-family: inherit;
 }
 
-/* ==================== 按钮样式 ==================== */
+/* ==================== Kiểu nút bấm ==================== */
 .modal-actions {
     display: flex;
     gap: 12px;
@@ -598,7 +598,7 @@ body {
     margin-top: 24px;
 }
 
-/* ==================== 文件协议警告样式 ==================== */
+/* ==================== Kiểu cảnh báo giao thức tệp ==================== */
 #fileProtocolWarning {
     position: fixed;
     top: 50%;
@@ -655,7 +655,7 @@ body {
     font-weight: 600;
 }
 
-/* 背景模糊遮罩 */
+/* Lớp phủ mờ nền */
 .file-protocol-overlay {
     position: fixed;
     top: 0;
@@ -668,7 +668,7 @@ body {
     animation: fadeIn 0.3s ease-out;
 }
 
-/* 动画效果 */
+/* Hiệu ứng hoạt hình */
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -691,7 +691,7 @@ body {
     }
 }
 
-/* ==================== 连接信息样式 ==================== */
+/* ==================== Kiểu thông tin kết nối ==================== */
 .connection-info {
     margin-top: 20px;
     padding: 16px;
@@ -740,7 +740,7 @@ body {
     background: #5d6269;
 }
 
-/* ==================== 设置标签页样式 ==================== */
+/* ==================== Kiểu tab cài đặt ==================== */
 .settings-tabs {
     display: flex;
     border-bottom: 1px solid #40444b;
@@ -777,7 +777,7 @@ body {
     display: block;
 }
 
-/* ==================== 配置面板样式 ==================== */
+/* ==================== Kiểu panel cấu hình ==================== */
 .config-panel {
     background: #2f3136;
     border-radius: 8px;
@@ -878,7 +878,7 @@ body {
     fill: #ffffff;
 }
 
-/* ==================== MCP工具样式 ==================== */
+/* ==================== Kiểu công cụ MCP ==================== */
 .mcp-tools-container {
     background: #2f3136;
     border-radius: 8px;
@@ -913,7 +913,7 @@ body {
     margin-bottom: 16px;
 }
 
-/* MCP工具卡片样式 */
+/* Kiểu thẻ công cụ MCP */
 .mcp-tool-card {
     background: #36393f;
     border: 1px solid #40444b;
@@ -1187,7 +1187,7 @@ body {
     max-width: 450px;
 }
 
-/* ==================== 音频可视化器样式 ==================== */
+/* ==================== Kiểu trình hiển thị âm thanh ==================== */
 .audio-visualizer {
     position: fixed;
     bottom: 100px;
@@ -1201,7 +1201,7 @@ body {
     z-index: 999;
 }
 
-/* ==================== 响应式设计 ==================== */
+/* ==================== Thiết kế responsive ==================== */
 @media (max-width: 768px) {
     .container {
         padding: 10px;
@@ -1303,7 +1303,7 @@ body {
     }
 }
 
-/* 竖屏优化 */
+/* Tối ưu màn hình dọc */
 @media (max-height: 700px) {
     .live2d-section {
         height: 55vh;
@@ -1323,7 +1323,7 @@ body {
     }
 }
 
-/* 横屏优化 */
+/* Tối ưu màn hình ngang */
 @media (min-width: 1024px) and (min-height: 600px) {
     .live2d-section {
         height: 75vh;
@@ -1345,7 +1345,7 @@ body {
     }
 }
 
-/* 滚动条样式 */
+/* Kiểu thanh cuộn */
 .chat-stream::-webkit-scrollbar,
 .modal-body::-webkit-scrollbar,
 .mcp-tools-list::-webkit-scrollbar {
@@ -1372,7 +1372,7 @@ body {
     background: #4f545c;
 }
 
-/* ==================== 摄像头显示区域样式 ==================== */
+/* ==================== Kiểu vùng hiển thị camera ==================== */
 .camera-container {
     position: fixed;
     top: 20px;
