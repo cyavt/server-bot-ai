@@ -2,7 +2,7 @@
 #--------- Môi trường được khuyến nghị cho dự án này là python3.10, các phụ thuộc sau tạm thời không khuyến nghị nâng cấp
 torch==2.2.2
 torchaudio==2.2.2
-numpy==1.26.4
+numpy==2.4.2
 #--------- cozepy0.20.0 yêu cầu websockets<15.0.0, các phụ thuộc sau tạm thời không khuyến nghị nâng cấp
 websockets==14.2
 #--------- Các phụ thuộc sau có thể nâng cấp
