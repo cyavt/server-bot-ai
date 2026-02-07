@@ -1,43 +1,43 @@
--- 添加百度ASR模型配置
+-- Thêm cấu hình mô hình ASR Baidu
 delete from `ai_model_config` where `id` = 'ASR_BaiduASR';
-INSERT INTO `ai_model_config` VALUES ('ASR_BaiduASR', 'ASR', 'BaiduASR', '百度语音识别', 0, 1, '{\"type\": \"baidu\", \"app_id\": \"\", \"api_key\": \"\", \"secret_key\": \"\", \"dev_pid\": 1537, \"output_dir\": \"tmp/\"}', NULL, NULL, 7, NULL, NULL, NULL, NULL);
+INSERT INTO `ai_model_config` VALUES ('ASR_BaiduASR', 'ASR', 'BaiduASR', 'Nhận dạng giọng nói Baidu', 0, 1, '{\"type\": \"baidu\", \"app_id\": \"\", \"api_key\": \"\", \"secret_key\": \"\", \"dev_pid\": 1537, \"output_dir\": \"tmp/\"}', NULL, NULL, 7, NULL, NULL, NULL, NULL);
 
 
--- 添加百度ASR供应器
+-- Thêm nhà cung cấp ASR Baidu
 delete from `ai_model_provider` where `id` = 'SYSTEM_ASR_BaiduASR';
 INSERT INTO `ai_model_provider` (`id`, `model_type`, `provider_code`, `name`, `fields`, `sort`, `creator`, `create_date`, `updater`, `update_date`) VALUES
-('SYSTEM_ASR_BaiduASR', 'ASR', 'baidu', '百度语音识别', '[{"key":"app_id","label":"应用AppID","type":"string"},{"key":"api_key","label":"API Key","type":"string"},{"key":"secret_key","label":"Secret Key","type":"string"},{"key":"dev_pid","label":"语言参数","type":"number"},{"key":"output_dir","label":"输出目录","type":"string"}]', 7, 1, NOW(), 1, NOW());
+('SYSTEM_ASR_BaiduASR', 'ASR', 'baidu', 'Nhận dạng giọng nói Baidu', '[{"key":"app_id","label":"AppID ứng dụng","type":"string"},{"key":"api_key","label":"API Key","type":"string"},{"key":"secret_key","label":"Secret Key","type":"string"},{"key":"dev_pid","label":"Tham số ngôn ngữ","type":"number"},{"key":"output_dir","label":"Thư mục đầu ra","type":"string"}]', 7, 1, NOW(), 1, NOW());
 
 
--- 更新百度ASR配置说明
+-- Cập nhật hướng dẫn cấu hình ASR Baidu
 UPDATE `ai_model_config` SET 
 `doc_link` = 'https://console.bce.baidu.com/ai-engine/old/#/ai/speech/app/list',
-`remark` = '百度ASR配置说明：
-1. 访问 https://console.bce.baidu.com/ai-engine/old/#/ai/speech/app/list
-2. 创建新应用
-3. 获取AppID、API Key和Secret Key
-4. 填入配置文件中
-查看资源额度：https://console.bce.baidu.com/ai-engine/old/#/ai/speech/overview/resource/list
-语言参数说明：https://ai.baidu.com/ai-doc/SPEECH/0lbxfnc9b
+`remark` = 'Hướng dẫn cấu hình ASR Baidu:
+1. Truy cập https://console.bce.baidu.com/ai-engine/old/#/ai/speech/app/list
+2. Tạo ứng dụng mới
+3. Lấy AppID, API Key và Secret Key
+4. Điền vào file cấu hình
+Xem hạn mức tài nguyên: https://console.bce.baidu.com/ai-engine/old/#/ai/speech/overview/resource/list
+Giải thích tham số ngôn ngữ: https://ai.baidu.com/ai-doc/SPEECH/0lbxfnc9b
 ' WHERE `id` = 'ASR_BaiduASR';
 
--- 更新豆包供应器字段
+-- Cập nhật trường nhà cung cấp Đậu Bao
 update `ai_model_provider` set `fields` = 
-'[{"key":"appid","label":"应用ID","type":"string"},{"key":"access_token","label":"访问令牌","type":"string"},{"key":"cluster","label":"集群","type":"string"},{"key":"boosting_table_name","label":"热词文件名称","type":"string"},{"key":"correct_table_name","label":"替换词文件名称","type":"string"},{"key":"output_dir","label":"输出目录","type":"string"}]'
+'[{"key":"appid","label":"ID ứng dụng","type":"string"},{"key":"access_token","label":"Mã truy cập","type":"string"},{"key":"cluster","label":"Cụm","type":"string"},{"key":"boosting_table_name","label":"Tên file từ nóng","type":"string"},{"key":"correct_table_name","label":"Tên file từ thay thế","type":"string"},{"key":"output_dir","label":"Thư mục đầu ra","type":"string"}]'
 where `id` = 'SYSTEM_ASR_DoubaoASR';
 
--- 更新豆包ASR配置说明
+-- Cập nhật hướng dẫn cấu hình ASR Đậu Bao
 UPDATE `ai_model_config` SET 
 `doc_link` = 'https://console.volcengine.com/speech/app',
-`remark` = '豆包ASR配置说明：
-1. 需要在火山引擎控制台创建应用并获取appid和access_token
-2. 支持中文语音识别
-3. 需要网络连接
-4. 输出文件保存在tmp/目录
-申请步骤：
-1. 访问 https://console.volcengine.com/speech/app
-2. 创建新应用
-3. 获取appid和access_token
-4. 填入配置文件中
-如需设置热词，请参考：https://www.volcengine.com/docs/6561/155738
+`remark` = 'Hướng dẫn cấu hình ASR Đậu Bao:
+1. Cần tạo ứng dụng trên bảng điều khiển Huoshan Engine và lấy appid và access_token
+2. Hỗ trợ nhận dạng giọng nói tiếng Trung
+3. Cần kết nối mạng
+4. File đầu ra được lưu trong thư mục tmp/
+Các bước đăng ký:
+1. Truy cập https://console.volcengine.com/speech/app
+2. Tạo ứng dụng mới
+3. Lấy appid và access_token
+4. Điền vào file cấu hình
+Nếu cần cài đặt từ nóng, vui lòng tham khảo: https://www.volcengine.com/docs/6561/155738
 ' WHERE `id` = 'ASR_DoubaoASR';

@@ -1286,6 +1286,7 @@ export default {
   'knowledgeFileUpload.totalSlices': '共{total}条记录',
   'knowledgeFileUpload.slice': '切片',
   'knowledgeFileUpload.noSliceData': '暂无切片数据',
+  'common.noData': '暂无数据',
   'knowledgeFileUpload.firstPage': '首页',
   'knowledgeFileUpload.prevPage': '上一页',
   'knowledgeFileUpload.nextPage': '下一页',

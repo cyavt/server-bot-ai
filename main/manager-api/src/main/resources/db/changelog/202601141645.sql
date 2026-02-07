@@ -1,4 +1,4 @@
--- 批量清理 ai_model_provider 中的 sample_rate 字段定义
+-- Dọn dẹp hàng loạt định nghĩa trường sample_rate trong ai_model_provider
 UPDATE `ai_model_provider` ap
 JOIN (
     SELECT 
@@ -18,13 +18,13 @@ JOIN (
 ) filtered ON ap.id = filtered.id
 SET ap.fields = filtered.new_fields;
 
--- 清理 config_json 顶层的 sample_rate
+-- Dọn dẹp sample_rate ở cấp cao nhất của config_json
 UPDATE `ai_model_config`
 SET `config_json` = JSON_REMOVE(`config_json`, '$.sample_rate')
 WHERE `model_type` = 'TTS'
   AND JSON_EXTRACT(`config_json`, '$.sample_rate') IS NOT NULL;
 
--- 清理Minimax流式TTS的sample_rate参数（位于audio_setting内部）
+-- Dọn dẹp tham số sample_rate của Minimax streaming TTS (nằm trong audio_setting)
 UPDATE `ai_model_config` SET 
 `config_json` = JSON_SET(`config_json`, '$.audio_setting', JSON_REMOVE(JSON_EXTRACT(`config_json`, '$.audio_setting'), '$.sample_rate'))
 WHERE `id` = 'TTS_MinimaxStreamTTS'

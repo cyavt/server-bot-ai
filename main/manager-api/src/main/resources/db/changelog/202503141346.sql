@@ -1,185 +1,185 @@
--- 模型供应器表
+-- Bảng provider mô hình
 DROP TABLE IF EXISTS `ai_model_provider`;
 CREATE TABLE `ai_model_provider` (
-    `id` VARCHAR(32) NOT NULL COMMENT '主键',
-    `model_type` VARCHAR(20) COMMENT '模型类型(Memory/ASR/VAD/LLM/TTS)',
-    `provider_code` VARCHAR(50) COMMENT '供应器类型',
-    `name` VARCHAR(50) COMMENT '供应器名称',
-    `fields` JSON COMMENT '供应器字段列表(JSON格式)',
-    `sort` INT UNSIGNED DEFAULT 0 COMMENT '排序',
-    `creator` BIGINT COMMENT '创建者',
-    `create_date` DATETIME COMMENT '创建时间',
-    `updater` BIGINT COMMENT '更新者',
-    `update_date` DATETIME COMMENT '更新时间',
+    `id` VARCHAR(32) NOT NULL COMMENT 'Khóa chính',
+    `model_type` VARCHAR(20) COMMENT 'Loại mô hình(Memory/ASR/VAD/LLM/TTS)',
+    `provider_code` VARCHAR(50) COMMENT 'Loại provider',
+    `name` VARCHAR(50) COMMENT 'Tên provider',
+    `fields` JSON COMMENT 'Danh sách trường provider (định dạng JSON)',
+    `sort` INT UNSIGNED DEFAULT 0 COMMENT 'Sắp xếp',
+    `creator` BIGINT COMMENT 'Người tạo',
+    `create_date` DATETIME COMMENT 'Thời gian tạo',
+    `updater` BIGINT COMMENT 'Người cập nhật',
+    `update_date` DATETIME COMMENT 'Thời gian cập nhật',
     PRIMARY KEY (`id`),
-    INDEX `idx_ai_model_provider_model_type` (`model_type`) COMMENT '创建模型类型的索引，用于快速查找特定类型下的所有供应器信息'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='模型配置表';
+    INDEX `idx_ai_model_provider_model_type` (`model_type`) COMMENT 'Tạo index loại mô hình, dùng để tìm nhanh tất cả thông tin provider của loại cụ thể'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Bảng cấu hình mô hình';
 
--- 模型配置表
+-- Bảng cấu hình mô hình
 DROP TABLE IF EXISTS `ai_model_config`;
 CREATE TABLE `ai_model_config` (
-    `id` VARCHAR(32) NOT NULL COMMENT '主键',
-    `model_type` VARCHAR(20) COMMENT '模型类型(Memory/ASR/VAD/LLM/TTS)',
-    `model_code` VARCHAR(50) COMMENT '模型编码(如AliLLM、DoubaoTTS)',
-    `model_name` VARCHAR(50) COMMENT '模型名称',
-    `is_default` TINYINT(1) DEFAULT 0 COMMENT '是否默认配置(0否 1是)',
-    `is_enabled` TINYINT(1) DEFAULT 0 COMMENT '是否启用',
-    `config_json` JSON COMMENT '模型配置(JSON格式)',
-    `doc_link` VARCHAR(200) COMMENT '官方文档链接',
-    `remark` VARCHAR(255) COMMENT '备注',
-    `sort` INT UNSIGNED DEFAULT 0 COMMENT '排序',
-    `creator` BIGINT COMMENT '创建者',
-    `create_date` DATETIME COMMENT '创建时间',
-    `updater` BIGINT COMMENT '更新者',
-    `update_date` DATETIME COMMENT '更新时间',
+    `id` VARCHAR(32) NOT NULL COMMENT 'Khóa chính',
+    `model_type` VARCHAR(20) COMMENT 'Loại mô hình(Memory/ASR/VAD/LLM/TTS)',
+    `model_code` VARCHAR(50) COMMENT 'Mã mô hình (như AliLLM、DoubaoTTS)',
+    `model_name` VARCHAR(50) COMMENT 'Tên mô hình',
+    `is_default` TINYINT(1) DEFAULT 0 COMMENT 'Có phải cấu hình mặc định không (0 không 1 có)',
+    `is_enabled` TINYINT(1) DEFAULT 0 COMMENT 'Có bật không',
+    `config_json` JSON COMMENT 'Cấu hình mô hình (định dạng JSON)',
+    `doc_link` VARCHAR(200) COMMENT 'Liên kết tài liệu chính thức',
+    `remark` VARCHAR(255) COMMENT 'Ghi chú',
+    `sort` INT UNSIGNED DEFAULT 0 COMMENT 'Sắp xếp',
+    `creator` BIGINT COMMENT 'Người tạo',
+    `create_date` DATETIME COMMENT 'Thời gian tạo',
+    `updater` BIGINT COMMENT 'Người cập nhật',
+    `update_date` DATETIME COMMENT 'Thời gian cập nhật',
     PRIMARY KEY (`id`),
-    INDEX `idx_ai_model_config_model_type` (`model_type`) COMMENT '创建模型类型的索引，用于快速查找特定类型下的所有配置信息'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='模型配置表';
+    INDEX `idx_ai_model_config_model_type` (`model_type`) COMMENT 'Tạo index loại mô hình, dùng để tìm nhanh tất cả thông tin cấu hình của loại cụ thể'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Bảng cấu hình mô hình';
 
--- TTS 音色表
+-- Bảng giọng TTS
 DROP TABLE IF EXISTS `ai_tts_voice`;
 CREATE TABLE `ai_tts_voice` (
-    `id` VARCHAR(32) NOT NULL COMMENT '主键',
-    `tts_model_id` VARCHAR(32) COMMENT '对应 TTS 模型主键',
-    `name` VARCHAR(20) COMMENT '音色名称',
-    `tts_voice` VARCHAR(50) COMMENT '音色编码',
-    `languages` VARCHAR(50) COMMENT '语言',
-    `voice_demo` VARCHAR(500) DEFAULT NULL COMMENT '音色 Demo',
-    `remark` VARCHAR(255) COMMENT '备注',
-    `sort` INT UNSIGNED DEFAULT 0 COMMENT '排序',
-    `creator` BIGINT COMMENT '创建者',
-    `create_date` DATETIME COMMENT '创建时间',
-    `updater` BIGINT COMMENT '更新者',
-    `update_date` DATETIME COMMENT '更新时间',
+    `id` VARCHAR(32) NOT NULL COMMENT 'Khóa chính',
+    `tts_model_id` VARCHAR(32) COMMENT 'Khóa chính mô hình TTS tương ứng',
+    `name` VARCHAR(20) COMMENT 'Tên giọng',
+    `tts_voice` VARCHAR(50) COMMENT 'Mã giọng',
+    `languages` VARCHAR(50) COMMENT 'Ngôn ngữ',
+    `voice_demo` VARCHAR(500) DEFAULT NULL COMMENT 'Demo giọng',
+    `remark` VARCHAR(255) COMMENT 'Ghi chú',
+    `sort` INT UNSIGNED DEFAULT 0 COMMENT 'Sắp xếp',
+    `creator` BIGINT COMMENT 'Người tạo',
+    `create_date` DATETIME COMMENT 'Thời gian tạo',
+    `updater` BIGINT COMMENT 'Người cập nhật',
+    `update_date` DATETIME COMMENT 'Thời gian cập nhật',
     PRIMARY KEY (`id`),
-    INDEX `idx_ai_tts_voice_tts_model_id` (`tts_model_id`) COMMENT '创建 TTS 模型主键的索引，用于快速查找对应模型的音色信息'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='TTS 音色表';
+    INDEX `idx_ai_tts_voice_tts_model_id` (`tts_model_id`) COMMENT 'Tạo index khóa chính mô hình TTS, dùng để tìm nhanh thông tin giọng của mô hình tương ứng'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Bảng giọng TTS';
 
--- 智能体配置模板表
+-- Bảng template cấu hình agent
 DROP TABLE IF EXISTS `ai_agent_template`;
 CREATE TABLE `ai_agent_template` (
-    `id` VARCHAR(32) NOT NULL COMMENT '智能体唯一标识',
-    `agent_code` VARCHAR(36) COMMENT '智能体编码',
-    `agent_name` VARCHAR(64) COMMENT '智能体名称',
-    `asr_model_id` VARCHAR(32) COMMENT '语音识别模型标识',
-    `vad_model_id` VARCHAR(64) COMMENT '语音活动检测标识',
-    `llm_model_id` VARCHAR(32) COMMENT '大语言模型标识',
-    `tts_model_id` VARCHAR(32) COMMENT '语音合成模型标识',
-    `tts_voice_id` VARCHAR(32) COMMENT '音色标识',
-    `mem_model_id` VARCHAR(32) COMMENT '记忆模型标识',
-    `intent_model_id` VARCHAR(32) COMMENT '意图模型标识',
-    `system_prompt` TEXT COMMENT '角色设定参数',
-    `lang_code` VARCHAR(10) COMMENT '语言编码',
-    `language` VARCHAR(10) COMMENT '交互语种',
-    `sort` INT UNSIGNED DEFAULT 0 COMMENT '排序权重',
-    `creator` BIGINT COMMENT '创建者 ID',
-    `created_at` DATETIME COMMENT '创建时间',
-    `updater` BIGINT COMMENT '更新者 ID',
-    `updated_at` DATETIME COMMENT '更新时间',
+    `id` VARCHAR(32) NOT NULL COMMENT 'Định danh duy nhất agent',
+    `agent_code` VARCHAR(36) COMMENT 'Mã agent',
+    `agent_name` VARCHAR(64) COMMENT 'Tên agent',
+    `asr_model_id` VARCHAR(32) COMMENT 'Định danh mô hình nhận dạng giọng nói',
+    `vad_model_id` VARCHAR(64) COMMENT 'Định danh phát hiện hoạt động giọng nói',
+    `llm_model_id` VARCHAR(32) COMMENT 'Định danh mô hình ngôn ngữ lớn',
+    `tts_model_id` VARCHAR(32) COMMENT 'Định danh mô hình tổng hợp giọng nói',
+    `tts_voice_id` VARCHAR(32) COMMENT 'Định danh giọng',
+    `mem_model_id` VARCHAR(32) COMMENT 'Định danh mô hình nhớ',
+    `intent_model_id` VARCHAR(32) COMMENT 'Định danh mô hình ý định',
+    `system_prompt` TEXT COMMENT 'Tham số thiết lập vai trò',
+    `lang_code` VARCHAR(10) COMMENT 'Mã ngôn ngữ',
+    `language` VARCHAR(10) COMMENT 'Ngôn ngữ tương tác',
+    `sort` INT UNSIGNED DEFAULT 0 COMMENT 'Trọng số sắp xếp',
+    `creator` BIGINT COMMENT 'ID người tạo',
+    `created_at` DATETIME COMMENT 'Thời gian tạo',
+    `updater` BIGINT COMMENT 'ID người cập nhật',
+    `updated_at` DATETIME COMMENT 'Thời gian cập nhật',
     PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='智能体配置模板表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Bảng template cấu hình agent';
 
--- 智能体配置表
+-- Bảng cấu hình agent
 DROP TABLE IF EXISTS `ai_agent`;
 CREATE TABLE `ai_agent` (
-    `id` VARCHAR(32) NOT NULL COMMENT '智能体唯一标识',
-    `user_id` BIGINT COMMENT '所属用户 ID',
-    `agent_code` VARCHAR(36) COMMENT '智能体编码',
-    `agent_name` VARCHAR(64) COMMENT '智能体名称',
-    `asr_model_id` VARCHAR(32) COMMENT '语音识别模型标识',
-    `vad_model_id` VARCHAR(64) COMMENT '语音活动检测标识',
-    `llm_model_id` VARCHAR(32) COMMENT '大语言模型标识',
-    `tts_model_id` VARCHAR(32) COMMENT '语音合成模型标识',
-    `tts_voice_id` VARCHAR(32) COMMENT '音色标识',
-    `mem_model_id` VARCHAR(32) COMMENT '记忆模型标识',
-    `intent_model_id` VARCHAR(32) COMMENT '意图模型标识',
-    `system_prompt` TEXT COMMENT '角色设定参数',
-    `lang_code` VARCHAR(10) COMMENT '语言编码',
-    `language` VARCHAR(10) COMMENT '交互语种',
-    `sort` INT UNSIGNED DEFAULT 0 COMMENT '排序权重',
-    `creator` BIGINT COMMENT '创建者 ID',
-    `created_at` DATETIME COMMENT '创建时间',
-    `updater` BIGINT COMMENT '更新者 ID',
-    `updated_at` DATETIME COMMENT '更新时间',
+    `id` VARCHAR(32) NOT NULL COMMENT 'Định danh duy nhất agent',
+    `user_id` BIGINT COMMENT 'ID người dùng sở hữu',
+    `agent_code` VARCHAR(36) COMMENT 'Mã agent',
+    `agent_name` VARCHAR(64) COMMENT 'Tên agent',
+    `asr_model_id` VARCHAR(32) COMMENT 'Định danh mô hình nhận dạng giọng nói',
+    `vad_model_id` VARCHAR(64) COMMENT 'Định danh phát hiện hoạt động giọng nói',
+    `llm_model_id` VARCHAR(32) COMMENT 'Định danh mô hình ngôn ngữ lớn',
+    `tts_model_id` VARCHAR(32) COMMENT 'Định danh mô hình tổng hợp giọng nói',
+    `tts_voice_id` VARCHAR(32) COMMENT 'Định danh giọng',
+    `mem_model_id` VARCHAR(32) COMMENT 'Định danh mô hình nhớ',
+    `intent_model_id` VARCHAR(32) COMMENT 'Định danh mô hình ý định',
+    `system_prompt` TEXT COMMENT 'Tham số thiết lập vai trò',
+    `lang_code` VARCHAR(10) COMMENT 'Mã ngôn ngữ',
+    `language` VARCHAR(10) COMMENT 'Ngôn ngữ tương tác',
+    `sort` INT UNSIGNED DEFAULT 0 COMMENT 'Trọng số sắp xếp',
+    `creator` BIGINT COMMENT 'ID người tạo',
+    `created_at` DATETIME COMMENT 'Thời gian tạo',
+    `updater` BIGINT COMMENT 'ID người cập nhật',
+    `updated_at` DATETIME COMMENT 'Thời gian cập nhật',
     PRIMARY KEY (`id`),
-    INDEX `idx_ai_agent_user_id` (`user_id`) COMMENT '创建用户的索引，用于快速查找用户下的智能体信息'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='智能体配置表';
+    INDEX `idx_ai_agent_user_id` (`user_id`) COMMENT 'Tạo index người dùng, dùng để tìm nhanh thông tin agent của người dùng'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Bảng cấu hình agent';
 
--- 设备信息表
+-- Bảng thông tin thiết bị
 DROP TABLE IF EXISTS `ai_device`;
 CREATE TABLE `ai_device` (
-    `id` VARCHAR(32) NOT NULL COMMENT '设备唯一标识',
-    `user_id` BIGINT COMMENT '关联用户 ID',
-    `mac_address` VARCHAR(50) COMMENT 'MAC 地址',
-    `last_connected_at` DATETIME COMMENT '最后连接时间',
-    `auto_update` TINYINT UNSIGNED DEFAULT 0 COMMENT '自动更新开关(0 关闭/1 开启)',
-    `board` VARCHAR(50) COMMENT '设备硬件型号',
-    `alias` VARCHAR(64) DEFAULT NULL COMMENT '设备别名',
-    `agent_id` VARCHAR(32) COMMENT '智能体 ID',
-    `app_version` VARCHAR(20) COMMENT '固件版本号',
-    `sort` INT UNSIGNED DEFAULT 0 COMMENT '排序',
-    `creator` BIGINT COMMENT '创建者',
-    `create_date` DATETIME COMMENT '创建时间',
-    `updater` BIGINT COMMENT '更新者',
-    `update_date` DATETIME COMMENT '更新时间',
+    `id` VARCHAR(32) NOT NULL COMMENT 'Định danh duy nhất thiết bị',
+    `user_id` BIGINT COMMENT 'ID người dùng liên kết',
+    `mac_address` VARCHAR(50) COMMENT 'Địa chỉ MAC',
+    `last_connected_at` DATETIME COMMENT 'Thời gian kết nối cuối',
+    `auto_update` TINYINT UNSIGNED DEFAULT 0 COMMENT 'Công tắc tự động cập nhật (0 tắt/1 bật)',
+    `board` VARCHAR(50) COMMENT 'Model phần cứng thiết bị',
+    `alias` VARCHAR(64) DEFAULT NULL COMMENT 'Tên thiết bị',
+    `agent_id` VARCHAR(32) COMMENT 'ID agent',
+    `app_version` VARCHAR(20) COMMENT 'Số phiên bản firmware',
+    `sort` INT UNSIGNED DEFAULT 0 COMMENT 'Sắp xếp',
+    `creator` BIGINT COMMENT 'Người tạo',
+    `create_date` DATETIME COMMENT 'Thời gian tạo',
+    `updater` BIGINT COMMENT 'Người cập nhật',
+    `update_date` DATETIME COMMENT 'Thời gian cập nhật',
     PRIMARY KEY (`id`),
-    INDEX `idx_ai_device_created_at` (`mac_address`) COMMENT '创建mac的索引，用于快速查找设备信息'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='设备信息表';
+    INDEX `idx_ai_device_created_at` (`mac_address`) COMMENT 'Tạo index mac, dùng để tìm nhanh thông tin thiết bị'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Bảng thông tin thiết bị';
 
--- 声纹识别表
+-- Bảng nhận dạng vân tay giọng nói
 DROP TABLE IF EXISTS `ai_voiceprint`;
 CREATE TABLE `ai_voiceprint` (
-    `id` VARCHAR(32) NOT NULL COMMENT '声纹唯一标识',
-    `name` VARCHAR(64) COMMENT '声纹名称',
-    `user_id` BIGINT COMMENT '用户 ID（关联用户表）',
-    `agent_id` VARCHAR(32) COMMENT '关联智能体 ID',
-    `agent_code` VARCHAR(36) COMMENT '关联智能体编码',
-    `agent_name` VARCHAR(36) COMMENT '关联智能体名称',
-    `description` VARCHAR(255) COMMENT '声纹描述',
-    `embedding` LONGTEXT COMMENT '声纹特征向量（JSON 数组格式）',
-    `memory` TEXT COMMENT '关联记忆数据',
-    `sort` INT UNSIGNED DEFAULT 0 COMMENT '排序权重',
-    `creator` BIGINT COMMENT '创建者 ID',
-    `created_at` DATETIME COMMENT '创建时间',
-    `updater` BIGINT COMMENT '更新者 ID',
-    `updated_at` DATETIME COMMENT '更新时间',
+    `id` VARCHAR(32) NOT NULL COMMENT 'Định danh duy nhất vân tay giọng nói',
+    `name` VARCHAR(64) COMMENT 'Tên vân tay giọng nói',
+    `user_id` BIGINT COMMENT 'ID người dùng (liên kết bảng người dùng)',
+    `agent_id` VARCHAR(32) COMMENT 'ID agent liên kết',
+    `agent_code` VARCHAR(36) COMMENT 'Mã agent liên kết',
+    `agent_name` VARCHAR(36) COMMENT 'Tên agent liên kết',
+    `description` VARCHAR(255) COMMENT 'Mô tả vân tay giọng nói',
+    `embedding` LONGTEXT COMMENT 'Vector đặc trưng vân tay giọng nói (định dạng mảng JSON)',
+    `memory` TEXT COMMENT 'Dữ liệu nhớ liên kết',
+    `sort` INT UNSIGNED DEFAULT 0 COMMENT 'Trọng số sắp xếp',
+    `creator` BIGINT COMMENT 'ID người tạo',
+    `created_at` DATETIME COMMENT 'Thời gian tạo',
+    `updater` BIGINT COMMENT 'ID người cập nhật',
+    `updated_at` DATETIME COMMENT 'Thời gian cập nhật',
     PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='声纹识别表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Bảng nhận dạng vân tay giọng nói';
 
--- 对话历史表
+-- Bảng lịch sử hội thoại
 DROP TABLE IF EXISTS `ai_chat_history`;
 CREATE TABLE `ai_chat_history` (
-    `id` VARCHAR(32) NOT NULL COMMENT '对话编号',
-    `user_id` BIGINT COMMENT '用户编号',
-    `agent_id` VARCHAR(32) DEFAULT NULL COMMENT '聊天角色',
-    `device_id` VARCHAR(32) DEFAULT NULL COMMENT '设备编号',
-    `message_count` INT COMMENT '信息汇总',
-    `creator` BIGINT COMMENT '创建者',
-    `create_date` DATETIME COMMENT '创建时间',
-    `updater` BIGINT COMMENT '更新者',
-    `update_date` DATETIME COMMENT '更新时间',
+    `id` VARCHAR(32) NOT NULL COMMENT 'Số hội thoại',
+    `user_id` BIGINT COMMENT 'Số người dùng',
+    `agent_id` VARCHAR(32) DEFAULT NULL COMMENT 'Vai trò chat',
+    `device_id` VARCHAR(32) DEFAULT NULL COMMENT 'Số thiết bị',
+    `message_count` INT COMMENT 'Tổng hợp thông tin',
+    `creator` BIGINT COMMENT 'Người tạo',
+    `create_date` DATETIME COMMENT 'Thời gian tạo',
+    `updater` BIGINT COMMENT 'Người cập nhật',
+    `update_date` DATETIME COMMENT 'Thời gian cập nhật',
     PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='对话历史表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Bảng lịch sử hội thoại';
 
--- 对话信息表
+-- Bảng thông tin hội thoại
 DROP TABLE IF EXISTS `ai_chat_message`;
 CREATE TABLE `ai_chat_message` (
-    `id` VARCHAR(32) NOT NULL COMMENT '对话记录唯一标识',
-    `user_id` BIGINT COMMENT '用户唯一标识',
-    `chat_id` VARCHAR(64) COMMENT '对话历史 ID',
-    `role` ENUM('user', 'assistant') COMMENT '角色（用户或助理）',
-    `content` TEXT COMMENT '对话内容',
-    `prompt_tokens` INT UNSIGNED DEFAULT 0 COMMENT '提示令牌数',
-    `total_tokens` INT UNSIGNED DEFAULT 0 COMMENT '总令牌数',
-    `completion_tokens` INT UNSIGNED DEFAULT 0 COMMENT '完成令牌数',
-    `prompt_ms` INT UNSIGNED DEFAULT 0 COMMENT '提示耗时（毫秒）',
-    `total_ms` INT UNSIGNED DEFAULT 0 COMMENT '总耗时（毫秒）',
-    `completion_ms` INT UNSIGNED DEFAULT 0 COMMENT '完成耗时（毫秒）',
-    `creator` BIGINT COMMENT '创建者',
-    `create_date` DATETIME COMMENT '创建时间',
-    `updater` BIGINT COMMENT '更新者',
-    `update_date` DATETIME COMMENT '更新时间',
+    `id` VARCHAR(32) NOT NULL COMMENT 'Định danh duy nhất bản ghi hội thoại',
+    `user_id` BIGINT COMMENT 'Định danh duy nhất người dùng',
+    `chat_id` VARCHAR(64) COMMENT 'ID lịch sử hội thoại',
+    `role` ENUM('user', 'assistant') COMMENT 'Vai trò (người dùng hoặc trợ lý)',
+    `content` TEXT COMMENT 'Nội dung hội thoại',
+    `prompt_tokens` INT UNSIGNED DEFAULT 0 COMMENT 'Số token prompt',
+    `total_tokens` INT UNSIGNED DEFAULT 0 COMMENT 'Tổng số token',
+    `completion_tokens` INT UNSIGNED DEFAULT 0 COMMENT 'Số token hoàn thành',
+    `prompt_ms` INT UNSIGNED DEFAULT 0 COMMENT 'Thời gian prompt (mili giây)',
+    `total_ms` INT UNSIGNED DEFAULT 0 COMMENT 'Tổng thời gian (mili giây)',
+    `completion_ms` INT UNSIGNED DEFAULT 0 COMMENT 'Thời gian hoàn thành (mili giây)',
+    `creator` BIGINT COMMENT 'Người tạo',
+    `create_date` DATETIME COMMENT 'Thời gian tạo',
+    `updater` BIGINT COMMENT 'Người cập nhật',
+    `update_date` DATETIME COMMENT 'Thời gian cập nhật',
     PRIMARY KEY (`id`),
-    INDEX `idx_ai_chat_message_user_id_chat_id_role` (`user_id`, `chat_id`) COMMENT '用户 ID、聊天会话 ID 和角色的联合索引，用于快速检索对话记录',
-    INDEX `idx_ai_chat_message_created_at` (`create_date`) COMMENT '创建时间的索引，用于按时间排序或检索对话记录'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='对话信息表';
+    INDEX `idx_ai_chat_message_user_id_chat_id_role` (`user_id`, `chat_id`) COMMENT 'Index kết hợp ID người dùng, ID phiên chat và vai trò, dùng để tìm nhanh bản ghi hội thoại',
+    INDEX `idx_ai_chat_message_created_at` (`create_date`) COMMENT 'Index thời gian tạo, dùng để sắp xếp hoặc tìm bản ghi hội thoại theo thời gian'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Bảng thông tin hội thoại';

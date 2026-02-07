@@ -1,22 +1,30 @@
-# 第一阶段：构建Vue前端
 FROM node:18 AS web-builder
 WORKDIR /app
+# Copy package files first để tận dụng Docker cache
 COPY main/manager-web/package*.json ./
-RUN npm install
+# Install dependencies với retry và timeout
+RUN npm install --prefer-offline --no-audit || \
+    (sleep 5 && npm install --prefer-offline --no-audit) || \
+    (sleep 10 && npm install --prefer-offline --no-audit)
+# Copy source code sau khi đã install dependencies
 COPY main/manager-web .
-RUN npm run build
+# Build với retry
+RUN npm run build || (sleep 5 && npm run build)
 
-# 第二阶段：构建Java后端
 FROM maven:3.9.4-eclipse-temurin-21 AS api-builder
 WORKDIR /app
+# Copy pom.xml trước để tận dụng Docker cache
 COPY main/manager-api/pom.xml .
+# Download dependencies (có thể cache được)
+RUN mvn dependency:go-offline -Dmaven.test.skip=true || true
+# Copy source code
 COPY main/manager-api/src ./src
-RUN mvn clean package -Dmaven.test.skip=true
+# Build với retry và timeout
+RUN mvn clean package -Dmaven.test.skip=true -Dmaven.wagon.http.retryHandler.count=3 || \
+    (sleep 10 && mvn clean package -Dmaven.test.skip=true -Dmaven.wagon.http.retryHandler.count=3)
 
-# 第三阶段：构建最终镜像
 FROM bellsoft/liberica-runtime-container:jre-21-glibc
 
-# 安装Nginx和字体库
 RUN apk update && \
     apk add --no-cache --no-scripts \
         nginx \
@@ -26,25 +34,20 @@ RUN apk update && \
     && rm -rf /var/cache/apk/* \
     && mkdir -p /run/nginx /var/log/nginx /var/tmp/nginx /etc/nginx/conf.d
 
-# 复制项目自带的中文字体
 COPY main/manager-web/public/generator/static/fonts/*.ttf /usr/share/fonts/
 
-# 更新字体缓存
 RUN fc-cache -f -v
 
-# 配置Nginx
 COPY docs/docker/nginx.conf /etc/nginx/nginx.conf
 
-# 复制前端构建产物
 COPY --from=web-builder /app/dist /usr/share/nginx/html
 
-# 复制Java后端JAR包
 COPY --from=api-builder /app/target/xiaozhi-esp32-api.jar /app/xiaozhi-esp32-api.jar
 
-# 暴露端口
 EXPOSE 8002
 
-# 启动脚本
-COPY docs/docker/start.sh /start.sh
-RUN chmod +x /start.sh
+# Tạo file start.sh
+RUN printf '#!/bin/bash\n# Khởi động Java backend (lắng nghe cổng 8003 trong docker)\njava -jar /app/xiaozhi-esp32-api.jar \\\n  --server.port=8003 \\\n  --spring.datasource.druid.url=${SPRING_DATASOURCE_DRUID_URL} \\\n  --spring.datasource.druid.username=${SPRING_DATASOURCE_DRUID_USERNAME} \\\n  --spring.datasource.druid.password=${SPRING_DATASOURCE_DRUID_PASSWORD} \\\n  --spring.data.redis.host=${SPRING_DATA_REDIS_HOST} \\\n  --spring.data.redis.password=${SPRING_DATA_REDIS_PASSWORD} \\\n  --spring.data.redis.port=${SPRING_DATA_REDIS_PORT} &\n\n# Khởi động Nginx (chạy foreground để giữ container sống)\nnginx -g '"'"'daemon off;'"'"'\n' > /start.sh && \
+    chmod +x /start.sh
+
 CMD ["/start.sh"]

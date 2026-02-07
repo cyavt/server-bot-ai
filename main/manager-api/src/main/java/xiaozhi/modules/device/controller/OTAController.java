@@ -30,7 +30,7 @@ import xiaozhi.modules.device.entity.DeviceEntity;
 import xiaozhi.modules.device.service.DeviceService;
 import xiaozhi.modules.sys.service.SysParamsService;
 
-@Tag(name = "设备管理", description = "OTA 相关接口")
+@Tag(name = "Quản lý thiết bị", description = "Các giao diện liên quan đến OTA")
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -39,12 +39,12 @@ public class OTAController {
     private final DeviceService deviceService;
     private final SysParamsService sysParamsService;
 
-    @Operation(summary = "OTA版本和设备激活状态检查")
+    @Operation(summary = "Kiểm tra phiên bản OTA và trạng thái kích hoạt thiết bị")
     @PostMapping
     public ResponseEntity<String> checkOTAVersion(
             @RequestBody DeviceReportReqDTO deviceReportReqDTO,
-            @Parameter(name = "Device-Id", description = "设备唯一标识", required = true, in = ParameterIn.HEADER) @RequestHeader("Device-Id") String deviceId,
-            @Parameter(name = "Client-Id", description = "客户端标识", required = false, in = ParameterIn.HEADER) @RequestHeader(value = "Client-Id", required = false) String clientId) {
+            @Parameter(name = "Device-Id", description = "Định danh duy nhất của thiết bị", required = true, in = ParameterIn.HEADER) @RequestHeader("Device-Id") String deviceId,
+            @Parameter(name = "Client-Id", description = "Định danh khách hàng", required = false, in = ParameterIn.HEADER) @RequestHeader(value = "Client-Id", required = false) String clientId) {
         if (StringUtils.isBlank(deviceId)) {
             return createResponse(DeviceReportRespDTO.createError("Device ID is required"));
         }
@@ -52,18 +52,18 @@ public class OTAController {
             clientId = deviceId;
         }
         boolean macAddressValid = isMacAddressValid(deviceId);
-        // 设备Id和Mac地址应是一致的, 并且必须需要application字段
+        // ID thiết bị và địa chỉ Mac phải nhất quán, và phải có trường application
         if (!macAddressValid) {
             return createResponse(DeviceReportRespDTO.createError("Invalid device ID"));
         }
         return createResponse(deviceService.checkDeviceActive(deviceId, clientId, deviceReportReqDTO));
     }
 
-    @Operation(summary = "设备快速检查激活状态")
+    @Operation(summary = "Kiểm tra nhanh trạng thái kích hoạt thiết bị")
     @PostMapping("activate")
     public ResponseEntity<String> activateDevice(
-            @Parameter(name = "Device-Id", description = "设备唯一标识", required = true, in = ParameterIn.HEADER) @RequestHeader("Device-Id") String deviceId,
-            @Parameter(name = "Client-Id", description = "客户端标识", required = false, in = ParameterIn.HEADER) @RequestHeader(value = "Client-Id", required = false) String clientId) {
+            @Parameter(name = "Device-Id", description = "Định danh duy nhất của thiết bị", required = true, in = ParameterIn.HEADER) @RequestHeader("Device-Id") String deviceId,
+            @Parameter(name = "Client-Id", description = "Định danh khách hàng", required = false, in = ParameterIn.HEADER) @RequestHeader(value = "Client-Id", required = false) String clientId) {
         if (StringUtils.isBlank(deviceId)) {
             return ResponseEntity.status(202).build();
         }
@@ -79,17 +79,17 @@ public class OTAController {
     public ResponseEntity<String> getOTA() {
         String mqttUdpConfig = sysParamsService.getValue(Constant.SERVER_MQTT_GATEWAY, false);
         if (StringUtils.isBlank(mqttUdpConfig)) {
-            return ResponseEntity.ok("OTA接口不正常，缺少mqtt_gateway地址，请登录智控台，在参数管理找到【server.mqtt_gateway】配置");
+            return ResponseEntity.ok("Giao diện OTA không bình thường, thiếu địa chỉ mqtt_gateway, vui lòng đăng nhập vào bảng điều khiển thông minh, tìm cấu hình 【server.mqtt_gateway】 trong quản lý tham số");
         }
         String wsUrl = sysParamsService.getValue(Constant.SERVER_WEBSOCKET, true);
         if (StringUtils.isBlank(wsUrl) || wsUrl.equals("null")) {
-            return ResponseEntity.ok("OTA接口不正常，缺少websocket地址，请登录智控台，在参数管理找到【server.websocket】配置");
+            return ResponseEntity.ok("Giao diện OTA không bình thường, thiếu địa chỉ websocket, vui lòng đăng nhập vào bảng điều khiển thông minh, tìm cấu hình 【server.websocket】 trong quản lý tham số");
         }
         String otaUrl = sysParamsService.getValue(Constant.SERVER_OTA, true);
         if (StringUtils.isBlank(otaUrl) || otaUrl.equals("null")) {
-            return ResponseEntity.ok("OTA接口不正常，缺少ota地址，请登录智控台，在参数管理找到【server.ota】配置");
+            return ResponseEntity.ok("Giao diện OTA không bình thường, thiếu địa chỉ ota, vui lòng đăng nhập vào bảng điều khiển thông minh, tìm cấu hình 【server.ota】 trong quản lý tham số");
         }
-        return ResponseEntity.ok("OTA接口运行正常，websocket集群数量：" + wsUrl.split(";").length);
+        return ResponseEntity.ok("Giao diện OTA hoạt động bình thường, số lượng cụm websocket: " + wsUrl.split(";").length);
     }
 
     @SneakyThrows
@@ -106,7 +106,7 @@ public class OTAController {
     }
 
     /**
-     * 简单判断mac地址是否有效（非严格）
+     * Kiểm tra đơn giản xem địa chỉ mac có hợp lệ không (không nghiêm ngặt)
      * 
      * @param macAddress
      * @return
@@ -115,7 +115,7 @@ public class OTAController {
         if (StringUtils.isBlank(macAddress)) {
             return false;
         }
-        // MAC地址通常为12位十六进制数字，可以包含冒号或连字符分隔符
+        // Địa chỉ MAC thường là 12 chữ số thập lục phân, có thể chứa dấu hai chấm hoặc dấu gạch ngang làm dấu phân cách
         String macPattern = "^([0-9A-Za-z]{2}[:-]){5}([0-9A-Za-z]{2})$";
         return macAddress.matches(macPattern);
     }

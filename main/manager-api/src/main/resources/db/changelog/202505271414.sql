@@ -1,27 +1,27 @@
--- 本地短期记忆配置可以设置独立的LLM
-update `ai_model_provider` set fields =  '[{"key":"llm","label":"LLM模型","type":"string"}]' where  id = 'SYSTEM_Memory_mem_local_short';
+-- Cấu hình nhớ ngắn hạn local có thể thiết lập LLM độc lập
+update `ai_model_provider` set fields =  '[{"key":"llm","label":"Mô hình LLM","type":"string"}]' where  id = 'SYSTEM_Memory_mem_local_short';
 update `ai_model_config` set config_json =  '{\"type\": \"mem_local_short\", \"llm\": \"LLM_ChatGLMLLM\"}' where  id = 'Memory_mem_local_short';
 
--- 增加火山双流式TTS供应器和模型配置
+-- Thêm cấu hình provider và mô hình TTS luồng kép Huoshan
 delete from `ai_model_provider` where id = 'SYSTEM_TTS_HSDSTTS';
 INSERT INTO `ai_model_provider` (`id`, `model_type`, `provider_code`, `name`, `fields`, `sort`, `creator`, `create_date`, `updater`, `update_date`) VALUES
-('SYSTEM_TTS_HSDSTTS', 'TTS', 'huoshan_double_stream', '火山双流式语音合成', '[{"key":"ws_url","label":"WebSocket地址","type":"string"},{"key":"appid","label":"应用ID","type":"string"},{"key":"access_token","label":"访问令牌","type":"string"},{"key":"resource_id","label":"资源ID","type":"string"},{"key":"speaker","label":"默认音色","type":"string"}]', 13, 1, NOW(), 1, NOW());
+('SYSTEM_TTS_HSDSTTS', 'TTS', 'huoshan_double_stream', 'Tổng hợp giọng nói luồng kép Huoshan', '[{"key":"ws_url","label":"Địa chỉ WebSocket","type":"string"},{"key":"appid","label":"ID ứng dụng","type":"string"},{"key":"access_token","label":"Mã truy cập","type":"string"},{"key":"resource_id","label":"ID tài nguyên","type":"string"},{"key":"speaker","label":"Giọng mặc định","type":"string"}]', 13, 1, NOW(), 1, NOW());
 
 delete from `ai_model_config` where id = 'TTS_HuoshanDoubleStreamTTS';
-INSERT INTO `ai_model_config` VALUES ('TTS_HuoshanDoubleStreamTTS', 'TTS', 'HuoshanDoubleStreamTTS', '火山双流式语音合成', 0, 1, '{\"type\": \"huoshan_double_stream\", \"ws_url\": \"wss://openspeech.bytedance.com/api/v3/tts/bidirection\", \"appid\": \"你的火山引擎语音合成服务appid\", \"access_token\": \"你的火山引擎语音合成服务access_token\", \"resource_id\": \"volc.service_type.10029\", \"speaker\": \"zh_female_wanwanxiaohe_moon_bigtts\"}', NULL, NULL, 16, NULL, NULL, NULL, NULL);
+INSERT INTO `ai_model_config` VALUES ('TTS_HuoshanDoubleStreamTTS', 'TTS', 'HuoshanDoubleStreamTTS', 'Tổng hợp giọng nói luồng kép Huoshan', 0, 1, '{\"type\": \"huoshan_double_stream\", \"ws_url\": \"wss://openspeech.bytedance.com/api/v3/tts/bidirection\", \"appid\": \"你的火山引擎语音合成服务appid\", \"access_token\": \"你的火山引擎语音合成服务access_token\", \"resource_id\": \"volc.service_type.10029\", \"speaker\": \"zh_female_wanwanxiaohe_moon_bigtts\"}', NULL, NULL, 16, NULL, NULL, NULL, NULL);
 
--- 火山双流式TT模型配置说明文档
+-- Tài liệu hướng dẫn cấu hình mô hình TTS luồng kép Huoshan
 UPDATE `ai_model_config` SET 
 `doc_link` = 'https://console.volcengine.com/speech/service/10007',
-`remark` = '火山引擎语音合成服务配置说明：
-1. 访问 https://www.volcengine.com/ 注册并开通火山引擎账号
-2. 访问 https://console.volcengine.com/speech/service/10007 开通语音合成大模型，购买音色
-3. 在页面底部获取appid和access_token
-5. 资源ID固定为：volc.service_type.10029（大模型语音合成及混音）
-6. 填入配置文件中' WHERE `id` = 'TTS_HuoshanDoubleStreamTTS';
+`remark` = 'Hướng dẫn cấu hình dịch vụ tổng hợp giọng nói Huoshan Engine：
+1. Truy cập https://www.volcengine.com/ để đăng ký và kích hoạt tài khoản Huoshan Engine
+2. Truy cập https://console.volcengine.com/speech/service/10007 để kích hoạt mô hình tổng hợp giọng nói lớn, mua giọng nói
+3. Lấy appid và access_token ở cuối trang
+5. ID tài nguyên cố định là：volc.service_type.10029（Tổng hợp giọng nói mô hình lớn và trộn giọng）
+6. Điền vào file cấu hình' WHERE `id` = 'TTS_HuoshanDoubleStreamTTS';
 
 
--- 添加火山双流式TTS音色
+-- Thêm giọng TTS luồng kép Huoshan Engine
 delete from `ai_tts_voice` where tts_model_id = 'TTS_HuoshanDoubleStreamTTS';
 INSERT INTO `ai_tts_voice` VALUES ('TTS_HuoshanDoubleStreamTTS_0001', 'TTS_HuoshanDoubleStreamTTS', '爽快思思/Skye', 'zh_female_shuangkuaisisi_moon_bigtts', '中文、英文', 'https://lf3-static.bytednsdoc.com/obj/eden-cn/lm_hz_ihsph/ljhwZthlaukjlkulzlp/portal/bigtts/Skye.mp3', NULL, 1, NULL, NULL, NULL, NULL);
 INSERT INTO `ai_tts_voice` VALUES ('TTS_HuoshanDoubleStreamTTS_0002', 'TTS_HuoshanDoubleStreamTTS', '温暖阿虎/Alvin', 'zh_male_wennuanahu_moon_bigtts', '中文、英文', 'https://lf3-static.bytednsdoc.com/obj/eden-cn/lm_hz_ihsph/ljhwZthlaukjlkulzlp/portal/bigtts/Alvin.mp3', NULL, 2, NULL, NULL, NULL, NULL);

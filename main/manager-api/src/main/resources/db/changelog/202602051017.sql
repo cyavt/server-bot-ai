@@ -1,28 +1,28 @@
--- 新增powermem记忆模型供应器
+-- Thêm provider mô hình nhớ powermem
 INSERT INTO `ai_model_provider` (`id`, `model_type`, `provider_code`, `name`, `fields`, `sort`, `creator`, `create_date`, `updater`, `update_date`)
-VALUES ('SYSTEM_Memory_powermem', 'Memory', 'powermem', 'PowerMem记忆', '[
-  {"key":"enable_user_profile","label":"启用用户画像","type":"boolean"},
-  {"key":"llm_provider","label":"LLM提供商","type":"string"},
-  {"key":"llm_api_key","label":"LLM API密钥","type":"string"},
-  {"key":"llm_model","label":"LLM模型","type":"string"},
-  {"key":"openai_base_url","label":"OpenAI基础URL","type":"string"},
-  {"key":"embedding_provider","label":"Embedding提供商","type":"string"},
-  {"key":"embedding_api_key","label":"Embedding API密钥","type":"string"},
-  {"key":"embedding_model","label":"Embedding模型","type":"string"},
-  {"key":"embedding_openai_base_url","label":"Embedding OpenAI基础URL","type":"string"},
-  {"key":"embedding_dims","label":"Embedding维度","type":"integer"},
-  {"key":"vector_store","label":"向量存储配置(JSON)","type":"dict"}
+VALUES ('SYSTEM_Memory_powermem', 'Memory', 'powermem', 'PowerMem nhớ', '[
+  {"key":"enable_user_profile","label":"Bật hình ảnh người dùng","type":"boolean"},
+  {"key":"llm_provider","label":"Nhà cung cấp LLM","type":"string"},
+  {"key":"llm_api_key","label":"Khóa API LLM","type":"string"},
+  {"key":"llm_model","label":"Mô hình LLM","type":"string"},
+  {"key":"openai_base_url","label":"URL cơ sở OpenAI","type":"string"},
+  {"key":"embedding_provider","label":"Nhà cung cấp Embedding","type":"string"},
+  {"key":"embedding_api_key","label":"Khóa API Embedding","type":"string"},
+  {"key":"embedding_model","label":"Mô hình Embedding","type":"string"},
+  {"key":"embedding_openai_base_url","label":"URL cơ sở OpenAI Embedding","type":"string"},
+  {"key":"embedding_dims","label":"Chiều Embedding","type":"integer"},
+  {"key":"vector_store","label":"Cấu hình lưu trữ vector (JSON)","type":"dict"}
 ]', 4, 1, NOW(), 1, NOW());
 
--- 新增PowerMem记忆模型配置
+-- Thêm cấu hình mô hình nhớ PowerMem
 INSERT INTO `ai_model_config` VALUES (
   'Memory_powermem',
   'Memory',
   'powermem',
-  'PowerMem记忆',
+  'PowerMem nhớ',
   0,
   1,
-  '{\"type\": \"powermem\", \"enable_user_profile\": true, \"llm_provider\": \"openai\", \"llm_api_key\": \"你的LLM API密钥\", \"llm_model\": \"qwen-plus\", \"openai_base_url\": \"\", \"embedding_provider\": \"openai\", \"embedding_api_key\": \"你的嵌入模型API密钥\", \"embedding_model\": \"text-embedding-v4\", \"embedding_openai_base_url\": \"https://api.openai.com/v1\", \"embedding_dims\": \"\", \"vector_store\": {\"provider\": \"sqlite\", \"config\": {}}}',
+  '{\"type\": \"powermem\", \"enable_user_profile\": true, \"llm_provider\": \"openai\", \"llm_api_key\": \"Khóa API LLM của bạn\", \"llm_model\": \"qwen-plus\", \"openai_base_url\": \"\", \"embedding_provider\": \"openai\", \"embedding_api_key\": \"Khóa API mô hình embedding của bạn\", \"embedding_model\": \"text-embedding-v4\", \"embedding_openai_base_url\": \"https://api.openai.com/v1\", \"embedding_dims\": \"\", \"vector_store\": {\"provider\": \"sqlite\", \"config\": {}}}',
   NULL,
   NULL,
   4,
@@ -33,60 +33,60 @@ INSERT INTO `ai_model_config` VALUES (
 );
 
 
--- PowerMem记忆配置说明
+-- Hướng dẫn cấu hình nhớ PowerMem
 UPDATE `ai_model_config` SET
 `doc_link` = 'https://github.com/oceanbase/powermem',
-`remark` = 'PowerMem是OceanBase开源的agent记忆组件，通过本地LLM进行记忆总结
+`remark` = 'PowerMem là component nhớ agent mã nguồn mở của OceanBase, tổng hợp nhớ thông qua LLM local
 GitHub: https://github.com/oceanbase/powermem
-官网: https://www.powermem.ai/
-使用示例: https://github.com/oceanbase/powermem/tree/main/examples
+Website: https://www.powermem.ai/
+Ví dụ sử dụng: https://github.com/oceanbase/powermem/tree/main/examples
 
-【费用说明】
-PowerMem本身免费，实际费用取决于所选LLM和数据库：
-- 使用sqlite + 免费LLM(如glm-4-flash) = 完全免费
-- 使用云端LLM或云端数据库 = 按对应服务收费
+【Thông tin chi phí】
+PowerMem miễn phí, chi phí thực tế phụ thuộc vào LLM và database được chọn:
+- Sử dụng sqlite + LLM miễn phí (như glm-4-flash) = hoàn toàn miễn phí
+- Sử dụng LLM hoặc database trên đám mây = tính phí theo dịch vụ tương ứng
 
-【enable_user_profile】用户画像功能
-- false: 使用普通记忆模式(AsyncMemory)
-- true: 使用用户画像模式(UserMemory)，自动提取用户信息
-- 用户画像功能支持: oceanbase、seekdb、sqlite (powermem 0.3.0+)
+【enable_user_profile】Chức năng hình ảnh người dùng
+- false: Sử dụng chế độ nhớ thông thường (AsyncMemory)
+- true: Sử dụng chế độ hình ảnh người dùng (UserMemory), tự động trích xuất thông tin người dùng
+- Chức năng hình ảnh người dùng hỗ trợ: oceanbase、seekdb、sqlite (powermem 0.3.0+)
 
-【llm】LLM配置 - 用于记忆总结和用户画像提取
-  provider: LLM提供商，可选值：
-    - qwen: 通义千问 (https://bailian.console.aliyun.com/?apiKey=1#/api-key)
-    - openai: OpenAI兼容接口
-    - zhipu: 智谱AI (https://bigmodel.cn/usercenter/proj-mgmt/apikeys) - 推荐使用免费的glm-4-flash
-  config: LLM配置参数
-    - api_key: API密钥 (必填)
-    - model: 模型名称，如 qwen-plus、glm-4-flash 等
-    - openai_base_url: 自定义服务地址 (可选)，如 https://api.openai.com/v1
-  示例：
+【llm】Cấu hình LLM - Dùng cho tổng hợp nhớ và trích xuất hình ảnh người dùng
+  provider: Nhà cung cấp LLM, giá trị có thể chọn:
+    - qwen: Thông Nghĩa Thiên Vấn (https://bailian.console.aliyun.com/?apiKey=1#/api-key)
+    - openai: Giao diện tương thích OpenAI
+    - zhipu: Trí Phổ AI (https://bigmodel.cn/usercenter/proj-mgmt/apikeys) - Khuyến nghị dùng glm-4-flash miễn phí
+  config: Tham số cấu hình LLM
+    - api_key: Khóa API (bắt buộc)
+    - model: Tên mô hình, như qwen-plus、glm-4-flash, v.v.
+    - openai_base_url: Địa chỉ dịch vụ tùy chỉnh (tùy chọn), như https://api.openai.com/v1
+  Ví dụ:
     {"provider": "zhipu", "config": {"api_key": "your_key", "model": "glm-4-flash"}}
     {"provider": "qwen", "config": {"api_key": "your_key", "model": "qwen-plus"}}
 
-【embedder】Embedding配置 - 用于向量化记忆内容
-  provider: 嵌入模型提供商，可选值：
-    - qwen: 通义千问
-    - openai: OpenAI兼容接口
-  config: Embedding配置参数
-    - api_key: API密钥 (必填)
-    - model: 模型名称，如 text-embedding-v4、text-embedding-3-small 等
-    - openai_base_url: 自定义服务地址 (可选)
-    - embedding_dims: 向量维度 (可选)，非1536时需配置
-  示例：
+【embedder】Cấu hình Embedding - Dùng cho vector hóa nội dung nhớ
+  provider: Nhà cung cấp mô hình embedding, giá trị có thể chọn:
+    - qwen: Thông Nghĩa Thiên Vấn
+    - openai: Giao diện tương thích OpenAI
+  config: Tham số cấu hình Embedding
+    - api_key: Khóa API (bắt buộc)
+    - model: Tên mô hình, như text-embedding-v4、text-embedding-3-small, v.v.
+    - openai_base_url: Địa chỉ dịch vụ tùy chỉnh (tùy chọn)
+    - embedding_dims: Chiều vector (tùy chọn), cần cấu hình nếu không phải 1536
+  Ví dụ:
     {"provider": "openai", "config": {"api_key": "your_key", "model": "text-embedding-v4", "openai_base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1"}}
 
-【vector_store】数据库存储配置 - 用于存储向量化的记忆
-  provider: 数据库类型，可选值：
-    - sqlite: 轻量级本地数据库 (推荐入门使用，无需额外配置)
-    - oceanbase: OceanBase数据库 (推荐生产使用，最佳性能)
-    - seekdb: SeekDB (推荐，AI应用存储一体)
-    - postgres: PostgreSQL数据库
+【vector_store】Cấu hình lưu trữ database - Dùng cho lưu trữ nhớ đã vector hóa
+  provider: Loại database, giá trị có thể chọn:
+    - sqlite: Database local nhẹ (khuyến nghị cho người mới, không cần cấu hình thêm)
+    - oceanbase: Database OceanBase (khuyến nghị cho môi trường production, hiệu suất tốt nhất)
+    - seekdb: SeekDB (khuyến nghị, lưu trữ tích hợp ứng dụng AI)
+    - postgres: Database PostgreSQL
 
-  SQLite配置 (无需额外配置):
+  Cấu hình SQLite (không cần cấu hình thêm):
     {"provider": "sqlite", "config": {}}
 
-  OceanBase配置示例:
+  Ví dụ cấu hình OceanBase:
     {"provider": "oceanbase", "config": {
       "host": "127.0.0.1",
       "port": 2881,
@@ -96,20 +96,20 @@ PowerMem本身免费，实际费用取决于所选LLM和数据库：
       "collection_name": "memories",
       "embedding_model_dims": 1024
     }}
-  注意：
-    - collection_name: 默认表名，如创建维度错误请删除此表或更改名称
-    - embedding_model_dims: 嵌入向量维度，需与embedder的模型维度匹配
-      例如智谱：embedding-2维度是1024，embedding-3维度是2048
+  Lưu ý:
+    - collection_name: Tên bảng mặc định, nếu tạo sai chiều hãy xóa bảng này hoặc đổi tên
+    - embedding_model_dims: Chiều vector embedding, cần khớp với chiều mô hình embedder
+      Ví dụ Trí Phổ: embedding-2 có chiều là 1024, embedding-3 có chiều là 2048
 
-【推荐配置组合】
-1. 完全免费方案：
-   - LLM: zhipu + glm-4-flash (免费)
-   - Embedder: 通义千问 text-embedding-v4
+【Các cấu hình được khuyến nghị】
+1. Giải pháp hoàn toàn miễn phí:
+   - LLM: zhipu + glm-4-flash (miễn phí)
+   - Embedder: Thông Nghĩa Thiên Vấn text-embedding-v4
    - Database: sqlite
 
-2. 生产环境方案：
-   - LLM: qwen-plus 或其他商业模型
+2. Giải pháp môi trường production:
+   - LLM: qwen-plus hoặc mô hình thương mại khác
    - Embedder: text-embedding-v4
-   - Database: oceanbase 或 seekdb
+   - Database: oceanbase hoặc seekdb
 '
 WHERE `id` = 'Memory_powermem';

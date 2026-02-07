@@ -1,21 +1,21 @@
--- 更新HuoshanDoubleStreamTTS供应器配置，将分散的参数改为JSON字典配置
--- 将 speech_rate, loudness_rate, pitch, emotion, emotion_scale 等参数整合为 audio_params, additions, mix_speaker 三个JSON字典
+-- Cập nhật cấu hình provider HuoshanDoubleStreamTTS, chuyển các tham số rời rạc thành cấu hình JSON dictionary
+-- Tích hợp các tham số speech_rate, loudness_rate, pitch, emotion, emotion_scale thành 3 JSON dictionary: audio_params, additions, mix_speaker
 
 UPDATE `ai_model_provider`
 SET `fields` = '[
-  {"key": "ws_url", "type": "string", "label": "WebSocket地址"},
-  {"key": "appid", "type": "string", "label": "应用ID"},
-  {"key": "access_token", "type": "string", "label": "访问令牌"},
-  {"key": "resource_id", "type": "string", "label": "资源ID"},
-  {"key": "speaker", "type": "string", "label": "默认音色"},
-  {"key": "enable_ws_reuse", "type": "boolean", "label": "是否开启链接复用", "default": true},
-  {"key": "audio_params", "type": "dict", "label": "音频输出配置"},
-  {"key": "additions", "type": "dict", "label": "高级文本处理配置"},
-  {"key": "mix_speaker", "type": "dict", "label": "混音控制配置"}
+  {"key": "ws_url", "type": "string", "label": "Địa chỉ WebSocket"},
+  {"key": "appid", "type": "string", "label": "ID ứng dụng"},
+  {"key": "access_token", "type": "string", "label": "Token truy cập"},
+  {"key": "resource_id", "type": "string", "label": "ID tài nguyên"},
+  {"key": "speaker", "type": "string", "label": "Giọng mặc định"},
+  {"key": "enable_ws_reuse", "type": "boolean", "label": "Có bật tái sử dụng kết nối không", "default": true},
+  {"key": "audio_params", "type": "dict", "label": "Cấu hình đầu ra âm thanh"},
+  {"key": "additions", "type": "dict", "label": "Cấu hình xử lý văn bản nâng cao"},
+  {"key": "mix_speaker", "type": "dict", "label": "Cấu hình điều khiển trộn âm"}
 ]'
 WHERE `id` = 'SYSTEM_TTS_HSDSTTS';
 
--- 更新现有配置，将旧的分散参数迁移到新的JSON字典结构
+-- Cập nhật cấu hình hiện có, di chuyển các tham số rời rạc cũ sang cấu trúc JSON dictionary mới
 UPDATE `ai_model_config`
 SET `config_json` = JSON_SET(
     `config_json`,
@@ -34,7 +34,7 @@ SET `config_json` = JSON_SET(
 )
 WHERE `id` = 'TTS_HuoshanDoubleStreamTTS';
 
--- 删除旧的分散参数字段
+-- Xóa các trường tham số rời rạc cũ
 UPDATE `ai_model_config`
 SET `config_json` = JSON_REMOVE(
     `config_json`,
@@ -46,42 +46,42 @@ SET `config_json` = JSON_REMOVE(
 )
 WHERE `id` = 'TTS_HuoshanDoubleStreamTTS';
 
--- 更新文档链接和备注说明
+-- Cập nhật liên kết tài liệu và ghi chú
 UPDATE `ai_model_config` SET
 `doc_link` = 'https://www.volcengine.com/docs/6561/1329505',
-`remark` = '火山引擎双向流式TTS配置说明：
-1. 访问 https://www.volcengine.com/ 注册并开通火山引擎账号
-2. 访问 https://console.volcengine.com/speech/service/10007 开通语音合成大模型，购买音色
-3. 在页面底部获取appid和access_token
-4. 资源ID固定为：volc.service_type.10029（大模型语音合成及混音）
-5. 链接复用：开启WebSocket连接复用，默认true减少链接损耗（注意：复用后设备处于聆听状态时空闲链接会占并发数）
+`remark` = 'Hướng dẫn cấu hình TTS streaming hai chiều Núi Lửa:
+1. Truy cập https://www.volcengine.com/ để đăng ký và mở tài khoản Núi Lửa
+2. Truy cập https://console.volcengine.com/speech/service/10007 để mở mô hình lớn tổng hợp giọng nói, mua giọng
+3. Lấy appid và access_token ở cuối trang
+4. ID tài nguyên cố định là: volc.service_type.10029 (tổng hợp giọng nói mô hình lớn và trộn âm)
+5. Tái sử dụng kết nối: Bật tái sử dụng kết nối WebSocket, mặc định true để giảm hao phí kết nối (Lưu ý: Sau khi tái sử dụng, khi thiết bị ở trạng thái lắng nghe, kết nối rảnh sẽ chiếm số đồng thời)
 
-详细参数文档：https://www.volcengine.com/docs/6561/1329505
-【audio_params】音频输出配置 - 用户可自定义添加火山引擎支持的任何音频参数
-  - speech_rate: 语速(-50~100)，默认0
-  - loudness_rate: 音量(-50~100)，默认0
-  - emotion: 情感类型（仅部分音色支持），可选值：neutral、happy、sad、angry、fearful、disgusted、surprised
-  - emotion_scale: 情感强度(1~5)，默认4
-  示例：{"speech_rate": 10, "loudness_rate": 5, "emotion": "happy", "emotion_scale": 4}
+Tài liệu tham số chi tiết: https://www.volcengine.com/docs/6561/1329505
+【audio_params】Cấu hình đầu ra âm thanh - Người dùng có thể tự thêm bất kỳ tham số âm thanh nào được Núi Lửa hỗ trợ
+  - speech_rate: Tốc độ nói(-50~100), mặc định 0
+  - loudness_rate: Âm lượng(-50~100), mặc định 0
+  - emotion: Loại cảm xúc (chỉ một số giọng hỗ trợ), giá trị có thể chọn: neutral、happy、sad、angry、fearful、disgusted、surprised
+  - emotion_scale: Cường độ cảm xúc(1~5), mặc định 4
+  Ví dụ: {"speech_rate": 10, "loudness_rate": 5, "emotion": "happy", "emotion_scale": 4}
 
-【additions】高级文本处理配置 - 用户可自定义添加火山引擎支持的任何高级参数
-  - post_process.pitch: 音高(-12~12)，默认0
-  - aigc_metadata: AIGC元数据配置
-  - cache_config: 缓存配置
-  示例：{"post_process": {"pitch": 2}, "aigc_metadata": {}, "cache_config": {}}
+【additions】Cấu hình xử lý văn bản nâng cao - Người dùng có thể tự thêm bất kỳ tham số nâng cao nào được Núi Lửa hỗ trợ
+  - post_process.pitch: Độ cao giọng(-12~12), mặc định 0
+  - aigc_metadata: Cấu hình metadata AIGC
+  - cache_config: Cấu hình cache
+  Ví dụ: {"post_process": {"pitch": 2}, "aigc_metadata": {}, "cache_config": {}}
 
-【mix_speaker】混音控制配置 - 多音色混合（仅 TTS 1.0）
-  示例：
+【mix_speaker】Cấu hình điều khiển trộn âm - Trộn đa giọng (chỉ TTS 1.0)
+  Ví dụ:
     {"speakers": [
       {"source_speaker": "zh_male_bvlazysheep","mix_factor": 0.3}, 
       {"source_speaker": "BV120_streaming","mix_factor": 0.3}, 
       {"source_speaker": "zh_male_ahu_conversation_wvae_bigtts","mix_factor": 0.4}
     ]}
 
-注意：
-- 多情感音色参数（emotion、emotion_scale）仅部分音色支持
-- 相关音色列表：https://www.volcengine.com/docs/6561/1257544
-- 用户可根据火山引擎API文档自行添加更多参数
-- 混音功能主要适用于豆包语音合成模型1.0的音色，使用时需要将req_params.speaker设置为custom_mix_bigtts
+Lưu ý:
+- Tham số giọng đa cảm xúc (emotion、emotion_scale) chỉ một số giọng hỗ trợ
+- Danh sách giọng liên quan: https://www.volcengine.com/docs/6561/1257544
+- Người dùng có thể tự thêm nhiều tham số theo tài liệu API Núi Lửa
+- Chức năng trộn âm chủ yếu áp dụng cho giọng mô hình tổng hợp giọng nói 1.0 Đậu Bao, khi sử dụng cần đặt req_params.speaker thành custom_mix_bigtts
 '
 WHERE `id` = 'TTS_HuoshanDoubleStreamTTS';

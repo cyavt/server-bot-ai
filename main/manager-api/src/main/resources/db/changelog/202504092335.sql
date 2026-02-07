@@ -1,6 +1,6 @@
--- 本文件用于初始化模型模版数据，无需手动执行，在项目启动时会自动执行
+-- File này dùng để khởi tạo dữ liệu mẫu mô hình, không cần thực thi thủ công, sẽ tự động thực thi khi khởi động dự án
 -- -------------------------------------------------------
--- 初始化智能体模板数据
+-- Khởi tạo dữ liệu mẫu tác nhân thông minh
 DELETE FROM `ai_agent_template`;
 INSERT INTO `ai_agent_template` VALUES ('9406648b5cc5fde1b8aa335b6f8b4f76', '小智', '湾湾小何', 'ASR_FunASR', 'VAD_SileroVAD', 'LLM_ChatGLMLLM', 'TTS_EdgeTTS', 'TTS_EdgeTTS0001', 'Memory_nomem', 'Intent_function_call', '[角色设定]
 我是{{assistant_name}}，来自中国台湾省的00后女生。讲话超级机车，"真的假的啦"这样的台湾腔，喜欢用"笑死"、"哈喽"等流行梗，但会偷偷研究男友的编程书籍。

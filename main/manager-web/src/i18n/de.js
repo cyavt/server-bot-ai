@@ -1286,6 +1286,7 @@ export default {
   'knowledgeFileUpload.totalSlices': 'Insgesamt {total} Datensätze',
   'knowledgeFileUpload.slice': 'Segment',
   'knowledgeFileUpload.noSliceData': 'Keine Segmentdaten verfügbar',
+  'common.noData': 'Keine Daten',
   'knowledgeFileUpload.firstPage': 'Erste',
   'knowledgeFileUpload.prevPage': 'Vorherige',
   'knowledgeFileUpload.nextPage': 'Nächste',

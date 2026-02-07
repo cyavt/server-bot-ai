@@ -1,24 +1,24 @@
--- VOSK ASR模型供应器
+-- Provider mô hình ASR VOSK
 delete from `ai_model_provider` where id = 'SYSTEM_ASR_VoskASR';
 INSERT INTO `ai_model_provider` (`id`, `model_type`, `provider_code`, `name`, `fields`, `sort`, `creator`, `create_date`, `updater`, `update_date`) VALUES
-('SYSTEM_ASR_VoskASR', 'ASR', 'vosk', 'VOSK离线语音识别', '[{"key": "model_path", "type": "string", "label": "模型路径"}, {"key": "output_dir", "type": "string", "label": "输出目录"}]', 11, 1, NOW(), 1, NOW());
+('SYSTEM_ASR_VoskASR', 'ASR', 'vosk', 'Nhận dạng giọng nói offline VOSK', '[{"key": "model_path", "type": "string", "label": "Đường dẫn mô hình"}, {"key": "output_dir", "type": "string", "label": "Thư mục đầu ra"}]', 11, 1, NOW(), 1, NOW());
 
--- VOSK ASR模型配置
+-- Cấu hình mô hình ASR VOSK
 delete from `ai_model_config` where id = 'ASR_VoskASR';
-INSERT INTO `ai_model_config` VALUES ('ASR_VoskASR', 'ASR', 'VoskASR', 'VOSK离线语音识别', 0, 1, '{\"type\": \"vosk\", \"model_path\": \"\", \"output_dir\": \"tmp/\"}', NULL, NULL, 11, NULL, NULL, NULL, NULL);
+INSERT INTO `ai_model_config` VALUES ('ASR_VoskASR', 'ASR', 'VoskASR', 'Nhận dạng giọng nói offline VOSK', 0, 1, '{\"type\": \"vosk\", \"model_path\": \"\", \"output_dir\": \"tmp/\"}', NULL, NULL, 11, NULL, NULL, NULL, NULL);
 
--- 更新VOSK ASR配置说明
+-- Cập nhật hướng dẫn cấu hình ASR VOSK
 UPDATE `ai_model_config` SET 
 `doc_link` = 'https://alphacephei.com/vosk/',
-`remark` = 'VOSK ASR配置说明：
-1. VOSK是一个离线语音识别库，支持多种语言
-2. 需要先下载模型文件：https://alphacephei.com/vosk/models
-3. 中文模型推荐使用vosk-model-small-cn-0.22或vosk-model-cn-0.22
-4. 完全离线运行，无需网络连接
-5. 输出文件保存在tmp/目录
-使用步骤：
-1. 访问 https://alphacephei.com/vosk/models 下载中文模型
-2. 解压模型文件到项目目录下的models/vosk/文件夹
-3. 在配置中指定正确的模型路径
-4. 注意：VOSK中文模型输出不带标点符号，词与词之间会有空格
+`remark` = 'Hướng dẫn cấu hình ASR VOSK：
+1. VOSK là thư viện nhận dạng giọng nói offline, hỗ trợ nhiều ngôn ngữ
+2. Cần tải file mô hình trước：https://alphacephei.com/vosk/models
+3. Mô hình tiếng Trung khuyến nghị sử dụng vosk-model-small-cn-0.22 hoặc vosk-model-cn-0.22
+4. Chạy hoàn toàn offline, không cần kết nối mạng
+5. File đầu ra được lưu trong thư mục tmp/
+Các bước sử dụng：
+1. Truy cập https://alphacephei.com/vosk/models để tải mô hình tiếng Trung
+2. Giải nén file mô hình vào thư mục models/vosk/ trong thư mục dự án
+3. Chỉ định đường dẫn mô hình đúng trong cấu hình
+4. Lưu ý：Mô hình tiếng Trung VOSK đầu ra không có dấu câu, giữa các từ sẽ có khoảng trắng
 ' WHERE `id` = 'ASR_VoskASR';

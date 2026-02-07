@@ -1,53 +1,53 @@
--- 添加阿里百炼Paraformer实时语音识别服务配置
+-- Thêm cấu hình dịch vụ nhận dạng giọng nói thời gian thực Paraformer của Alibaba Bách Luyện
 delete from `ai_model_provider` where id = 'SYSTEM_ASR_AliyunBLStream';
 INSERT INTO `ai_model_provider` (`id`, `model_type`, `provider_code`, `name`, `fields`, `sort`, `creator`, `create_date`, `updater`, `update_date`) VALUES
-('SYSTEM_ASR_AliyunBLStream', 'ASR', 'aliyunbl_stream', '阿里百炼Paraformer实时语音识别', '[{"key":"api_key","label":"API密钥","type":"password"},{"key":"model","label":"模型名称","type":"string"},{"key":"format","label":"音频格式","type":"string"},{"key":"sample_rate","label":"采样率","type":"number"},{"key":"output_dir","label":"输出目录","type":"string"}]', 18, 1, NOW(), 1, NOW());
+('SYSTEM_ASR_AliyunBLStream', 'ASR', 'aliyunbl_stream', 'Nhận dạng giọng nói thời gian thực Paraformer Alibaba Bách Luyện', '[{"key":"api_key","label":"Khóa API","type":"password"},{"key":"model","label":"Tên mô hình","type":"string"},{"key":"format","label":"Định dạng âm thanh","type":"string"},{"key":"sample_rate","label":"Tần số lấy mẫu","type":"number"},{"key":"output_dir","label":"Thư mục đầu ra","type":"string"}]', 18, 1, NOW(), 1, NOW());
 
 delete from `ai_model_config` where id = 'ASR_AliyunBLStream';
-INSERT INTO `ai_model_config` VALUES ('ASR_AliyunBLStream', 'ASR', 'AliyunBLStream', '阿里百炼Paraformer实时语音识别', 0, 1, '{"type": "aliyunbl_stream", "api_key": "", "model": "paraformer-realtime-v2", "format": "pcm", "sample_rate": 16000, "disfluency_removal_enabled": false, "semantic_punctuation_enabled": false, "max_sentence_silence": 200, "multi_threshold_mode_enabled": false, "punctuation_prediction_enabled": true, "inverse_text_normalization_enabled": true, "output_dir": "tmp/"}', 'https://help.aliyun.com/zh/model-studio/websocket-for-paraformer-real-time-service', '支持多语言、热词定制、语义断句等高级功能', 21, NULL, NULL, NULL, NULL);
+INSERT INTO `ai_model_config` VALUES ('ASR_AliyunBLStream', 'ASR', 'AliyunBLStream', 'Nhận dạng giọng nói thời gian thực Paraformer Alibaba Bách Luyện', 0, 1, '{"type": "aliyunbl_stream", "api_key": "", "model": "paraformer-realtime-v2", "format": "pcm", "sample_rate": 16000, "disfluency_removal_enabled": false, "semantic_punctuation_enabled": false, "max_sentence_silence": 200, "multi_threshold_mode_enabled": false, "punctuation_prediction_enabled": true, "inverse_text_normalization_enabled": true, "output_dir": "tmp/"}', 'https://help.aliyun.com/zh/model-studio/websocket-for-paraformer-real-time-service', 'Hỗ trợ đa ngôn ngữ, tùy chỉnh từ khóa, ngắt câu ngữ nghĩa và các chức năng nâng cao khác', 21, NULL, NULL, NULL, NULL);
 
--- 更新阿里百炼Paraformer模型配置的说明文档
+-- Cập nhật tài liệu hướng dẫn cấu hình mô hình Paraformer Alibaba Bách Luyện
 UPDATE `ai_model_config` SET
 `doc_link` = 'https://help.aliyun.com/zh/model-studio/websocket-for-paraformer-real-time-service',
-`remark` = '阿里百炼Paraformer实时语音识别配置说明：
-1. 登录阿里云百炼平台 https://bailian.console.aliyun.com/
-2. 创建API-KEY https://bailian.console.aliyun.com/#/api-key
-3. 支持模型：paraformer-realtime-v2(推荐)、paraformer-realtime-8k-v2、paraformer-realtime-v1、paraformer-realtime-8k-v1
-4. 功能特性：
-   - 多语言支持(中文含方言、英文、日语、韩语、德语、法语、俄语)
-   - 热词定制(vocabulary_id参数)，详细说明请参考：https://help.aliyun.com/zh/model-studio/custom-hot-words?
-   - 语义断句/VAD断句(semantic_punctuation_enabled参数)
-   - 自动标点符号、ITN、过滤语气词等
-5. 参数说明：
-   - model: 模型名称，推荐paraformer-realtime-v2
-   - sample_rate: 采样率(Hz)，v2支持任意采样率，v1仅支持16000，8k版本仅支持8000
-   - semantic_punctuation_enabled: false为VAD断句(低延迟)，true为语义断句(高准确)
-   - max_sentence_silence: VAD断句静音时长阈值(200-6000ms)
+`remark` = 'Hướng dẫn cấu hình nhận dạng giọng nói thời gian thực Paraformer Alibaba Bách Luyện：
+1. Đăng nhập nền tảng Alibaba Bách Luyện https://bailian.console.aliyun.com/
+2. Tạo API-KEY https://bailian.console.aliyun.com/#/api-key
+3. Mô hình hỗ trợ：paraformer-realtime-v2 (khuyến nghị)、paraformer-realtime-8k-v2、paraformer-realtime-v1、paraformer-realtime-8k-v1
+4. Tính năng：
+   - Hỗ trợ đa ngôn ngữ (tiếng Trung bao gồm phương ngữ, tiếng Anh, tiếng Nhật, tiếng Hàn, tiếng Đức, tiếng Pháp, tiếng Nga)
+   - Tùy chỉnh từ khóa (tham số vocabulary_id), tham khảo chi tiết：https://help.aliyun.com/zh/model-studio/custom-hot-words?
+   - Ngắt câu ngữ nghĩa/Ngắt câu VAD (tham số semantic_punctuation_enabled)
+   - Tự động dấu câu, ITN, lọc từ ngữ cảm xúc, v.v.
+5. Giải thích tham số：
+   - model: Tên mô hình, khuyến nghị paraformer-realtime-v2
+   - sample_rate: Tần số lấy mẫu (Hz), v2 hỗ trợ tần số lấy mẫu bất kỳ, v1 chỉ hỗ trợ 16000, phiên bản 8k chỉ hỗ trợ 8000
+   - semantic_punctuation_enabled: false là ngắt câu VAD (độ trễ thấp), true là ngắt câu ngữ nghĩa (độ chính xác cao)
+   - max_sentence_silence: Ngưỡng thời lượng im lặng ngắt câu VAD (200-6000ms)
 ' WHERE `id` = 'ASR_AliyunBLStream';
 
 
--- 更新豆包流式ASR供应器，增加配置
+-- Cập nhật provider ASR streaming Đậu Bao, thêm cấu hình
 delete from `ai_model_provider` where id = 'SYSTEM_ASR_DoubaoStreamASR';
 INSERT INTO `ai_model_provider` (`id`, `model_type`, `provider_code`, `name`, `fields`, `sort`, `creator`, `create_date`, `updater`, `update_date`) VALUES
-('SYSTEM_ASR_DoubaoStreamASR', 'ASR', 'doubao_stream', '火山引擎语音识别(流式)', '[{"key":"appid","label":"应用ID","type":"string"},{"key":"access_token","label":"访问令牌","type":"string"},{"key":"cluster","label":"集群","type":"string"},{"key":"boosting_table_name","label":"热词文件名称","type":"string"},{"key":"correct_table_name","label":"替换词文件名称","type":"string"},{"key":"output_dir","label":"输出目录","type":"string"},{"key":"end_window_size","label":"静音判定时长(ms)","type":"number"},{"key":"enable_multilingual","label":"是否开启多语种识别模式","type":"boolean"},{"key":"language","label":"指定语言编码","type":"string"}]', 3, 1, NOW(), 1, NOW());
+('SYSTEM_ASR_DoubaoStreamASR', 'ASR', 'doubao_stream', 'Nhận dạng giọng nói Núi Lửa (streaming)', '[{"key":"appid","label":"ID ứng dụng","type":"string"},{"key":"access_token","label":"Token truy cập","type":"string"},{"key":"cluster","label":"Cluster","type":"string"},{"key":"boosting_table_name","label":"Tên file từ khóa","type":"string"},{"key":"correct_table_name","label":"Tên file từ thay thế","type":"string"},{"key":"output_dir","label":"Thư mục đầu ra","type":"string"},{"key":"end_window_size","label":"Thời lượng phán đoán im lặng (ms)","type":"number"},{"key":"enable_multilingual","label":"Có bật chế độ nhận dạng đa ngôn ngữ không","type":"boolean"},{"key":"language","label":"Mã ngôn ngữ chỉ định","type":"string"}]', 3, 1, NOW(), 1, NOW());
 UPDATE `ai_model_config` SET 
-`remark` = '豆包ASR配置说明：
-1. 豆包ASR和豆包(流式)ASR的区别是：豆包ASR是按次收费，豆包(流式)ASR是按时收费
-2. 一般来说按次收费的更便宜，但是豆包(流式)ASR使用了大模型技术，效果更好
-3. 需要在火山引擎控制台创建应用并获取appid和access_token
-4. 支持中文语音识别
-5. 需要网络连接
-6. 输出文件保存在tmp/目录
-申请步骤：
-1. 访问 https://console.volcengine.com/speech/app
-2. 创建新应用
-3. 获取appid和access_token
-4. 填入配置文件中
-如需设置热词，请参考：https://www.volcengine.com/docs/6561/155738
-如开启多语种识别模式，请设置language当该键为空时，该模型支持中英文、上海话、闽南语，四川、陕西、粤语识别。其他语种请参考：https://www.volcengine.com/docs/6561/1354869
+`remark` = 'Hướng dẫn cấu hình ASR Đậu Bao：
+1. Sự khác biệt giữa ASR Đậu Bao và ASR Đậu Bao (streaming) là：ASR Đậu Bao tính phí theo lần, ASR Đậu Bao (streaming) tính phí theo thời gian
+2. Nói chung tính phí theo lần rẻ hơn, nhưng ASR Đậu Bao (streaming) sử dụng công nghệ mô hình lớn, hiệu quả tốt hơn
+3. Cần tạo ứng dụng trong bảng điều khiển Núi Lửa và lấy appid và access_token
+4. Hỗ trợ nhận dạng giọng nói tiếng Trung
+5. Cần kết nối mạng
+6. File đầu ra được lưu trong thư mục tmp/
+Các bước đăng ký：
+1. Truy cập https://console.volcengine.com/speech/app
+2. Tạo ứng dụng mới
+3. Lấy appid và access_token
+4. Điền vào file cấu hình
+Nếu cần thiết lập từ khóa, tham khảo：https://www.volcengine.com/docs/6561/155738
+Nếu bật chế độ nhận dạng đa ngôn ngữ, hãy thiết lập language, khi khóa này trống, mô hình này hỗ trợ nhận dạng tiếng Trung-Anh, tiếng Thượng Hải, tiếng Mân Nam, Tứ Xuyên, Thiểm Tây, tiếng Quảng Đông. Các ngôn ngữ khác tham khảo：https://www.volcengine.com/docs/6561/1354869
 ' WHERE `id` = 'ASR_DoubaoStreamASR';
 
--- 更新豆包流式ASR模型配置，增加enable_multilingual默认值
+-- Cập nhật cấu hình mô hình ASR streaming Đậu Bao, thêm giá trị mặc định enable_multilingual
 UPDATE `ai_model_config` SET
 `config_json` = JSON_SET(
     `config_json`, 
@@ -59,12 +59,12 @@ AND JSON_EXTRACT(`config_json`, '$.enable_multilingual') IS NULL
 AND JSON_EXTRACT(`config_json`, '$.language') IS NULL;
 
 
--- 更新HuoshanDoubleStreamTTS供应器配置，增加多情感音色参数
+-- Cập nhật cấu hình provider HuoshanDoubleStreamTTS, thêm tham số giọng đa cảm xúc
 UPDATE `ai_model_provider`
-SET `fields` = '[{"key": "ws_url", "type": "string", "label": "WebSocket地址"}, {"key": "appid", "type": "string", "label": "应用ID"}, {"key": "access_token", "type": "string", "label": "访问令牌"}, {"key": "resource_id", "type": "string", "label": "资源ID"}, {"key": "speaker", "type": "string", "label": "默认音色"}, {"key": "enable_ws_reuse", "type": "boolean", "label": "是否开启链接复用", "default": true}, {"key": "speech_rate", "type": "number", "label": "语速(-50~100)"}, {"key": "loudness_rate", "type": "number", "label": "音量(-50~100)"}, {"key": "pitch", "type": "number", "label": "音高(-12~12)"}, {"key": "emotion_scale", "type": "number", "label": "情感强度(1-5)"}, {"key": "emotion", "type": "string", "label": "情感类型"}]'
+SET `fields` = '[{"key": "ws_url", "type": "string", "label": "Địa chỉ WebSocket"}, {"key": "appid", "type": "string", "label": "ID ứng dụng"}, {"key": "access_token", "type": "string", "label": "Token truy cập"}, {"key": "resource_id", "type": "string", "label": "ID tài nguyên"}, {"key": "speaker", "type": "string", "label": "Giọng mặc định"}, {"key": "enable_ws_reuse", "type": "boolean", "label": "Có bật tái sử dụng kết nối không", "default": true}, {"key": "speech_rate", "type": "number", "label": "Tốc độ nói(-50~100)"}, {"key": "loudness_rate", "type": "number", "label": "Âm lượng(-50~100)"}, {"key": "pitch", "type": "number", "label": "Độ cao giọng(-12~12)"}, {"key": "emotion_scale", "type": "number", "label": "Cường độ cảm xúc(1-5)"}, {"key": "emotion", "type": "string", "label": "Loại cảm xúc"}]'
 WHERE `id` = 'SYSTEM_TTS_HSDSTTS';
 
--- 更新默认值
+-- Cập nhật giá trị mặc định
 UPDATE `ai_model_config` SET
 `config_json` = JSON_SET(
     `config_json`,
@@ -75,20 +75,20 @@ WHERE `id` = 'TTS_HuoshanDoubleStreamTTS'
 AND JSON_EXTRACT(`config_json`, '$.emotion') IS NULL 
 AND JSON_EXTRACT(`config_json`, '$.emotion_scale') IS NULL;
 
--- 增加文档链接和备注
+-- Thêm liên kết tài liệu và ghi chú
 UPDATE `ai_model_config` SET 
 `doc_link` = 'https://console.volcengine.com/speech/service/10007',
-`remark` = '火山引擎语音合成服务配置说明：
-1. 访问 https://www.volcengine.com/ 注册并开通火山引擎账号
-2. 访问 https://console.volcengine.com/speech/service/10007 开通语音合成大模型，购买音色
-3. 在页面底部获取appid和access_token
-5. 资源ID固定为：volc.service_type.10029（大模型语音合成及混音）
-6. 链接复用：开启WebSocket连接复用，默认true减少链接损耗（注意：复用后设备处于聆听状态时空闲链接会占并发数）
-7. 语速：-50~100，可不填，正常默认值0，可填-50~100
-8. 音量：-50~100，可不填，正常默认值0，可填-50~100
-9. 音高：-12~12，可不填，正常默认值0，可填-12~12
-10. 多情感参数（当前仅部分音色支持设置情感）：
-   相关音色列表：https://www.volcengine.com/docs/6561/1257544
-    - emotion_scale：情感强度，可选值为：1~5，默认值为4
-    - emotion：情感类型，可选值为：neutral、happy、sad、angry、fearful、disgusted、surprised
+`remark` = 'Hướng dẫn cấu hình dịch vụ tổng hợp giọng nói Núi Lửa：
+1. Truy cập https://www.volcengine.com/ để đăng ký và mở tài khoản Núi Lửa
+2. Truy cập https://console.volcengine.com/speech/service/10007 để mở mô hình lớn tổng hợp giọng nói, mua giọng
+3. Lấy appid và access_token ở cuối trang
+5. ID tài nguyên cố định là：volc.service_type.10029 (tổng hợp giọng nói mô hình lớn và trộn âm)
+6. Tái sử dụng kết nối：Bật tái sử dụng kết nối WebSocket, mặc định true để giảm hao phí kết nối (Lưu ý：Sau khi tái sử dụng, khi thiết bị ở trạng thái lắng nghe, kết nối rảnh sẽ chiếm số đồng thời)
+7. Tốc độ nói：-50~100, có thể không điền, giá trị mặc định bình thường 0, có thể điền -50~100
+8. Âm lượng：-50~100, có thể không điền, giá trị mặc định bình thường 0, có thể điền -50~100
+9. Độ cao giọng：-12~12, có thể không điền, giá trị mặc định bình thường 0, có thể điền -12~12
+10. Tham số đa cảm xúc (hiện tại chỉ một số giọng hỗ trợ thiết lập cảm xúc)：
+   Danh sách giọng liên quan：https://www.volcengine.com/docs/6561/1257544
+   - emotion_scale：Cường độ cảm xúc, giá trị có thể chọn：1~5, giá trị mặc định là 4
+   - emotion：Loại cảm xúc, giá trị có thể chọn：neutral、happy、sad、angry、fearful、disgusted、surprised
 ' WHERE `id` = 'TTS_HuoshanDoubleStreamTTS';

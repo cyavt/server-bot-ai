@@ -1286,6 +1286,7 @@ export default {
   'knowledgeFileUpload.totalSlices': 'Tổng cộng {total} bản ghi',
   'knowledgeFileUpload.slice': 'Phần',
   'knowledgeFileUpload.noSliceData': 'Không có dữ liệu phần nào',
+  'common.noData': 'Không có dữ liệu',
   'knowledgeFileUpload.firstPage': 'Đầu tiên',
   'knowledgeFileUpload.prevPage': 'Trước',
   'knowledgeFileUpload.nextPage': 'Tiếp theo',

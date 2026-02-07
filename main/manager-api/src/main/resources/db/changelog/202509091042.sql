@@ -1,10 +1,10 @@
--- 删除非流式MiniMax TTS配置，保留流式版本
+-- Xóa cấu hình TTS MiniMax không streaming, giữ lại phiên bản streaming
 
--- 删除旧的非流式MiniMax TTS模型配置
+-- Xóa cấu hình mô hình TTS MiniMax không streaming cũ
 DELETE FROM `ai_model_config` WHERE `id` = 'TTS_MinimaxTTS';
 
--- 删除旧的非流式MiniMax TTS供应器配置  
+-- Xóa cấu hình provider TTS MiniMax không streaming cũ  
 DELETE FROM `ai_model_provider` WHERE `id` = 'SYSTEM_TTS_minimax';
 
--- 删除旧的非流式MiniMax TTS音色配置
+-- Xóa cấu hình giọng TTS MiniMax không streaming cũ
 DELETE FROM `ai_tts_voice` WHERE `tts_model_id` = 'TTS_MinimaxTTS';
