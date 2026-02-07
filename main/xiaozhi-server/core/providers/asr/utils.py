@@ -12,7 +12,7 @@ EMOTION_EMOJI_MAP = {
     "FEARFUL": "😰",
     "DISGUSTED": "🤢",
     "SURPRISED": "😲",
-    "EMO_UNKNOWN": "😶",  # 未知情绪默认用中性表情
+    "EMO_UNKNOWN": "😶",  # Cảm xúc không xác định mặc định dùng biểu cảm trung tính
 }
 # EVENT_EMOJI_MAP = {
 #     "<|BGM|>": "🎼",
@@ -27,17 +27,17 @@ EMOTION_EMOJI_MAP = {
 
 def lang_tag_filter(text: str) -> dict | str:
     """
-    解析 FunASR 识别结果，按顺序提取标签和纯文本内容
+    Phân tích kết quả nhận dạng FunASR, trích xuất nhãn và nội dung văn bản thuần theo thứ tự
 
     Args:
-        text: ASR 识别的原始文本，可能包含多种标签
+        text: Văn bản gốc được ASR nhận dạng, có thể chứa nhiều loại nhãn
 
     Returns:
-        dict: {"language": "zh", "emotion": "SAD", "emoji": "😔", "content": "你好"} 如果有标签
-        str: 纯文本，如果没有标签
+        dict: {"language": "zh", "emotion": "SAD", "emoji": "😔", "content": "你好"} nếu có nhãn
+        str: Văn bản thuần, nếu không có nhãn
 
     Examples:
-        FunASR 输出格式：<|语种|><|情绪|><|事件|><|其他选项|>原文
+        Định dạng đầu ra FunASR: <|ngôn ngữ|><|cảm xúc|><|sự kiện|><|tùy chọn khác|>văn bản gốc
         >>> lang_tag_filter("<|zh|><|SAD|><|Speech|><|withitn|>你好啊，测试测试。")
         {"language": "zh", "emotion": "SAD", "emoji": "😔", "content": "你好啊，测试测试。"}
         >>> lang_tag_filter("<|en|><|HAPPY|><|Speech|><|withitn|>Hello hello.")
@@ -45,21 +45,21 @@ def lang_tag_filter(text: str) -> dict | str:
         >>> lang_tag_filter("plain text")
         "plain text"
     """
-    # 提取所有标签（按顺序）
+    # Trích xuất tất cả nhãn (theo thứ tự)
     tag_pattern = r"<\|([^|]+)\|>"
     all_tags = re.findall(tag_pattern, text)
 
-    # 移除所有 <|...|> 格式的标签，获取纯文本
+    # Loại bỏ tất cả nhãn định dạng <|...|>, lấy văn bản thuần
     clean_text = re.sub(tag_pattern, "", text).strip()
 
-    # 如果没有标签，直接返回纯文本
+    # Nếu không có nhãn, trả về văn bản thuần trực tiếp
     if not all_tags:
         return clean_text
 
-    # 按照 FunASR 的固定顺序提取标签，返回 dict
+    # Trích xuất nhãn theo thứ tự cố định của FunASR, trả về dict
     language = all_tags[0] if len(all_tags) > 0 else "zh"
     emotion = all_tags[1] if len(all_tags) > 1 else "NEUTRAL"
-    # event = all_tags[2] if len(all_tags) > 2 else "Speech"  # 事件标签暂不使用
+    # event = all_tags[2] if len(all_tags) > 2 else "Speech"  # Nhãn sự kiện tạm thời không sử dụng
 
     result = {
         "content": clean_text,
@@ -68,10 +68,10 @@ def lang_tag_filter(text: str) -> dict | str:
         # "event": event,
     }
 
-    # 添加 emoji 映射
+    # Thêm ánh xạ emoji
     if emotion in EMOTION_EMOJI_MAP:
         result["emotion"] = EMOTION_EMOJI_MAP[emotion]
-    # 事件标签暂不使用
+    # Nhãn sự kiện tạm thời không sử dụng
     # if event in EVENT_EMOJI_MAP:
     #     result["event"] = EVENT_EMOJI_MAP[event]
 

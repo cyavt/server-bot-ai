@@ -22,35 +22,35 @@ class IntentProvider(IntentProviderBase):
         super().__init__(config)
         self.llm = None
         self.promot = ""
-        # 导入全局缓存管理器
+        # Import trình quản lý cache toàn cục
         from core.utils.cache.manager import cache_manager, CacheType
 
         self.cache_manager = cache_manager
         self.CacheType = CacheType
-        self.history_count = 4  # 默认使用最近4条对话记录
+        self.history_count = 4  # Mặc định sử dụng 4 bản ghi hội thoại gần nhất
 
     def get_intent_system_prompt(self, functions_list: str) -> str:
         """
-        根据配置的意图选项和可用函数动态生成系统提示词
+        Tạo prompt hệ thống động dựa trên các tùy chọn ý định được cấu hình và các hàm khả dụng
         Args:
-            functions: 可用的函数列表，JSON格式字符串
+            functions: Danh sách hàm khả dụng, chuỗi định dạng JSON
         Returns:
-            格式化后的系统提示词
+            Prompt hệ thống đã được định dạng
         """
 
-        # 构建函数说明部分
-        functions_desc = "可用的函数列表：\n"
+        # Xây dựng phần mô tả hàm
+        functions_desc = "Danh sách hàm khả dụng:\n"
         for func in functions_list:
             func_info = func.get("function", {})
             name = func_info.get("name", "")
             desc = func_info.get("description", "")
             params = func_info.get("parameters", {})
 
-            functions_desc += f"\n函数名: {name}\n"
-            functions_desc += f"描述: {desc}\n"
+            functions_desc += f"\nTên hàm: {name}\n"
+            functions_desc += f"Mô tả: {desc}\n"
 
             if params:
-                functions_desc += "参数:\n"
+                functions_desc += "Tham số:\n"
                 for param_name, param_info in params.get("properties", {}).items():
                     param_desc = param_info.get("description", "")
                     param_type = param_info.get("type", "")
@@ -59,64 +59,64 @@ class IntentProvider(IntentProviderBase):
             functions_desc += "---\n"
 
         prompt = (
-            "【严格格式要求】你必须只能返回JSON格式，绝对不能返回任何自然语言！\n\n"
-            "你是一个意图识别助手。请分析用户的最后一句话，判断用户意图并调用相应的函数。\n\n"
-            "【重要规则】以下类型的查询请直接返回result_for_context，无需调用函数：\n"
-            "- 询问当前时间（如：现在几点、当前时间、查询时间等）\n"
-            "- 询问今天日期（如：今天几号、今天星期几、今天是什么日期等）\n"
-            "- 询问今天农历（如：今天农历几号、今天什么节气等）\n"
-            "- 询问所在城市（如：我现在在哪里、你知道我在哪个城市吗等）"
-            "系统会根据上下文信息直接构建回答。\n\n"
-            "- 如果用户使用疑问词（如'怎么'、'为什么'、'如何'）询问退出相关的问题（例如'怎么退出了？'），注意这不是让你退出，请返回 {'function_call': {'name': 'continue_chat'}\n"
-            "- 仅当用户明确使用'退出系统'、'结束对话'、'我不想和你说话了'等指令时，才触发 handle_exit_intent\n\n"
+            "【Yêu cầu định dạng nghiêm ngặt】Bạn PHẢI chỉ trả về định dạng JSON, TUYỆT ĐỐI KHÔNG được trả về bất kỳ ngôn ngữ tự nhiên nào!\n\n"
+            "Bạn là trợ lý nhận dạng ý định. Vui lòng phân tích câu cuối cùng của người dùng, xác định ý định của người dùng và gọi hàm tương ứng.\n\n"
+            "【Quy tắc quan trọng】Các loại truy vấn sau đây vui lòng trả về result_for_context trực tiếp, không cần gọi hàm:\n"
+            "- Hỏi thời gian hiện tại (ví dụ: bây giờ mấy giờ, thời gian hiện tại, truy vấn thời gian, v.v.)\n"
+            "- Hỏi ngày hôm nay (ví dụ: hôm nay ngày mấy, hôm nay thứ mấy, hôm nay là ngày gì, v.v.)\n"
+            "- Hỏi âm lịch hôm nay (ví dụ: hôm nay âm lịch ngày mấy, hôm nay tiết khí gì, v.v.)\n"
+            "- Hỏi thành phố hiện tại (ví dụ: tôi đang ở đâu, bạn biết tôi ở thành phố nào không, v.v.)"
+            "Hệ thống sẽ tự động xây dựng câu trả lời dựa trên thông tin ngữ cảnh.\n\n"
+            "- Nếu người dùng sử dụng từ nghi vấn (như 'làm sao', 'tại sao', 'như thế nào') để hỏi về vấn đề liên quan đến thoát (ví dụ 'làm sao thoát?'), lưu ý đây không phải là yêu cầu bạn thoát, vui lòng trả về {'function_call': {'name': 'continue_chat'}\n"
+            "- Chỉ khi người dùng sử dụng rõ ràng các lệnh như 'thoát hệ thống', 'kết thúc cuộc trò chuyện', 'tôi không muốn nói chuyện với bạn nữa', mới kích hoạt handle_exit_intent\n\n"
             f"{functions_desc}\n"
-            "处理步骤:\n"
-            "1. 分析用户输入，确定用户意图\n"
-            "2. 检查是否为上述基础信息查询（时间、日期等），如是则返回result_for_context\n"
-            "3. 从可用函数列表中选择最匹配的函数\n"
-            "4. 如果找到匹配的函数，生成对应的function_call 格式\n"
-            '5. 如果没有找到匹配的函数，返回{"function_call": {"name": "continue_chat"}}\n\n'
-            "返回格式要求：\n"
-            "1. 必须返回纯JSON格式，不要包含任何其他文字\n"
-            "2. 必须包含function_call字段\n"
-            "3. function_call必须包含name字段\n"
-            "4. 如果函数需要参数，必须包含arguments字段\n\n"
-            "示例：\n"
+            "Các bước xử lý:\n"
+            "1. Phân tích đầu vào của người dùng, xác định ý định của người dùng\n"
+            "2. Kiểm tra xem có phải là truy vấn thông tin cơ bản ở trên (thời gian, ngày tháng, v.v.) không, nếu có thì trả về result_for_context\n"
+            "3. Chọn hàm phù hợp nhất từ danh sách hàm khả dụng\n"
+            "4. Nếu tìm thấy hàm phù hợp, tạo định dạng function_call tương ứng\n"
+            '5. Nếu không tìm thấy hàm phù hợp, trả về {"function_call": {"name": "continue_chat"}}\n\n'
+            "Yêu cầu định dạng trả về:\n"
+            "1. Phải trả về định dạng JSON thuần, không chứa bất kỳ văn bản nào khác\n"
+            "2. Phải chứa trường function_call\n"
+            "3. function_call phải chứa trường name\n"
+            "4. Nếu hàm cần tham số, phải chứa trường arguments\n\n"
+            "Ví dụ:\n"
             "```\n"
-            "用户: 现在几点了？\n"
-            '返回: {"function_call": {"name": "result_for_context"}}\n'
-            "```\n"
-            "```\n"
-            "用户: 当前电池电量是多少？\n"
-            '返回: {"function_call": {"name": "get_battery_level", "arguments": {"response_success": "当前电池电量为{value}%", "response_failure": "无法获取Battery的当前电量百分比"}}}\n'
+            "Người dùng: Bây giờ mấy giờ?\n"
+            'Trả về: {"function_call": {"name": "result_for_context"}}\n'
             "```\n"
             "```\n"
-            "用户: 当前屏幕亮度是多少？\n"
-            '返回: {"function_call": {"name": "self_screen_get_brightness"}}\n'
+            "Người dùng: Pin hiện tại là bao nhiêu?\n"
+            'Trả về: {"function_call": {"name": "get_battery_level", "arguments": {"response_success": "Pin hiện tại là {value}%", "response_failure": "Không thể lấy phần trăm pin hiện tại của Battery"}}}\n'
             "```\n"
             "```\n"
-            "用户: 设置屏幕亮度为50%\n"
-            '返回: {"function_call": {"name": "self_screen_set_brightness", "arguments": {"brightness": 50}}}\n'
+            "Người dùng: Độ sáng màn hình hiện tại là bao nhiêu?\n"
+            'Trả về: {"function_call": {"name": "self_screen_get_brightness"}}\n'
             "```\n"
             "```\n"
-            "用户: 我想结束对话\n"
-            '返回: {"function_call": {"name": "handle_exit_intent", "arguments": {"say_goodbye": "goodbye"}}}\n'
+            "Người dùng: Đặt độ sáng màn hình thành 50%\n"
+            'Trả về: {"function_call": {"name": "self_screen_set_brightness", "arguments": {"brightness": 50}}}\n'
             "```\n"
             "```\n"
-            "用户: 你好啊\n"
-            '返回: {"function_call": {"name": "continue_chat"}}\n'
+            "Người dùng: Tôi muốn kết thúc cuộc trò chuyện\n"
+            'Trả về: {"function_call": {"name": "handle_exit_intent", "arguments": {"say_goodbye": "goodbye"}}}\n'
+            "```\n"
+            "```\n"
+            "Người dùng: Chào bạn\n"
+            'Trả về: {"function_call": {"name": "continue_chat"}}\n'
             "```\n\n"
-            "注意：\n"
-            "1. 只返回JSON格式，不要包含任何其他文字\n"
-            '2. 优先检查用户查询是否为基础信息（时间、日期等），如是则返回{"function_call": {"name": "result_for_context"}}，不需要arguments参数\n'
-            '3. 如果没有找到匹配的函数，返回{"function_call": {"name": "continue_chat"}}\n'
-            "4. 确保返回的JSON格式正确，包含所有必要的字段\n"
-            "5. result_for_context不需要任何参数，系统会自动从上下文获取信息\n"
-            "特殊说明：\n"
-            "- 当用户单次输入包含多个指令时（如'打开灯并且调高音量'）\n"
-            "- 请返回多个function_call组成的JSON数组\n"
-            "- 示例：{'function_calls': [{name:'light_on'}, {name:'volume_up'}]}\n\n"
-            "【最终警告】绝对禁止输出任何自然语言、表情符号或解释文字！只能输出有效JSON格式！违反此规则将导致系统错误！"
+            "Lưu ý:\n"
+            "1. Chỉ trả về định dạng JSON, không chứa bất kỳ văn bản nào khác\n"
+            '2. Ưu tiên kiểm tra xem truy vấn của người dùng có phải là thông tin cơ bản (thời gian, ngày tháng, v.v.) không, nếu có thì trả về {"function_call": {"name": "result_for_context"}}, không cần tham số arguments\n'
+            '3. Nếu không tìm thấy hàm phù hợp, trả về {"function_call": {"name": "continue_chat"}}\n'
+            "4. Đảm bảo định dạng JSON trả về đúng, chứa tất cả các trường cần thiết\n"
+            "5. result_for_context không cần bất kỳ tham số nào, hệ thống sẽ tự động lấy thông tin từ ngữ cảnh\n"
+            "Lưu ý đặc biệt:\n"
+            "- Khi người dùng nhập một lần chứa nhiều lệnh (ví dụ 'bật đèn và tăng âm lượng')\n"
+            "- Vui lòng trả về mảng JSON gồm nhiều function_call\n"
+            "- Ví dụ: {'function_calls': [{name:'light_on'}, {name:'volume_up'}]}\n\n"
+            "【Cảnh báo cuối cùng】TUYỆT ĐỐI CẤM xuất bất kỳ ngôn ngữ tự nhiên, biểu tượng cảm xúc hoặc văn bản giải thích nào! CHỈ được xuất định dạng JSON hợp lệ! Vi phạm quy tắc này sẽ dẫn đến lỗi hệ thống!"
         )
         return prompt
 
@@ -124,7 +124,7 @@ class IntentProvider(IntentProviderBase):
         try:
             llm_result = self.llm.response_no_stream(
                 system_prompt=text,
-                user_prompt="请根据以上内容，像人类一样说话的口吻回复用户，要求简洁，请直接返回结果。用户现在说："
+                user_prompt="Vui lòng dựa trên nội dung trên, trả lời người dùng bằng giọng điệu như con người, yêu cầu ngắn gọn, vui lòng trả về kết quả trực tiếp. Người dùng hiện tại nói: "
                 + original_text,
             )
             return llm_result
@@ -140,22 +140,22 @@ class IntentProvider(IntentProviderBase):
         if conn.func_handler is None:
             return '{"function_call": {"name": "continue_chat"}}'
 
-        # 记录整体开始时间
+        # Ghi lại thời gian bắt đầu tổng thể
         total_start_time = time.time()
 
-        # 打印使用的模型信息
+        # In thông tin model đang sử dụng
         model_info = getattr(self.llm, "model_name", str(self.llm.__class__.__name__))
-        logger.bind(tag=TAG).debug(f"使用意图识别模型: {model_info}")
+        logger.bind(tag=TAG).debug(f"Sử dụng model nhận dạng ý định: {model_info}")
 
-        # 计算缓存键
+        # Tính khóa cache
         cache_key = hashlib.md5((conn.device_id + text).encode()).hexdigest()
 
-        # 检查缓存
+        # Kiểm tra cache
         cached_intent = self.cache_manager.get(self.CacheType.INTENT, cache_key)
         if cached_intent is not None:
             cache_time = time.time() - total_start_time
             logger.bind(tag=TAG).debug(
-                f"使用缓存的意图: {cache_key} -> {cached_intent}, 耗时: {cache_time:.4f}秒"
+                f"Sử dụng ý định đã cache: {cache_key} -> {cached_intent}, thời gian: {cache_time:.4f} giây"
             )
             return cached_intent
 
@@ -180,17 +180,17 @@ class IntentProvider(IntentProviderBase):
         else:
             devices = []
         if len(devices) > 0:
-            hass_prompt = "\n下面是我家智能设备列表（位置，设备名，entity_id），可以通过homeassistant控制\n"
+            hass_prompt = "\nDưới đây là danh sách thiết bị thông minh của tôi (vị trí, tên thiết bị, entity_id), có thể điều khiển qua homeassistant\n"
             for device in devices:
                 hass_prompt += device + "\n"
             prompt_music += hass_prompt
 
         logger.bind(tag=TAG).debug(f"User prompt: {prompt_music}")
 
-        # 构建用户对话历史的提示
+        # Xây dựng prompt lịch sử hội thoại người dùng
         msgStr = ""
 
-        # 获取最近的对话历史
+        # Lấy lịch sử hội thoại gần nhất
         start_idx = max(0, len(dialogue_history) - self.history_count)
         for i in range(start_idx, len(dialogue_history)):
             msgStr += f"{dialogue_history[i].role}: {dialogue_history[i].content}\n"
@@ -198,68 +198,85 @@ class IntentProvider(IntentProviderBase):
         msgStr += f"User: {text}\n"
         user_prompt = f"current dialogue:\n{msgStr}"
 
-        # 记录预处理完成时间
+        # Ghi lại thời gian hoàn thành tiền xử lý
         preprocess_time = time.time() - total_start_time
-        logger.bind(tag=TAG).debug(f"意图识别预处理耗时: {preprocess_time:.4f}秒")
+        logger.bind(tag=TAG).debug(f"Thời gian tiền xử lý nhận dạng ý định: {preprocess_time:.4f} giây")
 
-        # 使用LLM进行意图识别
+        # Sử dụng LLM để nhận dạng ý định
         llm_start_time = time.time()
-        logger.bind(tag=TAG).debug(f"开始LLM意图识别调用, 模型: {model_info}")
+        logger.bind(tag=TAG).debug(f"Bắt đầu gọi LLM nhận dạng ý định, model: {model_info}")
 
         try:
             intent = self.llm.response_no_stream(
                 system_prompt=prompt_music, user_prompt=user_prompt
             )
         except Exception as e:
-            logger.bind(tag=TAG).error(f"Error in intent detection LLM call: {e}")
+            # Xử lý exception message an toàn với Unicode
+            try:
+                error_msg = str(e)
+                if isinstance(error_msg, bytes):
+                    error_msg = error_msg.decode('utf-8', errors='replace')
+                else:
+                    error_msg = str(error_msg).encode('utf-8', errors='replace').decode('utf-8')
+            except (UnicodeEncodeError, UnicodeDecodeError):
+                error_msg = repr(e)
+            except Exception:
+                error_msg = "Lỗi không xác định khi nhận dạng ý định"
+            
+            try:
+                log_msg = f"Error in intent detection LLM call: {error_msg}"
+                log_msg.encode('utf-8')
+                logger.bind(tag=TAG).error(log_msg)
+            except (UnicodeEncodeError, UnicodeDecodeError):
+                logger.bind(tag=TAG).error(f"Error in intent detection LLM call: {repr(error_msg)}")
             return '{"function_call": {"name": "continue_chat"}}'
 
-        # 记录LLM调用完成时间
+        # Ghi lại thời gian hoàn thành gọi LLM
         llm_time = time.time() - llm_start_time
         logger.bind(tag=TAG).debug(
-            f"外挂的大模型意图识别完成, 模型: {model_info}, 调用耗时: {llm_time:.4f}秒"
+            f"Hoàn thành nhận dạng ý định bằng model lớn ngoài, model: {model_info}, thời gian gọi: {llm_time:.4f} giây"
         )
 
-        # 记录后处理开始时间
+        # Ghi lại thời gian bắt đầu hậu xử lý
         postprocess_start_time = time.time()
 
-        # 清理和解析响应
+        # Làm sạch và phân tích phản hồi
         intent = intent.strip()
-        # 尝试提取JSON部分
+        # Thử trích xuất phần JSON
         match = re.search(r"\{.*\}", intent, re.DOTALL)
         if match:
             intent = match.group(0)
 
-        # 记录总处理时间
+        # Ghi lại tổng thời gian xử lý
         total_time = time.time() - total_start_time
         logger.bind(tag=TAG).debug(
-            f"【意图识别性能】模型: {model_info}, 总耗时: {total_time:.4f}秒, LLM调用: {llm_time:.4f}秒, 查询: '{text[:20]}...'"
+            f"【Hiệu suất nhận dạng ý định】Model: {model_info}, tổng thời gian: {total_time:.4f} giây, gọi LLM: {llm_time:.4f} giây, truy vấn: '{text[:20]}...'"
         )
 
-        # 尝试解析为JSON
+        # Thử phân tích thành JSON
         try:
             intent_data = json.loads(intent)
-            # 如果包含function_call，则格式化为适合处理的格式
+            # Nếu chứa function_call, thì định dạng thành định dạng phù hợp để xử lý
             if "function_call" in intent_data:
                 function_data = intent_data["function_call"]
                 function_name = function_data.get("name")
                 function_args = function_data.get("arguments", {})
 
-                # 记录识别到的function call
+                # Ghi lại function call đã nhận dạng
                 logger.bind(tag=TAG).info(
-                    f"llm 识别到意图: {function_name}, 参数: {function_args}"
+                    f"llm đã nhận dạng ý định: {function_name}, tham số: {function_args}"
                 )
 
-                # 处理不同类型的意图
+                # Xử lý các loại ý định khác nhau
                 if function_name == "result_for_context":
-                    # 处理基础信息查询，直接从context构建结果
+                    # Xử lý truy vấn thông tin cơ bản, xây dựng kết quả trực tiếp từ context
                     logger.bind(tag=TAG).info(
-                        "检测到result_for_context意图，将使用上下文信息直接回答"
+                        "Phát hiện ý định result_for_context, sẽ sử dụng thông tin ngữ cảnh để trả lời trực tiếp"
                     )
 
                 elif function_name == "continue_chat":
-                    # 处理普通对话
-                    # 保留非工具相关的消息
+                    # Xử lý hội thoại thông thường
+                    # Giữ lại các tin nhắn không liên quan đến công cụ
                     clean_history = [
                         msg
                         for msg in conn.dialogue.dialogue
@@ -268,19 +285,19 @@ class IntentProvider(IntentProviderBase):
                     conn.dialogue.dialogue = clean_history
 
                 else:
-                    # 处理函数调用
-                    logger.bind(tag=TAG).info(f"检测到函数调用意图: {function_name}")
+                    # Xử lý gọi hàm
+                    logger.bind(tag=TAG).info(f"Phát hiện ý định gọi hàm: {function_name}")
 
-            # 统一缓存处理和返回
+            # Xử lý cache và trả về thống nhất
             self.cache_manager.set(self.CacheType.INTENT, cache_key, intent)
             postprocess_time = time.time() - postprocess_start_time
-            logger.bind(tag=TAG).debug(f"意图后处理耗时: {postprocess_time:.4f}秒")
+            logger.bind(tag=TAG).debug(f"Thời gian hậu xử lý ý định: {postprocess_time:.4f} giây")
             return intent
         except json.JSONDecodeError:
-            # 后处理时间
+            # Thời gian hậu xử lý
             postprocess_time = time.time() - postprocess_start_time
             logger.bind(tag=TAG).error(
-                f"无法解析意图JSON: {intent}, 后处理耗时: {postprocess_time:.4f}秒"
+                f"Không thể phân tích JSON ý định: {intent}, thời gian hậu xử lý: {postprocess_time:.4f} giây"
             )
-            # 如果解析失败，默认返回继续聊天意图
+            # Nếu phân tích thất bại, mặc định trả về ý định tiếp tục trò chuyện
             return '{"function_call": {"name": "continue_chat"}}'

@@ -20,7 +20,7 @@ class TTSProvider(TTSProviderBase):
         self.response_format = config.get("format", "wav")
         self.audio_file_type = config.get("format", "wav")
 
-        # 处理空字符串的情况
+        # Xử lý trường hợp chuỗi rỗng
         speed = config.get("speed", "1.0")
         self.speed = float(speed) if speed else 1.0
 
@@ -50,5 +50,5 @@ class TTSProvider(TTSProviderBase):
                 return response.content
         else:
             raise Exception(
-                f"OpenAI TTS请求失败: {response.status_code} - {response.text}"
+                f"Yêu cầu TTS OpenAI thất bại: {response.status_code} - {response.text}"
             )

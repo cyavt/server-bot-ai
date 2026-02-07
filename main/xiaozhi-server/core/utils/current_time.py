@@ -46,7 +46,7 @@ def get_current_lunar_date() -> str:
     try:
         now = datetime.now()
         today_lunar = cnlunar.Lunar(now, godType="8char")
-        return "%s年%s%s" % (
+        return "%s năm %s%s" % (
             today_lunar.lunarYearCn,
             today_lunar.lunarMonthCn[:-1],
             today_lunar.lunarDayCn,

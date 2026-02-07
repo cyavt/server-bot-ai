@@ -1,4 +1,4 @@
-"""服务端MCP管理器"""
+"""Trình quản lý MCP phía máy chủ"""
 
 import asyncio
 import os
@@ -16,23 +16,23 @@ logger = setup_logging()
 
 
 class ServerMCPManager:
-    """管理多个服务端MCP服务的集中管理器"""
+    """Trình quản lý tập trung cho nhiều dịch vụ MCP phía máy chủ"""
 
     def __init__(self, conn) -> None:
-        """初始化MCP管理器"""
+        """Khởi tạo trình quản lý MCP"""
         self.conn = conn
         self.config_path = get_project_dir() + "data/.mcp_server_settings.json"
         if not os.path.exists(self.config_path):
             self.config_path = ""
             logger.bind(tag=TAG).warning(
-                f"请检查mcp服务配置文件：data/.mcp_server_settings.json"
+                f"Vui lòng kiểm tra file cấu hình dịch vụ mcp: data/.mcp_server_settings.json"
             )
         self.clients: Dict[str, ServerMCPClient] = {}
         self.tools = []
         self._init_lock = asyncio.Lock()
 
     def load_config(self) -> Dict[str, Any]:
-        """加载MCP服务配置"""
+        """Tải cấu hình dịch vụ MCP"""
         if len(self.config_path) == 0:
             return {}
 
@@ -47,42 +47,100 @@ class ServerMCPManager:
             return {}
 
     async def _init_server(self, name: str, srv_config: Dict[str, Any]):
-        """初始化单个MCP服务"""
+        """Khởi tạo một dịch vụ MCP đơn lẻ"""
+        # Kiểm tra cấu hình có placeholder chưa được thay thế không
+        if "command" in srv_config:
+            args = srv_config.get("args", [])
+            if any("YOUR_" in str(arg) or "your_" in str(arg).lower() for arg in args):
+                logger.bind(tag=TAG).warning(
+                    f"Bỏ qua máy chủ MCP {name}: Cấu hình chứa placeholder chưa được thay thế (YOUR_*). "
+                    f"Vui lòng cập nhật file data/.mcp_server_settings.json với cấu hình thực tế."
+                )
+                return
+            
+            # Kiểm tra command có hợp lệ không
+            command = srv_config.get("command")
+            if not command or command.strip() == "":
+                logger.bind(tag=TAG).warning(
+                    f"Bỏ qua máy chủ MCP {name}: Command không được chỉ định hoặc rỗng."
+                )
+                return
+        
+        if "url" in srv_config:
+            url = srv_config.get("url", "")
+            if "YOUR_" in url or "your_" in url.lower() or "localhost" in url.lower():
+                # Kiểm tra xem có phải là placeholder không
+                if "YOUR_" in url or url == "http://localhost:8080/sse" or url == "http://localhost:8000/mcp":
+                    logger.bind(tag=TAG).warning(
+                        f"Bỏ qua máy chủ MCP {name}: URL chứa placeholder hoặc localhost chưa được cấu hình đúng. "
+                        f"URL hiện tại: {url}. Vui lòng cập nhật file data/.mcp_server_settings.json với URL thực tế."
+                    )
+                    return
+        
         client = None
         try:
-            # 初始化服务端MCP客户端
-            logger.bind(tag=TAG).info(f"初始化服务端MCP客户端: {name}")
+            # Khởi tạo client MCP phía máy chủ
+            logger.bind(tag=TAG).info(f"Khởi tạo client MCP phía máy chủ: {name}")
             client = ServerMCPClient(srv_config)
-            # 设置超时时间10秒
+            # Đặt thời gian chờ là 10 giây
             await asyncio.wait_for(client.initialize(logging_callback=self.logging_callback), timeout=10)
 
-            # 使用锁保护共享状态的修改
+            # Sử dụng khóa để bảo vệ việc sửa đổi trạng thái dùng chung
             async with self._init_lock:
                 self.clients[name] = client
                 client_tools = client.get_available_tools()
                 self.tools.extend(client_tools)
 
         except asyncio.TimeoutError:
-            logger.bind(tag=TAG).error(
-                f"Failed to initialize MCP server {name}: Timeout"
+            logger.bind(tag=TAG).warning(
+                f"Không thể khởi tạo máy chủ MCP {name}: Hết thời gian chờ. "
+                f"Vui lòng kiểm tra cấu hình và đảm bảo máy chủ MCP đang chạy."
             )
             if client:
                 await client.cleanup()
+        except ValueError as e:
+            # Lỗi validation hoặc command không tìm thấy
+            error_msg = str(e)
+            if "validation error" in error_msg.lower() or "không tìm thấy" in error_msg.lower():
+                logger.bind(tag=TAG).warning(
+                    f"Bỏ qua máy chủ MCP {name}: {error_msg}. "
+                    f"Vui lòng kiểm tra cấu hình trong file data/.mcp_server_settings.json."
+                )
+            else:
+                logger.bind(tag=TAG).error(
+                    f"Không thể khởi tạo máy chủ MCP {name}: {error_msg}"
+                )
+            if client:
+                await client.cleanup()
         except Exception as e:
-            logger.bind(tag=TAG).error(
-                f"Failed to initialize MCP server {name}: {e}"
-            )
+            error_msg = str(e)
+            # Kiểm tra xem có phải lỗi validation không
+            if "validation error" in error_msg.lower():
+                logger.bind(tag=TAG).warning(
+                    f"Bỏ qua máy chủ MCP {name}: Lỗi validation cấu hình. "
+                    f"Chi tiết: {error_msg}. Vui lòng kiểm tra file data/.mcp_server_settings.json."
+                )
+            # Kiểm tra xem có phải lỗi kết nối không
+            elif "ConnectTimeout" in error_msg or "Connection" in error_msg:
+                logger.bind(tag=TAG).warning(
+                    f"Không thể kết nối đến máy chủ MCP {name}: {error_msg}. "
+                    f"Vui lòng kiểm tra URL và đảm bảo máy chủ MCP đang chạy."
+                )
+            else:
+                logger.bind(tag=TAG).error(
+                    f"Không thể khởi tạo máy chủ MCP {name}: {error_msg}"
+                )
             if client:
                 await client.cleanup()
 
     async def initialize_servers(self) -> None:
-        """初始化所有MCP服务"""
+        """Khởi tạo tất cả các dịch vụ MCP"""
         config = self.load_config()
         tasks = []
         for name, srv_config in config.items():
             if not srv_config.get("command") and not srv_config.get("url"):
                 logger.bind(tag=TAG).warning(
-                    f"Skipping server {name}: neither command nor url specified"
+                    f"Bỏ qua máy chủ {name}: không chỉ định command hoặc url"
                 )
                 continue
             
@@ -91,19 +149,19 @@ class ServerMCPManager:
         if tasks:
             await asyncio.gather(*tasks)
 
-        # 输出当前支持的服务端MCP工具列表
+        # Xuất danh sách công cụ MCP phía máy chủ hiện được hỗ trợ
         if hasattr(self.conn, "func_handler") and self.conn.func_handler:
-            # 刷新工具缓存以确保服务端MCP工具被正确加载
+            # Làm mới bộ đệm công cụ để đảm bảo công cụ MCP phía máy chủ được tải đúng cách
             if hasattr(self.conn.func_handler, "tool_manager"):
                 self.conn.func_handler.tool_manager.refresh_tools()
             self.conn.func_handler.current_support_functions()
 
     def get_all_tools(self) -> List[Dict[str, Any]]:
-        """获取所有服务的工具function定义"""
+        """Lấy định nghĩa function công cụ của tất cả các dịch vụ"""
         return self.tools
 
     def is_mcp_tool(self, tool_name: str) -> bool:
-        """检查是否是MCP工具"""
+        """Kiểm tra xem có phải là công cụ MCP không"""
         for tool in self.tools:
             if (
                 tool.get("function") is not None
@@ -113,13 +171,13 @@ class ServerMCPManager:
         return False
 
     async def execute_tool(self, tool_name: str, arguments: Dict[str, Any]) -> Any:
-        """执行工具调用，失败时会尝试重新连接"""
-        logger.bind(tag=TAG).info(f"执行服务端MCP工具 {tool_name}，参数: {arguments}")
+        """Thực thi gọi công cụ, sẽ thử kết nối lại khi thất bại"""
+        logger.bind(tag=TAG).info(f"Thực thi công cụ MCP phía máy chủ {tool_name}, tham số: {arguments}")
 
-        max_retries = 3  # 最大重试次数
-        retry_interval = 2  # 重试间隔(秒)
+        max_retries = 3  # Số lần thử lại tối đa
+        retry_interval = 2  # Khoảng thời gian giữa các lần thử (giây)
 
-        # 找到对应的客户端
+        # Tìm client tương ứng
         client_name = None
         target_client = None
         for name, client in self.clients.items():
@@ -129,30 +187,30 @@ class ServerMCPManager:
                 break
 
         if not target_client:
-            raise ValueError(f"工具 {tool_name} 在任意MCP服务中未找到")
+            raise ValueError(f"Công cụ {tool_name} không được tìm thấy trong bất kỳ dịch vụ MCP nào")
 
-        # 带重试机制的工具调用
+        # Gọi công cụ với cơ chế thử lại
         for attempt in range(max_retries):
             try:
                 return await target_client.call_tool(tool_name, arguments, progress_callback=self.progress_callback)
             except Exception as e:
-                # 最后一次尝试失败时直接抛出异常
+                # Ném ngoại lệ trực tiếp khi lần thử cuối cùng thất bại
                 if attempt == max_retries - 1:
                     raise
 
                 logger.bind(tag=TAG).warning(
-                    f"执行工具 {tool_name} 失败 (尝试 {attempt+1}/{max_retries}): {e}"
+                    f"Thực thi công cụ {tool_name} thất bại (thử {attempt+1}/{max_retries}): {e}"
                 )
 
-                # 尝试重新连接
+                # Thử kết nối lại
                 logger.bind(tag=TAG).info(
-                    f"重试前尝试重新连接 MCP 客户端 {client_name}"
+                    f"Thử kết nối lại client MCP {client_name} trước khi thử lại"
                 )
                 try:
-                    # 关闭旧的连接
+                    # Đóng kết nối cũ
                     await target_client.cleanup()
 
-                    # 重新初始化客户端
+                    # Khởi tạo lại client
                     config = self.load_config()
                     if client_name in config:
                         client = ServerMCPClient(config[client_name])
@@ -160,32 +218,32 @@ class ServerMCPManager:
                         self.clients[client_name] = client
                         target_client = client
                         logger.bind(tag=TAG).info(
-                            f"成功重新连接 MCP 客户端: {client_name}"
+                            f"Kết nối lại client MCP thành công: {client_name}"
                         )
                     else:
                         logger.bind(tag=TAG).error(
-                            f"Cannot reconnect MCP client {client_name}: config not found"
+                            f"Không thể kết nối lại client MCP {client_name}: không tìm thấy cấu hình"
                         )
                 except Exception as reconnect_error:
                     logger.bind(tag=TAG).error(
-                        f"Failed to reconnect MCP client {client_name}: {reconnect_error}"
+                        f"Kết nối lại client MCP {client_name} thất bại: {reconnect_error}"
                     )
 
-                # 等待一段时间再重试
+                # Chờ một khoảng thời gian trước khi thử lại
                 await asyncio.sleep(retry_interval)
 
     async def cleanup_all(self) -> None:
-        """关闭所有 MCP客户端"""
+        """Đóng tất cả các client MCP"""
         for name, client in list(self.clients.items()):
             try:
                 if hasattr(client, "cleanup"):
                     await asyncio.wait_for(client.cleanup(), timeout=20)
-                logger.bind(tag=TAG).info(f"服务端MCP客户端已关闭: {name}")
+                logger.bind(tag=TAG).info(f"Client MCP phía máy chủ đã đóng: {name}")
             except (asyncio.TimeoutError, Exception) as e:
-                logger.bind(tag=TAG).error(f"关闭服务端MCP客户端 {name} 时出错: {e}")
+                logger.bind(tag=TAG).error(f"Xảy ra lỗi khi đóng client MCP phía máy chủ {name}: {e}")
         self.clients.clear()
 
-    # 可选回调方法
+    # Phương thức callback tùy chọn
 
     async def logging_callback(self, params: LoggingMessageNotificationParams):
         logger.bind(tag=TAG).info(f"[Server Log - {params.level.upper()}] {params.data}")

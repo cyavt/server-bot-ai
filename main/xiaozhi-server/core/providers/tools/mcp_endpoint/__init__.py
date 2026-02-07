@@ -1,4 +1,4 @@
-"""MCP接入点工具模块"""
+"""Module công cụ điểm cuối MCP"""
 
 from .mcp_endpoint_executor import MCPEndpointExecutor
 from .mcp_endpoint_client import MCPEndpointClient

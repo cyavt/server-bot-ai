@@ -52,40 +52,40 @@ CHANNEL_MAP = {
 }
 
 
-# 默认新闻来源字典，当配置中没有指定时使用
+# Từ điển nguồn tin tức mặc định, sử dụng khi không chỉ định trong cấu hình
 DEFAULT_NEWS_SOURCES = "澎湃新闻;百度热搜;财联社"
 
 
 def get_news_sources_from_config(conn):
-    """从配置中获取新闻源字符串"""
+    """Lấy chuỗi nguồn tin tức từ cấu hình"""
     try:
-        # 尝试从插件配置中获取新闻源
+        # Thử lấy nguồn tin tức từ cấu hình plugin
         if (
             conn.config.get("plugins")
             and conn.config["plugins"].get("get_news_from_newsnow")
             and conn.config["plugins"]["get_news_from_newsnow"].get("news_sources")
         ):
-            # 获取配置的新闻源字符串
+            # Lấy chuỗi nguồn tin tức đã cấu hình
             news_sources_config = conn.config["plugins"]["get_news_from_newsnow"][
                 "news_sources"
             ]
 
             if isinstance(news_sources_config, str) and news_sources_config.strip():
-                logger.bind(tag=TAG).debug(f"使用配置的新闻源: {news_sources_config}")
+                logger.bind(tag=TAG).debug(f"Sử dụng nguồn tin tức đã cấu hình: {news_sources_config}")
                 return news_sources_config
             else:
-                logger.bind(tag=TAG).warning("新闻源配置为空或格式错误，使用默认配置")
+                logger.bind(tag=TAG).warning("Cấu hình nguồn tin tức trống hoặc sai định dạng, sử dụng cấu hình mặc định")
         else:
-            logger.bind(tag=TAG).debug("未找到新闻源配置，使用默认配置")
+            logger.bind(tag=TAG).debug("Không tìm thấy cấu hình nguồn tin tức, sử dụng cấu hình mặc định")
 
         return DEFAULT_NEWS_SOURCES
 
     except Exception as e:
-        logger.bind(tag=TAG).error(f"获取新闻源配置失败: {e}，使用默认配置")
+        logger.bind(tag=TAG).error(f"Lấy cấu hình nguồn tin tức thất bại: {e}，sử dụng cấu hình mặc định")
         return DEFAULT_NEWS_SOURCES
 
 
-# 从CHANNEL_MAP获取所有可用的新闻源名称
+# Lấy tên tất cả nguồn tin tức khả dụng từ CHANNEL_MAP
 available_sources = list(CHANNEL_MAP.keys())
 example_sources_str = "、".join(available_sources)
 
@@ -94,25 +94,25 @@ GET_NEWS_FROM_NEWSNOW_FUNCTION_DESC = {
     "function": {
         "name": "get_news_from_newsnow",
         "description": (
-            "获取最新新闻，随机选择一条新闻进行播报。"
-            f"用户可以选择不同的新闻源，标准的名称是：{example_sources_str}"
-            "例如用户要求百度新闻，其实就是百度热搜。如果没有指定，默认从澎湃新闻获取。"
-            "用户可以要求获取详细内容，此时会获取新闻的详细内容。"
+            "Lấy tin tức mới nhất, chọn ngẫu nhiên một tin để phát sóng."
+            f"Người dùng có thể chọn nguồn tin tức khác nhau, tên chuẩn là: {example_sources_str}"
+            "Ví dụ người dùng yêu cầu tin tức Baidu, thực chất là Baidu hot search. Nếu không chỉ định, mặc định lấy từ 澎湃新闻."
+            "Người dùng có thể yêu cầu lấy nội dung chi tiết, lúc này sẽ lấy nội dung chi tiết của tin tức."
         ),
         "parameters": {
             "type": "object",
             "properties": {
                 "source": {
                     "type": "string",
-                    "description": f"新闻源的标准中文名称，例如{example_sources_str}等。可选参数，如果不提供则使用默认新闻源",
+                    "description": f"Tên tiếng Trung chuẩn của nguồn tin tức, ví dụ {example_sources_str} v.v. Tham số tùy chọn, nếu không cung cấp thì sử dụng nguồn tin tức mặc định",
                 },
                 "detail": {
                     "type": "boolean",
-                    "description": "是否获取详细内容，默认为false。如果为true，则获取上一条新闻的详细内容",
+                    "description": "Có lấy nội dung chi tiết không, mặc định là false. Nếu là true, sẽ lấy nội dung chi tiết của tin tức trước đó",
                 },
                 "lang": {
                     "type": "string",
-                    "description": "返回用户使用的语言code，例如zh_CN/zh_HK/en_US/ja_JP等，默认zh_CN",
+                    "description": "Trả về mã ngôn ngữ người dùng sử dụng, ví dụ zh_CN/zh_HK/en_US/ja_JP v.v., mặc định zh_CN",
                 },
             },
             "required": ["lang"],
@@ -122,7 +122,7 @@ GET_NEWS_FROM_NEWSNOW_FUNCTION_DESC = {
 
 
 def fetch_news_from_api(conn: "ConnectionHandler", source="thepaper"):
-    """从API获取新闻列表"""
+    """Lấy danh sách tin tức từ API"""
     try:
         api_url = f"https://newsnow.busiyi.world/api/s?id={source}"
 
@@ -139,37 +139,37 @@ def fetch_news_from_api(conn: "ConnectionHandler", source="thepaper"):
         if "items" in data:
             return data["items"]
         else:
-            logger.bind(tag=TAG).error(f"获取新闻API响应格式错误: {data}")
+            logger.bind(tag=TAG).error(f"Định dạng phản hồi API tin tức sai: {data}")
             return []
 
     except Exception as e:
-        logger.bind(tag=TAG).error(f"获取新闻API失败: {e}")
+        logger.bind(tag=TAG).error(f"Lấy API tin tức thất bại: {e}")
         return []
 
 
 def fetch_news_detail(url):
-    """获取新闻详情页内容并使用MarkItDown清理HTML"""
+    """Lấy nội dung trang chi tiết tin tức và sử dụng MarkItDown để làm sạch HTML"""
     try:
         headers = {"User-Agent": "Mozilla/5.0"}
         response = requests.get(url, headers=headers, timeout=10)
         response.raise_for_status()
 
-        # 使用MarkItDown清理HTML内容
+        # Sử dụng MarkItDown để làm sạch nội dung HTML
         md = MarkItDown(enable_plugins=False)
         result = md.convert(response)
 
-        # 获取清理后的文本内容
+        # Lấy nội dung văn bản đã làm sạch
         clean_text = result.text_content
 
-        # 如果清理后的内容为空，返回提示信息
+        # Nếu nội dung sau khi làm sạch trống, trả về thông báo
         if not clean_text or len(clean_text.strip()) == 0:
-            logger.bind(tag=TAG).warning(f"清理后的新闻内容为空: {url}")
-            return "无法解析新闻详情内容，可能是网站结构特殊或内容受限。"
+            logger.bind(tag=TAG).warning(f"Nội dung tin tức sau khi làm sạch trống: {url}")
+            return "Không thể phân tích nội dung chi tiết tin tức, có thể cấu trúc website đặc biệt hoặc nội dung bị hạn chế."
 
         return clean_text
     except Exception as e:
-        logger.bind(tag=TAG).error(f"获取新闻详情失败: {e}")
-        return "无法获取详细内容"
+        logger.bind(tag=TAG).error(f"Lấy chi tiết tin tức thất bại: {e}")
+        return "Không thể lấy nội dung chi tiết"
 
 
 @register_function(
@@ -183,12 +183,12 @@ def get_news_from_newsnow(
     detail: bool = False,
     lang: str = "zh_CN",
 ):
-    """获取新闻并随机选择一条进行播报，或获取上一条新闻的详细内容"""
+    """Lấy tin tức và chọn ngẫu nhiên một tin để phát sóng, hoặc lấy nội dung chi tiết của tin tức trước đó"""
     try:
-        # 获取当前配置的新闻源
+        # Lấy nguồn tin tức đã cấu hình hiện tại
         news_sources = get_news_sources_from_config(conn)
 
-        # 如果detail为True，获取上一条新闻的详细内容
+        # Nếu detail là True, lấy nội dung chi tiết của tin tức trước đó
         detail = str(detail).lower() == "true"
         if detail:
             if (
@@ -198,101 +198,101 @@ def get_news_from_newsnow(
             ):
                 return ActionResponse(
                     Action.REQLLM,
-                    "抱歉，没有找到最近查询的新闻，请先获取一条新闻。",
+                    "Xin lỗi, không tìm thấy tin tức đã truy vấn gần đây, vui lòng lấy một tin trước.",
                     None,
                 )
 
             url = conn.last_newsnow_link.get("url")
-            title = conn.last_newsnow_link.get("title", "未知标题")
+            title = conn.last_newsnow_link.get("title", "Tiêu đề không xác định")
             source_id = conn.last_newsnow_link.get("source_id", "thepaper")
-            source_name = CHANNEL_MAP.get(source_id, "未知来源")
+            source_name = CHANNEL_MAP.get(source_id, "Nguồn không xác định")
 
             if not url or url == "#":
                 return ActionResponse(
-                    Action.REQLLM, "抱歉，该新闻没有可用的链接获取详细内容。", None
+                    Action.REQLLM, "Xin lỗi, tin tức này không có liên kết khả dụng để lấy nội dung chi tiết.", None
                 )
 
             logger.bind(tag=TAG).debug(
-                f"获取新闻详情: {title}, 来源: {source_name}, URL={url}"
+                f"Lấy chi tiết tin tức: {title}, nguồn: {source_name}, URL={url}"
             )
 
-            # 获取新闻详情
+            # Lấy chi tiết tin tức
             detail_content = fetch_news_detail(url)
 
-            if not detail_content or detail_content == "无法获取详细内容":
+            if not detail_content or detail_content == "Không thể lấy nội dung chi tiết":
                 return ActionResponse(
                     Action.REQLLM,
-                    f"抱歉，无法获取《{title}》的详细内容，可能是链接已失效或网站结构发生变化。",
+                    f"Xin lỗi, không thể lấy nội dung chi tiết của《{title}》，có thể liên kết đã hết hạn hoặc cấu trúc website đã thay đổi.",
                     None,
                 )
 
-            # 构建详情报告
+            # Xây dựng báo cáo chi tiết
             detail_report = (
-                f"根据下列数据，用{lang}回应用户的新闻详情查询请求：\n\n"
-                f"新闻标题: {title}\n"
-                # f"新闻来源: {source_name}\n"
-                f"详细内容: {detail_content}\n\n"
-                f"(请对上述新闻内容进行总结，提取关键信息，以自然、流畅的方式向用户播报，"
-                f"不要提及这是总结，就像是在讲述一个完整的新闻故事)"
+                f"Dựa trên dữ liệu sau đây, sử dụng {lang} để trả lời yêu cầu truy vấn chi tiết tin tức của người dùng:\n\n"
+                f"Tiêu đề tin tức: {title}\n"
+                # f"Nguồn tin tức: {source_name}\n"
+                f"Nội dung chi tiết: {detail_content}\n\n"
+                f"(Vui lòng tóm tắt nội dung tin tức trên, trích xuất thông tin quan trọng, phát sóng cho người dùng một cách tự nhiên, trôi chảy,"
+                f"không đề cập đây là tóm tắt, giống như đang kể một câu chuyện tin tức hoàn chỉnh)"
             )
 
             return ActionResponse(Action.REQLLM, detail_report, None)
 
-        # 否则，获取新闻列表并随机选择一条
-        # 将中文名称转换为英文ID
+        # Nếu không, lấy danh sách tin tức và chọn ngẫu nhiên một tin
+        # Chuyển đổi tên tiếng Trung thành ID tiếng Anh
         english_source_id = None
 
-        # 检查输入的中文名称是否在配置的新闻源中
+        # Kiểm tra xem tên tiếng Trung đã nhập có trong nguồn tin tức đã cấu hình không
         news_sources_list = [
             name.strip() for name in news_sources.split(";") if name.strip()
         ]
         if source in news_sources_list:
-            # 如果输入的中文名称在配置的新闻源中，在 CHANNEL_MAP 中查找对应的英文ID
+            # Nếu tên tiếng Trung đã nhập có trong nguồn tin tức đã cấu hình, tìm ID tiếng Anh tương ứng trong CHANNEL_MAP
             english_source_id = CHANNEL_MAP.get(source)
 
-        # 如果找不到对应的英文ID，使用默认源
+        # Nếu không tìm thấy ID tiếng Anh tương ứng, sử dụng nguồn mặc định
         if not english_source_id:
-            logger.bind(tag=TAG).warning(f"无效的新闻源: {source}，使用默认源澎湃新闻")
+            logger.bind(tag=TAG).warning(f"Nguồn tin tức không hợp lệ: {source}，sử dụng nguồn mặc định 澎湃新闻")
             english_source_id = "thepaper"
             source = "澎湃新闻"
 
-        logger.bind(tag=TAG).info(f"获取新闻: 新闻源={source}({english_source_id})")
+        logger.bind(tag=TAG).info(f"Lấy tin tức: nguồn tin tức={source}({english_source_id})")
 
-        # 获取新闻列表
+        # Lấy danh sách tin tức
         news_items = fetch_news_from_api(conn, english_source_id)
 
         if not news_items:
             return ActionResponse(
                 Action.REQLLM,
-                f"抱歉，未能从{source}获取到新闻信息，请稍后再试或尝试其他新闻源。",
+                f"Xin lỗi, không thể lấy thông tin tin tức từ {source}，vui lòng thử lại sau hoặc thử nguồn tin tức khác.",
                 None,
             )
 
-        # 随机选择一条新闻
+        # Chọn ngẫu nhiên một tin
         selected_news = random.choice(news_items)
 
-        # 保存当前新闻链接到连接对象，以便后续查询详情
+        # Lưu liên kết tin tức hiện tại vào đối tượng kết nối, để truy vấn chi tiết sau này
         if not hasattr(conn, "last_newsnow_link"):
             conn.last_newsnow_link = {}
         conn.last_newsnow_link = {
             "url": selected_news.get("url", "#"),
-            "title": selected_news.get("title", "未知标题"),
+            "title": selected_news.get("title", "Tiêu đề không xác định"),
             "source_id": english_source_id,
         }
 
-        # 构建新闻报告
+        # Xây dựng báo cáo tin tức
         news_report = (
-            f"根据下列数据，用{lang}回应用户的新闻查询请求：\n\n"
-            f"新闻标题: {selected_news['title']}\n"
-            # f"新闻来源: {source}\n"
-            f"(请以自然、流畅的方式向用户播报这条新闻标题，"
-            f"提示用户可以要求获取详细内容，此时会获取新闻的详细内容。)"
+            f"Dựa trên dữ liệu sau đây, sử dụng {lang} để trả lời yêu cầu truy vấn tin tức của người dùng:\n\n"
+            f"Tiêu đề tin tức: {selected_news['title']}\n"
+            # f"Nguồn tin tức: {source}\n"
+            f"(Vui lòng phát sóng tiêu đề tin tức này cho người dùng một cách tự nhiên, trôi chảy,"
+            f"nhắc người dùng có thể yêu cầu lấy nội dung chi tiết, lúc này sẽ lấy nội dung chi tiết của tin tức.)"
         )
 
         return ActionResponse(Action.REQLLM, news_report, None)
 
     except Exception as e:
-        logger.bind(tag=TAG).error(f"获取新闻出错: {e}")
+        logger.bind(tag=TAG).error(f"Lỗi lấy tin tức: {e}")
         return ActionResponse(
-            Action.REQLLM, "抱歉，获取新闻时发生错误，请稍后再试。", None
+            Action.REQLLM, "Xin lỗi, đã xảy ra lỗi khi lấy tin tức, vui lòng thử lại sau.", None
         )

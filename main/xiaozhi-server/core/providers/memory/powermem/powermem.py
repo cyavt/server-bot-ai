@@ -124,15 +124,15 @@ class MemoryProvider(MemoryProviderBase):
                     "config": embedder_config
                 }
 
-            # Initialize memory client based on mode
+            # Khởi tạo client ký ức dựa trên chế độ
             if self.enable_user_profile:
                 from powermem import UserMemory
                 self.memory_client = UserMemory(config=powermem_config)
-                memory_mode = "UserMemory (用户画像模式)"
+                memory_mode = "UserMemory (Chế độ hồ sơ người dùng)"
             else:
                 from powermem import AsyncMemory
                 self.memory_client = AsyncMemory(config=powermem_config)
-                memory_mode = "AsyncMemory (普通记忆模式)"
+                memory_mode = "AsyncMemory (Chế độ ký ức thông thường)"
 
             self.use_powermem = True
 
@@ -249,11 +249,11 @@ class MemoryProvider(MemoryProviderBase):
 
             result_parts = []
 
-            # If user profile mode is enabled, include user profile in results
+            # Nếu chế độ hồ sơ người dùng được bật, bao gồm hồ sơ người dùng trong kết quả
             if self.enable_user_profile:
                 profile = await self.get_user_profile()
                 if profile:
-                    result_parts.append(f"【用户画像】\n{profile}")
+                    result_parts.append(f"【Hồ sơ người dùng】\n{profile}")
 
             # Search memories using PowerMem SDK
             if self.enable_user_profile:
@@ -307,10 +307,10 @@ class MemoryProvider(MemoryProviderBase):
                 # Sort by timestamp in descending order (newest first)
                 memories.sort(key=lambda x: x[0], reverse=True)
 
-                # Extract only the formatted strings
+                # Trích xuất chỉ các chuỗi đã định dạng
                 if memories:
                     memories_str = "\n".join(f"- {memory[1]}" for memory in memories)
-                    result_parts.append(f"【相关记忆】\n{memories_str}")
+                    result_parts.append(f"【Ký ức liên quan】\n{memories_str}")
 
             final_result = "\n\n".join(result_parts)
             logger.bind(tag=TAG).debug(f"Query results: {final_result}")

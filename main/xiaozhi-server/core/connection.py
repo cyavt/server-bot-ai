@@ -865,7 +865,22 @@ class ConnectionHandler:
                     ),
                 )
         except Exception as e:
-            self.logger.bind(tag=TAG).error(f"LLM xử lý lỗi {query}: {e}")
+            # Xử lý exception message an toàn với Unicode
+            try:
+                error_msg = str(e)
+                if isinstance(error_msg, bytes):
+                    error_msg = error_msg.decode('utf-8', errors='replace')
+                else:
+                    error_msg = str(error_msg).encode('utf-8', errors='replace').decode('utf-8')
+            except Exception:
+                error_msg = repr(e)
+            try:
+                query_safe = str(query).encode('utf-8', errors='replace').decode('utf-8') if query else "None"
+                log_msg = f"LLM xử lý lỗi {query_safe}: {error_msg}"
+                log_msg.encode('utf-8')
+                self.logger.bind(tag=TAG).error(log_msg)
+            except (UnicodeEncodeError, UnicodeDecodeError):
+                self.logger.bind(tag=TAG).error(f"LLM xử lý lỗi: {repr(error_msg)}")
             return None
 
         # Xử lý phản hồi streaming
@@ -884,6 +899,16 @@ class ConnectionHandler:
                     if "content" in response:
                         content = response["content"]
                         tools_call = None
+                    # Đảm bảo content là string và hỗ trợ Unicode
+                    if content is not None:
+                        if not isinstance(content, str):
+                            content = str(content)
+                        # Đảm bảo content có thể xử lý Unicode
+                        try:
+                            content.encode('utf-8')
+                        except (UnicodeEncodeError, UnicodeDecodeError):
+                            # Nếu có lỗi encoding, bỏ qua content này
+                            content = None
                     if content is not None and len(content) > 0:
                         content_arguments += content
 
@@ -896,13 +921,27 @@ class ConnectionHandler:
                         self._merge_tool_calls(tool_calls_list, tools_call)
                 else:
                     content = response
+                    # Đảm bảo content là string và hỗ trợ Unicode
+                    if content is not None:
+                        if not isinstance(content, str):
+                            content = str(content)
+                        # Đảm bảo content có thể xử lý Unicode
+                        try:
+                            content.encode('utf-8')
+                        except (UnicodeEncodeError, UnicodeDecodeError):
+                            # Nếu có lỗi encoding, bỏ qua content này
+                            content = None
 
                 # Lấy biểu cảm cảm xúc trong phản hồi llm, một vòng trò chuyện chỉ lấy một lần ở đầu
                 if emotion_flag and content is not None and content.strip():
-                    asyncio.run_coroutine_threadsafe(
-                        textUtils.get_emotion(self, content),
-                        self.loop,
-                    )
+                    try:
+                        asyncio.run_coroutine_threadsafe(
+                            textUtils.get_emotion(self, content),
+                            self.loop,
+                        )
+                    except Exception as emotion_error:
+                        # Bỏ qua lỗi emotion, không ảnh hưởng đến luồng chính
+                        self.logger.bind(tag=TAG).debug(f"Lỗi xử lý emotion: {emotion_error}")
                     emotion_flag = False
 
                 if content is not None and len(content) > 0:
@@ -917,7 +956,34 @@ class ConnectionHandler:
                             )
                         )
         except Exception as e:
-            self.logger.bind(tag=TAG).error(f"LLM stream processing error: {e}")
+            # Xử lý exception message an toàn với Unicode
+            try:
+                error_msg = str(e)
+                # Đảm bảo error message có thể được encode thành UTF-8
+                if isinstance(error_msg, bytes):
+                    error_msg = error_msg.decode('utf-8', errors='replace')
+                else:
+                    # Chuyển đổi sang string và đảm bảo encoding UTF-8
+                    error_msg = str(error_msg).encode('utf-8', errors='replace').decode('utf-8')
+            except (UnicodeEncodeError, UnicodeDecodeError) as encoding_err:
+                # Nếu có lỗi encoding, sử dụng repr để tránh lỗi
+                try:
+                    error_msg = repr(e)
+                except Exception:
+                    error_msg = "Lỗi xử lý Unicode trong exception message"
+            except Exception:
+                # Nếu vẫn lỗi, sử dụng fallback
+                error_msg = "Lỗi không xác định khi xử lý exception"
+            
+            # Đảm bảo log message cũng được xử lý an toàn
+            try:
+                log_msg = f"LLM stream processing error: {error_msg}"
+                # Kiểm tra xem log message có thể encode được không
+                log_msg.encode('utf-8')
+                self.logger.bind(tag=TAG).error(log_msg)
+            except (UnicodeEncodeError, UnicodeDecodeError):
+                # Nếu vẫn lỗi, sử dụng ASCII-safe message
+                self.logger.bind(tag=TAG).error(f"LLM stream processing error: {repr(error_msg)}")
             self.tts.tts_text_queue.put(
                 TTSMessageDTO(
                     sentence_id=self.sentence_id,

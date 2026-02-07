@@ -9,36 +9,36 @@ TAG = __name__
 
 
 class TextMessageProcessor:
-    """消息处理器主类"""
+    """Lớp chính xử lý tin nhắn"""
 
     def __init__(self, registry: TextMessageHandlerRegistry):
         self.registry = registry
 
     async def process_message(self, conn: "ConnectionHandler", message: str) -> None:
-        """处理消息的主入口"""
+        """Điểm vào chính xử lý tin nhắn"""
         try:
-            # 解析JSON消息
+            # Phân tích tin nhắn JSON
             msg_json = json.loads(message)
 
-            # 处理JSON消息
+            # Xử lý tin nhắn JSON
             if isinstance(msg_json, dict):
                 message_type = msg_json.get("type")
 
-                # 记录日志
-                conn.logger.bind(tag=TAG).info(f"收到{message_type}消息：{message}")
+                # Ghi nhật ký
+                conn.logger.bind(tag=TAG).info(f"Nhận tin nhắn {message_type}: {message}")
 
-                # 获取并执行处理器
+                # Lấy và thực thi bộ xử lý
                 handler = self.registry.get_handler(message_type)
                 if handler:
                     await handler.handle(conn, msg_json)
                 else:
-                    conn.logger.bind(tag=TAG).error(f"收到未知类型消息：{message}")
-            # 处理纯数字消息
+                    conn.logger.bind(tag=TAG).error(f"Nhận tin nhắn loại không xác định: {message}")
+            # Xử lý tin nhắn số thuần túy
             elif isinstance(msg_json, int):
-                conn.logger.bind(tag=TAG).info(f"收到数字消息：{message}")
+                conn.logger.bind(tag=TAG).info(f"Nhận tin nhắn số: {message}")
                 await conn.websocket.send(message)
 
         except json.JSONDecodeError:
-            # 非JSON消息直接转发
-            conn.logger.bind(tag=TAG).error(f"解析到错误的消息：{message}")
+            # Tin nhắn không phải JSON chuyển tiếp trực tiếp
+            conn.logger.bind(tag=TAG).error(f"Phân tích tin nhắn lỗi: {message}")
             await conn.websocket.send(message)

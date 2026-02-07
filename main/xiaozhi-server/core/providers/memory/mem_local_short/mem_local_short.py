@@ -10,66 +10,66 @@ from core.utils.util import check_model_key
 
 
 short_term_memory_prompt = """
-# 时空记忆编织者
+# Người dệt ký ức không-thời gian
 
-## 核心使命
-构建可生长的动态记忆网络，在有限空间内保留关键信息的同时，智能维护信息演变轨迹
-根据对话记录，总结user的重要信息，以便在未来的对话中提供更个性化的服务
+## Sứ mệnh cốt lõi
+Xây dựng mạng lưới ký ức động có thể phát triển, trong không gian hạn chế vừa giữ lại thông tin quan trọng, vừa bảo trì thông minh quỹ đạo tiến hóa thông tin
+Dựa trên bản ghi hội thoại, tóm tắt thông tin quan trọng của user, để cung cấp dịch vụ cá nhân hóa hơn trong các cuộc hội thoại tương lai
 
-## 记忆法则
-### 1. 三维度记忆评估（每次更新必执行）
-| 维度       | 评估标准                  | 权重分 |
+## Quy tắc ký ức
+### 1. Đánh giá ký ức ba chiều (phải thực hiện mỗi lần cập nhật)
+| Chiều       | Tiêu chuẩn đánh giá                  | Điểm trọng số |
 |------------|---------------------------|--------|
-| 时效性     | 信息新鲜度（按对话轮次） | 40%    |
-| 情感强度   | 含💖标记/重复提及次数     | 35%    |
-| 关联密度   | 与其他信息的连接数量      | 25%    |
+| Tính kịp thời     | Độ tươi mới thông tin (theo lượt hội thoại) | 40%    |
+| Cường độ cảm xúc   | Chứa dấu 💖/số lần đề cập lặp lại     | 35%    |
+| Mật độ liên kết   | Số lượng kết nối với thông tin khác      | 25%    |
 
-### 2. 动态更新机制
-**名字变更处理示例：**
-原始记忆："曾用名": ["张三"], "现用名": "张三丰"
-触发条件：当检测到「我叫X」「称呼我Y」等命名信号时
-操作流程：
-1. 将旧名移入"曾用名"列表
-2. 记录命名时间轴："2024-02-15 14:32:启用张三丰"
-3. 在记忆立方追加：「从张三到张三丰的身份蜕变」
+### 2. Cơ chế cập nhật động
+**Ví dụ xử lý thay đổi tên:**
+Ký ức gốc: "Tên cũ": ["张三"], "Tên hiện tại": "张三丰"
+Điều kiện kích hoạt: Khi phát hiện tín hiệu đặt tên như 「Tôi tên X」「Gọi tôi Y」
+Quy trình thao tác:
+1. Chuyển tên cũ vào danh sách "Tên cũ"
+2. Ghi lại trục thời gian đặt tên: "2024-02-15 14:32:Kích hoạt 张三丰"
+3. Thêm vào khối ký ức: 「Sự chuyển đổi danh tính từ 张三 sang 张三丰」
 
-### 3. 空间优化策略
-- **信息压缩术**：用符号体系提升密度
-  - ✅"张三丰[北/软工/🐱]"
-  - ❌"北京软件工程师，养猫"
-- **淘汰预警**：当总字数≥900时触发
-  1. 删除权重分<60且3轮未提及的信息
-  2. 合并相似条目（保留时间戳最近的）
+### 3. Chiến lược tối ưu không gian
+- **Kỹ thuật nén thông tin**: Sử dụng hệ thống ký hiệu để tăng mật độ
+  - ✅"张三丰[Bắc/Kỹ sư phần mềm/🐱]"
+  - ❌"Kỹ sư phần mềm Bắc Kinh, nuôi mèo"
+- **Cảnh báo loại bỏ**: Kích hoạt khi tổng số ký tự ≥900
+  1. Xóa thông tin có điểm trọng số <60 và 3 lượt chưa đề cập
+  2. Hợp nhất các mục tương tự (giữ lại mục có timestamp gần nhất)
 
-## 记忆结构
-输出格式必须为可解析的json字符串，不需要解释、注释和说明，保存记忆时仅从对话提取信息，不要混入示例内容
+## Cấu trúc ký ức
+Định dạng đầu ra phải là chuỗi json có thể phân tích, không cần giải thích, chú thích và mô tả, khi lưu ký ức chỉ trích xuất thông tin từ hội thoại, không trộn nội dung ví dụ
 ```json
 {
-  "时空档案": {
-    "身份图谱": {
-      "现用名": "",
-      "特征标记": [] 
+  "Hồ sơ không-thời gian": {
+    "Sơ đồ danh tính": {
+      "Tên hiện tại": "",
+      "Dấu hiệu đặc trưng": [] 
     },
-    "记忆立方": [
+    "Khối ký ức": [
       {
-        "事件": "入职新公司",
-        "时间戳": "2024-03-20",
-        "情感值": 0.9,
-        "关联项": ["下午茶"],
-        "保鲜期": 30 
+        "Sự kiện": "Vào công ty mới",
+        "Timestamp": "2024-03-20",
+        "Giá trị cảm xúc": 0.9,
+        "Mục liên quan": ["Trà chiều"],
+        "Thời hạn bảo quản": 30 
       }
     ]
   },
-  "关系网络": {
-    "高频话题": {"职场": 12},
-    "暗线联系": [""]
+  "Mạng lưới quan hệ": {
+    "Chủ đề tần suất cao": {"Nơi làm việc": 12},
+    "Liên kết ngầm": [""]
   },
-  "待响应": {
-    "紧急事项": ["需立即处理的任务"], 
-    "潜在关怀": ["可主动提供的帮助"]
+  "Chờ phản hồi": {
+    "Vấn đề khẩn cấp": ["Nhiệm vụ cần xử lý ngay lập tức"], 
+    "Quan tâm tiềm ẩn": ["Trợ giúp có thể chủ động cung cấp"]
   },
-  "高光语录": [
-    "最打动人心的瞬间，强烈的情感表达，user的原话"
+  "Câu nói nổi bật": [
+    "Khoảnh khắc cảm động nhất, biểu đạt cảm xúc mạnh mẽ, lời nói gốc của user"
   ]
 }
 ```
@@ -78,7 +78,7 @@ short_term_memory_prompt = """
 
 def extract_json_data(json_code):
     start = json_code.find("```json")
-    # 从start开始找到下一个```结束
+    # Từ start tìm đến kết thúc ``` tiếp theo
     end = json_code.find("```", start + 1)
     # print("start:", start, "end:", end)
     if start == -1 or end == -1:
@@ -111,7 +111,7 @@ class MemoryProvider(MemoryProviderBase):
         self.load_memory(summary_memory)
 
     def load_memory(self, summary_memory):
-        # api获取到总结记忆后直接返回
+        # API lấy được ký ức tóm tắt thì trả về trực tiếp
         if summary_memory or not self.save_to_file:
             self.short_memory = summary_memory
             return
@@ -133,11 +133,11 @@ class MemoryProvider(MemoryProviderBase):
             yaml.dump(all_memory, f, allow_unicode=True)
 
     async def save_memory(self, msgs, session_id=None):
-        # 打印使用的模型信息
+        # In thông tin model đang sử dụng
         model_info = getattr(self.llm, "model_name", str(self.llm.__class__.__name__))
-        logger.bind(tag=TAG).debug(f"使用记忆保存模型: {model_info}")
+        logger.bind(tag=TAG).debug(f"Sử dụng model lưu ký ức: {model_info}")
         api_key = getattr(self.llm, "api_key", None)
-        memory_key_msg = check_model_key("记忆总结专用LLM", api_key)
+        memory_key_msg = check_model_key("LLM chuyên dùng tóm tắt ký ức", api_key)
         if memory_key_msg:
             logger.bind(tag=TAG).error(memory_key_msg)
         if self.llm is None:
@@ -166,12 +166,12 @@ class MemoryProvider(MemoryProviderBase):
             elif msg.role == "assistant":
                 msgStr += f"Assistant: {content}\n"
         if self.short_memory and len(self.short_memory) > 0:
-            msgStr += "历史记忆：\n"
+            msgStr += "Ký ức lịch sử:\n"
             msgStr += self.short_memory
 
-        # 当前时间
+        # Thời gian hiện tại
         time_str = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-        msgStr += f"当前时间：{time_str}"
+        msgStr += f"Thời gian hiện tại: {time_str}"
 
         if self.save_to_file:
             try:
@@ -182,13 +182,13 @@ class MemoryProvider(MemoryProviderBase):
                     temperature=0.2,
                 )
                 json_str = extract_json_data(result)
-                json.loads(json_str)  # 检查json格式是否正确
+                json.loads(json_str)  # Kiểm tra định dạng json có đúng không
                 self.short_memory = json_str
                 self.save_memory_to_file()
             except Exception as e:
                 logger.bind(tag=TAG).error(f"Error in saving memory: {e}")
         else:
-            # 当save_to_file为False时，调用Java端的聊天记录总结接口
+            # Khi save_to_file là False, gọi giao diện tóm tắt bản ghi chat phía Java
             summary_id = session_id if session_id else self.role_id
             await generate_and_save_chat_summary(summary_id)
         logger.bind(tag=TAG).info(

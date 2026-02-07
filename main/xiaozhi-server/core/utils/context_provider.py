@@ -42,7 +42,7 @@ class ContextDataProvider:
                             # Định dạng dữ liệu
                             if isinstance(data, dict):
                                 for k, v in data.items():
-                                    formatted_lines.append(f"- **{k}：** {v}")
+                                    formatted_lines.append(f"- **{k}:** {v}")
                             elif isinstance(data, list):
                                 for item in data:
                                     formatted_lines.append(f"- {item}")

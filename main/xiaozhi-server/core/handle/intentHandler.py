@@ -17,45 +17,45 @@ TAG = __name__
 
 
 async def handle_user_intent(conn: "ConnectionHandler", text):
-    # 预处理输入文本，处理可能的JSON格式
+    # Tiền xử lý văn bản đầu vào, xử lý định dạng JSON có thể có
     try:
         if text.strip().startswith("{") and text.strip().endswith("}"):
             parsed_data = json.loads(text)
             if isinstance(parsed_data, dict) and "content" in parsed_data:
-                text = parsed_data["content"]  # 提取content用于意图分析
-                conn.current_speaker = parsed_data.get("speaker")  # 保留说话人信息
+                text = parsed_data["content"]  # Trích xuất content để phân tích ý định
+                conn.current_speaker = parsed_data.get("speaker")  # Giữ lại thông tin người nói
     except (json.JSONDecodeError, TypeError):
         pass
 
-    # 检查是否有明确的退出命令
+    # Kiểm tra xem có lệnh thoát rõ ràng không
     _, filtered_text = remove_punctuation_and_length(text)
     if await check_direct_exit(conn, filtered_text):
         return True
 
-    # 检查是否是唤醒词
+    # Kiểm tra xem có phải từ đánh thức không
     if await checkWakeupWords(conn, filtered_text):
         return True
 
     if conn.intent_type == "function_call":
-        # 使用支持function calling的聊天方法,不再进行意图分析
+        # Sử dụng phương pháp trò chuyện hỗ trợ function calling, không phân tích ý định nữa
         return False
-    # 使用LLM进行意图分析
+    # Sử dụng LLM để phân tích ý định người dùng
     intent_result = await analyze_intent_with_llm(conn, text)
     if not intent_result:
         return False
-    # 会话开始时生成sentence_id
+    # Khi bắt đầu phiên tạo sentence_id
     conn.sentence_id = str(uuid.uuid4().hex)
-    # 处理各种意图
+    # Xử lý các ý định khác nhau
     return await process_intent_result(conn, intent_result, text)
 
 
 async def check_direct_exit(conn: "ConnectionHandler", text):
-    """检查是否有明确的退出命令"""
+    """Kiểm tra xem có lệnh thoát rõ ràng không"""
     _, text = remove_punctuation_and_length(text)
     cmd_exit = conn.cmd_exit
     for cmd in cmd_exit:
         if text == cmd:
-            conn.logger.bind(tag=TAG).info(f"识别到明确的退出命令: {text}")
+            conn.logger.bind(tag=TAG).info(f"Nhận diện được lệnh thoát rõ ràng: {text}")
             await send_stt_message(conn, text)
             await conn.close()
             return True
@@ -63,18 +63,18 @@ async def check_direct_exit(conn: "ConnectionHandler", text):
 
 
 async def analyze_intent_with_llm(conn: "ConnectionHandler", text):
-    """使用LLM分析用户意图"""
+    """Sử dụng LLM để phân tích ý định người dùng"""
     if not hasattr(conn, "intent") or not conn.intent:
-        conn.logger.bind(tag=TAG).warning("意图识别服务未初始化")
+        conn.logger.bind(tag=TAG).warning("Dịch vụ nhận diện ý định chưa được khởi tạo")
         return None
 
-    # 对话历史记录
+    # Lịch sử đối thoại
     dialogue = conn.dialogue
     try:
         intent_result = await conn.intent.detect_intent(conn, dialogue.dialogue, text)
         return intent_result
     except Exception as e:
-        conn.logger.bind(tag=TAG).error(f"意图识别失败: {str(e)}")
+        conn.logger.bind(tag=TAG).error(f"Nhận diện ý định thất bại: {str(e)}")
 
     return None
 
@@ -82,16 +82,16 @@ async def analyze_intent_with_llm(conn: "ConnectionHandler", text):
 async def process_intent_result(
     conn: "ConnectionHandler", intent_result, original_text
 ):
-    """处理意图识别结果"""
+    """Xử lý kết quả nhận diện ý định"""
     try:
-        # 尝试将结果解析为JSON
+        # Thử phân tích kết quả thành JSON
         intent_data = json.loads(intent_result)
 
-        # 检查是否有function_call
+        # Kiểm tra xem có function_call không
         if "function_call" in intent_data:
-            # 直接从意图识别获取了function_call
+            # Trực tiếp lấy function_call từ nhận diện ý định
             conn.logger.bind(tag=TAG).debug(
-                f"检测到function_call格式的意图结果: {intent_data['function_call']['name']}"
+                f"Phát hiện kết quả ý định định dạng function_call: {intent_data['function_call']['name']}"
             )
             function_name = intent_data["function_call"]["name"]
             if function_name == "continue_chat":
@@ -110,12 +110,12 @@ async def process_intent_result(
                         get_current_time_info()
                     )
 
-                    # 构建带上下文的基础提示
-                    context_prompt = f"""当前时间：{current_time}
-                                        今天日期：{today_date} ({today_weekday})
-                                        今天农历：{lunar_date}
+                    # Xây dựng lời nhắc cơ bản có ngữ cảnh
+                    context_prompt = f"""Thời gian hiện tại: {current_time}
+                                        Ngày hôm nay: {today_date} ({today_weekday})
+                                        Âm lịch hôm nay: {lunar_date}
 
-                                        请根据以上信息回答用户的问题：{original_text}"""
+                                        Vui lòng trả lời câu hỏi của người dùng dựa trên thông tin trên: {original_text}"""
 
                     response = conn.intent.replyResult(context_prompt, original_text)
                     speak_txt(conn, response)
@@ -128,7 +128,7 @@ async def process_intent_result(
                 function_args = intent_data["function_call"]["arguments"]
                 if function_args is None:
                     function_args = {}
-            # 确保参数是字符串格式的JSON
+            # Đảm bảo tham số là JSON định dạng chuỗi
             if isinstance(function_args, dict):
                 function_args = json.dumps(function_args)
 
@@ -141,11 +141,11 @@ async def process_intent_result(
             await send_stt_message(conn, original_text)
             conn.client_abort = False
 
-            # 使用executor执行函数调用和结果处理
+            # Sử dụng executor để thực thi gọi hàm và xử lý kết quả
             def process_function_call():
                 conn.dialogue.put(Message(role="user", content=original_text))
 
-                # 使用统一工具处理器处理所有工具调用
+                # Sử dụng bộ xử lý công cụ thống nhất để xử lý tất cả các lời gọi công cụ
                 try:
                     result = asyncio.run_coroutine_threadsafe(
                         conn.func_handler.handle_llm_function_call(
@@ -154,17 +154,17 @@ async def process_intent_result(
                         conn.loop,
                     ).result()
                 except Exception as e:
-                    conn.logger.bind(tag=TAG).error(f"工具调用失败: {e}")
+                    conn.logger.bind(tag=TAG).error(f"Gọi công cụ thất bại: {e}")
                     result = ActionResponse(
                         action=Action.ERROR, result=str(e), response=str(e)
                     )
 
                 if result:
-                    if result.action == Action.RESPONSE:  # 直接回复前端
+                    if result.action == Action.RESPONSE:  # Trả lời trực tiếp frontend
                         text = result.response
                         if text is not None:
                             speak_txt(conn, text)
-                    elif result.action == Action.REQLLM:  # 调用函数后再请求llm生成回复
+                    elif result.action == Action.REQLLM:  # Sau khi gọi hàm, yêu cầu llm tạo phản hồi
                         text = result.result
                         conn.dialogue.put(Message(role="tool", content=text))
                         llm_result = conn.intent.replyResult(text, original_text)
@@ -180,24 +180,24 @@ async def process_intent_result(
                             speak_txt(conn, text)
                     elif function_name != "play_music":
                         # For backward compatibility with original code
-                        # 获取当前最新的文本索引
+                        # Lấy chỉ mục văn bản mới nhất hiện tại
                         text = result.response
                         if text is None:
                             text = result.result
                         if text is not None:
                             speak_txt(conn, text)
 
-            # 将函数执行放在线程池中
+            # Đặt việc thực thi hàm vào thread pool
             conn.executor.submit(process_function_call)
             return True
         return False
     except json.JSONDecodeError as e:
-        conn.logger.bind(tag=TAG).error(f"处理意图结果时出错: {e}")
+        conn.logger.bind(tag=TAG).error(f"Lỗi khi xử lý kết quả ý định: {e}")
         return False
 
 
 def speak_txt(conn: "ConnectionHandler", text):
-    # 记录文本
+    # Ghi lại văn bản
     conn.tts_MessageText = text
 
     conn.tts.tts_text_queue.put(

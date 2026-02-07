@@ -22,25 +22,52 @@ class TTSProvider(TTSProviderBase):
 
     async def text_to_speak(self, text, output_file):
         try:
+            # Kiểm tra voice có hợp lệ không
+            if not self.voice:
+                raise ValueError("Voice không được chỉ định trong cấu hình EdgeTTS")
+            
+            # Kiểm tra text có rỗng không
+            if not text or not text.strip():
+                raise ValueError("Văn bản đầu vào rỗng")
+            
             communicate = edge_tts.Communicate(text, voice=self.voice)
+            
+            audio_received = False
             if output_file:
-                # 确保目录存在并创建空文件
+                # Đảm bảo thư mục tồn tại và tạo tệp trống
                 os.makedirs(os.path.dirname(output_file), exist_ok=True)
                 with open(output_file, "wb") as f:
                     pass
 
-                # 流式写入音频数据
-                with open(output_file, "ab") as f:  # 改为追加模式避免覆盖
+                # Ghi dữ liệu âm thanh theo luồng
+                with open(output_file, "ab") as f:  # Đổi sang chế độ nối thêm để tránh ghi đè
                     async for chunk in communicate.stream():
-                        if chunk["type"] == "audio":  # 只处理音频数据块
+                        if chunk["type"] == "audio":  # Chỉ xử lý khối dữ liệu âm thanh
                             f.write(chunk["data"])
+                            audio_received = True
             else:
-                # 返回音频二进制数据
+                # Trả về dữ liệu nhị phân âm thanh
                 audio_bytes = b""
                 async for chunk in communicate.stream():
                     if chunk["type"] == "audio":
                         audio_bytes += chunk["data"]
+                        audio_received = True
+                if not audio_received:
+                    raise ValueError("Không nhận được dữ liệu âm thanh từ EdgeTTS")
                 return audio_bytes
+            
+            # Kiểm tra xem có nhận được audio không
+            if not audio_received:
+                raise ValueError(f"Không nhận được dữ liệu âm thanh. Voice: {self.voice}, Text length: {len(text)}")
+                
         except Exception as e:
-            error_msg = f"Edge TTS请求失败: {e}"
-            raise Exception(error_msg)  # 抛出异常，让调用方捕获
+            error_msg = f"Yêu cầu Edge TTS thất bại: {e}"
+            # Xử lý exception message an toàn với Unicode
+            try:
+                if isinstance(error_msg, bytes):
+                    error_msg = error_msg.decode('utf-8', errors='replace')
+                else:
+                    error_msg = str(error_msg).encode('utf-8', errors='replace').decode('utf-8')
+            except (UnicodeEncodeError, UnicodeDecodeError):
+                error_msg = repr(e)
+            raise Exception(error_msg)  # Ném ngoại lệ để bên gọi bắt

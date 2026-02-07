@@ -78,6 +78,7 @@ services:
       - VUE_APP_DEV_HOST=0.0.0.0
       - VUE_APP_DEV_PORT=8001
       - VUE_APP_API_PROXY_TARGET=http://xiaozhi-esp32-server-web:8002
+      - VUE_APP_API_BASE_URL=/xiaozhi
     volumes:
       - ../manager-web:/app
       # Keep node_modules inside container (avoid Windows fs perf issues)

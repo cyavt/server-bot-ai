@@ -131,7 +131,7 @@ def remove_punctuation_and_length(text):
 
 
 def check_model_key(modelType, modelKey):
-    if "你" in modelKey:
+    if "你" in modelKey or "你的" in modelKey:
         return f"Cấu hình sai: API key của {modelType} chưa được thiết lập, giá trị hiện tại: {modelKey}"
     return None
 
@@ -220,9 +220,9 @@ def check_ffmpeg_installed() -> bool:
 def extract_json_from_string(input_string):
     """Trích xuất phần JSON từ chuỗi"""
     pattern = r"(\{.*\})"
-    match = re.search(pattern, input_string, re.DOTALL)  # 添加 re.DOTALL
+    match = re.search(pattern, input_string, re.DOTALL)  # Thêm re.DOTALL để khớp nhiều dòng
     if match:
-        return match.group(1)  # 返回提取的 JSON 字符串
+        return match.group(1)  # Trả về chuỗi JSON đã trích xuất
     return None
 
 
@@ -530,7 +530,7 @@ def get_vision_url(config: dict) -> str:
     """
     server_config = config["server"]
     vision_explain = server_config.get("vision_explain", "")
-    if "你的" in vision_explain:
+    if "你的" in vision_explain or "你" in vision_explain:
         local_ip = get_local_ip()
         port = int(server_config.get("http_port", 8003))
         vision_explain = f"http://{local_ip}:{port}/mcp/vision/explain"

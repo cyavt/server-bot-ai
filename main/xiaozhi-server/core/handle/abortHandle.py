@@ -8,10 +8,10 @@ TAG = __name__
 
 async def handleAbortMessage(conn: "ConnectionHandler"):
     conn.logger.bind(tag=TAG).info("Abort message received")
-    # 设置成打断状态，会自动打断llm、tts任务
+    # Đặt thành trạng thái ngắt, sẽ tự động ngắt các tác vụ llm, tts
     conn.client_abort = True
     conn.clear_queues()
-    # 打断客户端说话状态
+    # Ngắt trạng thái nói của khách hàng
     await conn.websocket.send(
         json.dumps({"type": "tts", "state": "stop", "session_id": conn.session_id})
     )

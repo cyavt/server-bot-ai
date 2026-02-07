@@ -15,13 +15,13 @@ hass_get_state_function_desc = {
     "type": "function",
     "function": {
         "name": "hass_get_state",
-        "description": "获取homeassistant里设备的状态,包括查询灯光亮度、颜色、色温,媒体播放器的音量,设备的暂停、继续操作",
+        "description": "Lấy trạng thái thiết bị trong homeassistant, bao gồm truy vấn độ sáng đèn, màu sắc, nhiệt độ màu, âm lượng trình phát media, thao tác tạm dừng, tiếp tục thiết bị",
         "parameters": {
             "type": "object",
             "properties": {
                 "entity_id": {
                     "type": "string",
-                    "description": "需要操作的设备id,homeassistant里的entity_id",
+                    "description": "ID thiết bị cần thao tác, entity_id trong homeassistant",
                 }
             },
             "required": ["entity_id"],
@@ -36,10 +36,10 @@ def hass_get_state(conn: "ConnectionHandler", entity_id=""):
         ha_response = handle_hass_get_state(conn, entity_id)
         return ActionResponse(Action.REQLLM, ha_response, None)
     except asyncio.TimeoutError:
-        logger.bind(tag=TAG).error("获取Home Assistant状态超时")
-        return ActionResponse(Action.ERROR, "请求超时", None)
+        logger.bind(tag=TAG).error("Lấy trạng thái Home Assistant hết thời gian")
+        return ActionResponse(Action.ERROR, "Yêu cầu hết thời gian", None)
     except Exception as e:
-        error_msg = f"执行Home Assistant操作失败"
+        error_msg = f"Thực thi thao tác Home Assistant thất bại"
         logger.bind(tag=TAG).error(error_msg)
         return ActionResponse(Action.ERROR, error_msg, None)
 
@@ -52,48 +52,48 @@ def handle_hass_get_state(conn: "ConnectionHandler", entity_id):
     headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
     response = requests.get(url, headers=headers, timeout=5)
     if response.status_code == 200:
-        responsetext = "设备状态:" + response.json()["state"] + " "
-        logger.bind(tag=TAG).info(f"api返回内容: {response.json()}")
+        responsetext = "Trạng thái thiết bị:" + response.json()["state"] + " "
+        logger.bind(tag=TAG).info(f"Nội dung trả về api: {response.json()}")
 
         if "media_title" in response.json()["attributes"]:
             responsetext = (
                 responsetext
-                + "正在播放的是:"
+                + "Đang phát:"
                 + str(response.json()["attributes"]["media_title"])
                 + " "
             )
         if "volume_level" in response.json()["attributes"]:
             responsetext = (
                 responsetext
-                + "音量是:"
+                + "Âm lượng:"
                 + str(response.json()["attributes"]["volume_level"])
                 + " "
             )
         if "color_temp_kelvin" in response.json()["attributes"]:
             responsetext = (
                 responsetext
-                + "色温是:"
+                + "Nhiệt độ màu:"
                 + str(response.json()["attributes"]["color_temp_kelvin"])
                 + " "
             )
         if "rgb_color" in response.json()["attributes"]:
             responsetext = (
                 responsetext
-                + "rgb颜色是:"
+                + "Màu rgb:"
                 + str(response.json()["attributes"]["rgb_color"])
                 + " "
             )
         if "brightness" in response.json()["attributes"]:
             responsetext = (
                 responsetext
-                + "亮度是:"
+                + "Độ sáng:"
                 + str(response.json()["attributes"]["brightness"])
                 + " "
             )
-        logger.bind(tag=TAG).info(f"查询返回内容: {responsetext}")
+        logger.bind(tag=TAG).info(f"Nội dung trả về truy vấn: {responsetext}")
         return responsetext
         # return response.json()['attributes']
         # response.attributes
 
     else:
-        return f"切换失败，错误码: {response.status_code}"
+        return f"Chuyển đổi thất bại, mã lỗi: {response.status_code}"

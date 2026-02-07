@@ -1,4 +1,4 @@
-"""服务端插件工具执行器"""
+"""Trình thực thi công cụ plugin phía máy chủ"""
 
 from typing import Dict, Any, TYPE_CHECKING
 
@@ -9,7 +9,7 @@ from plugins_func.register import all_function_registry, Action, ActionResponse
 
 
 class ServerPluginExecutor(ToolExecutor):
-    """服务端插件工具执行器"""
+    """Trình thực thi công cụ plugin phía máy chủ"""
 
     def __init__(self, conn: "ConnectionHandler"):
         self.conn = conn
@@ -18,18 +18,18 @@ class ServerPluginExecutor(ToolExecutor):
     async def execute(
         self, conn: "ConnectionHandler", tool_name: str, arguments: Dict[str, Any]
     ) -> ActionResponse:
-        """执行服务端插件工具"""
+        """Thực thi công cụ plugin phía máy chủ"""
         func_item = all_function_registry.get(tool_name)
         if not func_item:
             return ActionResponse(
-                action=Action.NOTFOUND, response=f"插件函数 {tool_name} 不存在"
+                action=Action.NOTFOUND, response=f"Hàm plugin {tool_name} không tồn tại"
             )
 
         try:
-            # 根据工具类型决定如何调用
+            # Quyết định cách gọi dựa trên loại công cụ
             if hasattr(func_item, "type"):
                 func_type = func_item.type
-                if func_type.code in [4, 5]:  # SYSTEM_CTL, IOT_CTL (需要conn参数)
+                if func_type.code in [4, 5]:  # SYSTEM_CTL, IOT_CTL (cần tham số conn)
                     result = func_item.func(conn, **arguments)
                 elif func_type.code == 2:  # WAIT
                     result = func_item.func(**arguments)
@@ -38,7 +38,7 @@ class ServerPluginExecutor(ToolExecutor):
                 else:
                     result = func_item.func(**arguments)
             else:
-                # 默认不传conn参数
+                # Mặc định không truyền tham số conn
                 result = func_item.func(**arguments)
 
             return result
@@ -50,31 +50,31 @@ class ServerPluginExecutor(ToolExecutor):
             )
 
     def get_tools(self) -> Dict[str, ToolDefinition]:
-        """获取所有注册的服务端插件工具"""
+        """Lấy tất cả công cụ plugin phía máy chủ đã đăng ký"""
         tools = {}
 
-        # 获取必要的函数
+        # Lấy các hàm cần thiết
         necessary_functions = ["handle_exit_intent", "get_lunar"]
 
-        # 获取配置中的函数
+        # Lấy các hàm từ cấu hình
         config_functions = self.config["Intent"][
             self.config["selected_module"]["Intent"]
         ].get("functions", [])
 
-        # 转换为列表
+        # Chuyển đổi thành danh sách
         if not isinstance(config_functions, list):
             try:
                 config_functions = list(config_functions)
             except TypeError:
                 config_functions = []
 
-        # 合并所有需要的函数
+        # Hợp nhất tất cả các hàm cần thiết
         all_required_functions = list(set(necessary_functions + config_functions))
 
         for func_name in all_required_functions:
             func_item = all_function_registry.get(func_name)
             if func_item:
-                # 从函数注册中获取描述
+                # Lấy mô tả từ đăng ký hàm
                 fun_description = (
                     self.config.get("plugins", {})
                     .get(func_name, {})
@@ -96,5 +96,5 @@ class ServerPluginExecutor(ToolExecutor):
         return tools
 
     def has_tool(self, tool_name: str) -> bool:
-        """检查是否有指定的服务端插件工具"""
+        """Kiểm tra xem có công cụ plugin phía máy chủ được chỉ định không"""
         return tool_name in all_function_registry

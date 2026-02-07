@@ -39,7 +39,7 @@ class LLMProvider(LLMProviderBase):
                 setattr(self, param, None)
 
         logger.debug(
-            f"意图识别参数初始化: {self.temperature}, {self.max_tokens}, {self.top_p}, {self.frequency_penalty}"
+            f"Khởi tạo tham số nhận dạng ý định: {self.temperature}, {self.max_tokens}, {self.top_p}, {self.frequency_penalty}"
         )
 
         model_key_msg = check_model_key("LLM", self.api_key)
@@ -49,7 +49,7 @@ class LLMProvider(LLMProviderBase):
 
     @staticmethod
     def normalize_dialogue(dialogue):
-        """自动修复 dialogue 中缺失 content 的消息"""
+        """Tự động sửa các tin nhắn thiếu content trong dialogue"""
         for msg in dialogue:
             if "role" in msg and "content" not in msg:
                 msg["content"] = ""
@@ -64,7 +64,7 @@ class LLMProvider(LLMProviderBase):
             "stream": True,
         }
 
-        # 添加可选参数,只有当参数不为None时才添加
+        # Thêm tham số tùy chọn, chỉ thêm khi tham số không phải None
         optional_params = {
             "max_tokens": kwargs.get("max_tokens", self.max_tokens),
             "temperature": kwargs.get("temperature", self.temperature),
@@ -127,7 +127,7 @@ class LLMProvider(LLMProviderBase):
             elif isinstance(getattr(chunk, "usage", None), CompletionUsage):
                 usage_info = getattr(chunk, "usage", None)
                 logger.bind(tag=TAG).info(
-                    f"Token 消耗：输入 {getattr(usage_info, 'prompt_tokens', '未知')}，"
-                    f"输出 {getattr(usage_info, 'completion_tokens', '未知')}，"
-                    f"共计 {getattr(usage_info, 'total_tokens', '未知')}"
+                    f"Token tiêu thụ: đầu vào {getattr(usage_info, 'prompt_tokens', 'không xác định')}, "
+                    f"đầu ra {getattr(usage_info, 'completion_tokens', 'không xác định')}, "
+                    f"tổng cộng {getattr(usage_info, 'total_tokens', 'không xác định')}"
                 )

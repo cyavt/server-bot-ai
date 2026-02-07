@@ -92,7 +92,7 @@ class Dialogue:
                                 description = (
                                     parts[2].strip() if len(parts) >= 3 else ""
                                 )
-                                enhanced_system_prompt += f"\n- {name}：{description}"
+                                enhanced_system_prompt += f"\n- {name}: {description}"
                         except:
                             pass
                     enhanced_system_prompt += "\n\n</speakers_info>"

@@ -1,4 +1,4 @@
-"""设备端MCP客户端定义"""
+"""Định nghĩa client MCP phía thiết bị"""
 
 import asyncio
 from concurrent.futures import Future
@@ -10,26 +10,26 @@ logger = setup_logging()
 
 
 class MCPClient:
-    """设备端MCP客户端，用于管理MCP状态和工具"""
+    """Client MCP phía thiết bị, dùng để quản lý trạng thái và công cụ MCP"""
 
     def __init__(self):
         self.tools = {}  # sanitized_name -> tool_data
         self.name_mapping = {}
         self.ready = False
-        self.call_results = {}  # To store Futures for tool call responses
+        self.call_results = {}  # Để lưu Future cho phản hồi gọi công cụ
         self.next_id = 1
         self.lock = asyncio.Lock()
-        self._cached_available_tools = None  # Cache for get_available_tools
+        self._cached_available_tools = None  # Bộ nhớ đệm cho get_available_tools
 
     def has_tool(self, name: str) -> bool:
         return name in self.tools
 
     def get_available_tools(self) -> list:
-        # Check if the cache is valid
+        # Kiểm tra xem bộ nhớ đệm có hợp lệ không
         if self._cached_available_tools is not None:
             return self._cached_available_tools
 
-        # If cache is not valid, regenerate the list
+        # Nếu bộ nhớ đệm không hợp lệ, tạo lại danh sách
         result = []
         for tool_name, tool_data in self.tools.items():
             function_def = {
@@ -43,7 +43,7 @@ class MCPClient:
             }
             result.append({"type": "function", "function": function_def})
 
-        self._cached_available_tools = result  # Store the generated list in cache
+        self._cached_available_tools = result  # Lưu danh sách đã tạo vào bộ nhớ đệm
         return result
 
     async def is_ready(self) -> bool:
@@ -60,7 +60,7 @@ class MCPClient:
             self.tools[sanitized_name] = tool_data
             self.name_mapping[sanitized_name] = tool_data["name"]
             self._cached_available_tools = (
-                None  # Invalidate the cache when a tool is added
+                None  # Làm mất hiệu lực bộ nhớ đệm khi thêm công cụ
             )
 
     async def get_next_id(self) -> int:

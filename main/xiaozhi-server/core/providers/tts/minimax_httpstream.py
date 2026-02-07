@@ -56,7 +56,7 @@ class TTSProvider(TTSProviderBase):
         if self.voice:
             self.voice_setting["voice_id"] = self.voice
 
-        self.host = "api.minimaxi.com"  # 备用地址：api-bj.minimaxi.com
+        self.host = "api.minimaxi.com"  # Địa chỉ dự phòng: api-bj.minimaxi.com
         self.api_url = f"https://{self.host}/v1/t2a_v2?GroupId={self.group_id}"
         self.header = {
             "Content-Type": "application/json",
@@ -64,24 +64,24 @@ class TTSProvider(TTSProviderBase):
         }
         self.audio_file_type = defult_audio_setting.get("format", "pcm")
 
-        # PCM缓冲区
+        # Buffer PCM
         self.pcm_buffer = bytearray()
 
     async def open_audio_channels(self, conn):
-        """初始化音频通道,并根据conn.sample_rate更新配置"""
-        # 调用父类方法
+        """Khởi tạo kênh audio và cập nhật cấu hình theo conn.sample_rate"""
+        # Gọi phương thức của lớp cha
         await super().open_audio_channels(conn)
 
-        # 更新audio_setting中的采样率为实际的conn.sample_rate
+        # Cập nhật tần số lấy mẫu trong audio_setting thành conn.sample_rate thực tế
         self.audio_setting["sample_rate"] = conn.sample_rate
 
     def tts_text_priority_thread(self):
-        """流式文本处理线程"""
+        """Luồng xử lý văn bản streaming"""
         while not self.conn.stop_event.is_set():
             try:
                 message = self.tts_text_queue.get(timeout=1)
                 if message.sentence_type == SentenceType.FIRST:
-                    # 初始化参数
+                    # Khởi tạo tham số
                     self.tts_stop_request = False
                     self.processed_chars = 0
                     self.tts_text_buff = []
@@ -94,26 +94,26 @@ class TTSProvider(TTSProviderBase):
 
                 elif ContentType.FILE == message.content_type:
                     logger.bind(tag=TAG).info(
-                        f"添加音频文件到待播放列表: {message.content_file}"
+                        f"Thêm file audio vào danh sách chờ phát: {message.content_file}"
                     )
                     if message.content_file and os.path.exists(message.content_file):
-                        # 先处理文件音频数据
+                        # Xử lý dữ liệu audio của file trước
                         self._process_audio_file_stream(message.content_file, callback=lambda audio_data: self.handle_audio_file(audio_data, message.content_detail))
                 if message.sentence_type == SentenceType.LAST:
-                    # 处理剩余的文本
+                    # Xử lý văn bản còn lại
                     self._process_remaining_text_stream(True)
 
             except queue.Empty:
                 continue
             except Exception as e:
                 logger.bind(tag=TAG).error(
-                    f"处理TTS文本失败: {str(e)}, 类型: {type(e).__name__}, 堆栈: {traceback.format_exc()}"
+                    f"Xử lý văn bản TTS thất bại: {str(e)}, loại: {type(e).__name__}, stack: {traceback.format_exc()}"
                 )
 
     def _process_remaining_text_stream(self, is_last=False):
-        """处理剩余的文本并生成语音
+        """Xử lý văn bản còn lại và tạo giọng nói
         Returns:
-            bool: 是否成功处理了文本
+            bool: Có xử lý thành công văn bản không
         """
         full_text = "".join(self.tts_text_buff)
         remaining_text = full_text[self.processed_chars :]
@@ -135,17 +135,17 @@ class TTSProvider(TTSProviderBase):
                 asyncio.run(self.text_to_speak(text, is_last))
             except Exception as e:
                 logger.bind(tag=TAG).warning(
-                    f"语音生成失败{5 - max_repeat_time + 1}次: {text}，错误: {e}"
+                    f"Tạo giọng nói thất bại lần {5 - max_repeat_time + 1}: {text}, lỗi: {e}"
                 )
                 max_repeat_time -= 1
 
             if max_repeat_time > 0:
                 logger.bind(tag=TAG).info(
-                    f"语音生成成功: {text}，重试{5 - max_repeat_time}次"
+                    f"Tạo giọng nói thành công: {text}, thử lại {5 - max_repeat_time} lần"
                 )
             else:
                 logger.bind(tag=TAG).error(
-                    f"语音生成失败: {text}，请检查网络或服务是否正常"
+                    f"Tạo giọng nói thất bại: {text}, vui lòng kiểm tra mạng hoặc dịch vụ có bình thường không"
                 )
         except Exception as e:
             logger.bind(tag=TAG).error(f"Failed to generate TTS file: {e}")
@@ -153,7 +153,7 @@ class TTSProvider(TTSProviderBase):
             return None
 
     async def text_to_speak(self, text, is_last):
-        """流式处理TTS音频，每句只推送一次音频列表"""
+        """Xử lý audio TTS streaming, mỗi câu chỉ đẩy một lần danh sách audio"""
         payload = {
             "model": self.model,
             "text": text,
@@ -185,7 +185,7 @@ class TTSProvider(TTSProviderBase):
 
                     if resp.status != 200:
                         logger.bind(tag=TAG).error(
-                            f"TTS请求失败: {resp.status}, {await resp.text()}"
+                            f"Yêu cầu TTS thất bại: {resp.status}, {await resp.text()}"
                         )
                         self.tts_audio_queue.put((SentenceType.LAST, [], None))
                         return
@@ -193,7 +193,7 @@ class TTSProvider(TTSProviderBase):
                     self.pcm_buffer.clear()
                     self.tts_audio_queue.put((SentenceType.FIRST, [], text))
 
-                    # 处理音频流数据
+                    # Xử lý dữ liệu luồng audio
                     buffer = b""
                     async for chunk in resp.content.iter_any():
                         if not chunk:
@@ -201,7 +201,7 @@ class TTSProvider(TTSProviderBase):
 
                         buffer += chunk
                         while True:
-                            # 查找数据块分隔符
+                            # Tìm ký tự phân cách khối dữ liệu
                             header_pos = buffer.find(b"data: ")
                             if header_pos == -1:
                                 break
@@ -210,20 +210,20 @@ class TTSProvider(TTSProviderBase):
                             if end_pos == -1:
                                 break
 
-                            # 提取单个完整JSON块
+                            # Trích xuất khối JSON hoàn chỉnh đơn lẻ
                             json_str = buffer[header_pos + 6 : end_pos].decode("utf-8")
                             buffer = buffer[end_pos + 2 :]
 
                             try:
                                 data = json.loads(json_str)
 
-                                # 检查业务层错误
+                                # Kiểm tra lỗi tầng nghiệp vụ
                                 base_resp = data.get("base_resp", {})
                                 status_code = base_resp.get("status_code", 0)
                                 if status_code != 0:
-                                    status_msg = base_resp.get("status_msg", "未知错误")
+                                    status_msg = base_resp.get("status_msg", "Lỗi không xác định")
                                     logger.bind(tag=TAG).error(
-                                        f"TTS请求失败, 错误码:{status_code}, 错误消息:{status_msg}"
+                                        f"Yêu cầu TTS thất bại, mã lỗi:{status_code}, thông báo lỗi:{status_msg}"
                                     )
                                     self.tts_audio_queue.put((SentenceType.LAST, [], None))
                                     return
@@ -231,13 +231,13 @@ class TTSProvider(TTSProviderBase):
                                 status = data.get("data", {}).get("status", 1)
                                 audio_hex = data.get("data", {}).get("audio")
 
-                                # 仅处理status=1的有效音频块 忽略status=2的结束汇总块
+                                # Chỉ xử lý khối audio hợp lệ status=1, bỏ qua khối tổng kết kết thúc status=2
                                 if status == 1 and audio_hex:
                                     pcm_data = bytes.fromhex(audio_hex)
                                     self.pcm_buffer.extend(pcm_data)
 
                             except json.JSONDecodeError as e:
-                                logger.bind(tag=TAG).error(f"JSON解析失败: {e}")
+                                logger.bind(tag=TAG).error(f"Phân tích JSON thất bại: {e}")
                                 continue
 
                         while len(self.pcm_buffer) >= frame_bytes:
@@ -248,7 +248,7 @@ class TTSProvider(TTSProviderBase):
                                 frame, end_of_stream=False, callback=self.handle_opus
                             )
 
-                    # flush 剩余不足一帧的数据
+                    # Xả dữ liệu còn lại không đủ một frame
                     if self.pcm_buffer:
                         self.opus_encoder.encode_pcm_to_opus_stream(
                             bytes(self.pcm_buffer),
@@ -257,26 +257,26 @@ class TTSProvider(TTSProviderBase):
                         )
                         self.pcm_buffer.clear()
 
-                    # 如果是最后一段，输出音频获取完毕
+                    # Nếu là đoạn cuối, việc lấy audio đầu ra đã hoàn tất
                     if is_last:
                         self._process_before_stop_play_files()
 
         except Exception as e:
-            logger.bind(tag=TAG).error(f"TTS请求异常: {e}")
+            logger.bind(tag=TAG).error(f"Yêu cầu TTS bất thường: {e}")
             self.tts_audio_queue.put((SentenceType.LAST, [], None))
 
     async def close(self):
-        """资源清理"""
+        """Dọn dẹp tài nguyên"""
         await super().close()
         if hasattr(self, "opus_encoder"):
             self.opus_encoder.close()
 
     def to_tts(self, text: str) -> list:
-        """非流式TTS处理，用于测试及保存音频文件的场景
+        """Xử lý TTS không streaming, dùng cho test và lưu file audio
         Args:
-            text: 要转换的文本
+            text: Văn bản cần chuyển đổi
         Returns:
-            list: 返回opus编码后的音频数据列表
+            list: Trả về danh sách dữ liệu audio đã mã hóa opus
         """
         start_time = time.time()
         text = MarkdownCleaner.clean_markdown(text)
@@ -305,13 +305,13 @@ class TTSProvider(TTSProviderBase):
             ) as response:
                 if response.status_code != 200:
                     logger.bind(tag=TAG).error(
-                        f"TTS请求失败: {response.status_code}, {response.text}"
+                        f"Yêu cầu TTS thất bại: {response.status_code}, {response.text}"
                     )
                     return []
 
-                logger.info(f"TTS请求成功: {text}, 耗时: {time.time() - start_time}秒")
+                logger.info(f"Yêu cầu TTS thành công: {text}, thời gian: {time.time() - start_time} giây")
 
-                # 使用opus编码器处理PCM数据
+                # Sử dụng bộ mã hóa opus để xử lý dữ liệu PCM
                 opus_datas = []
                 full_content = response.content.decode('utf-8')
                 pcm_data = bytearray()
@@ -320,16 +320,16 @@ class TTSProvider(TTSProviderBase):
                         continue
 
                     try:
-                        json_str = data_block[6:]  # 去除'data: '前缀
+                        json_str = data_block[6:]  # Loại bỏ tiền tố 'data: '
                         data = json.loads(json_str)
                         if data.get('data', {}).get('status') == 1:
                             audio_hex = data['data']['audio']
                             pcm_data.extend(bytes.fromhex(audio_hex))
                     except (json.JSONDecodeError, KeyError) as e:
-                        logger.bind(tag=TAG).warning(f"无效数据块: {e}")
+                        logger.bind(tag=TAG).warning(f"Khối dữ liệu không hợp lệ: {e}")
                         continue
 
-                # 计算每帧的字节数
+                # Tính số byte mỗi frame
                 frame_bytes = int(
                     self.opus_encoder.sample_rate
                     * self.opus_encoder.channels
@@ -338,7 +338,7 @@ class TTSProvider(TTSProviderBase):
                     * 2
                 )
 
-                # 分帧处理合并后的PCM数据
+                # Xử lý phân frame dữ liệu PCM đã hợp nhất
                 for i in range(0, len(pcm_data), frame_bytes):
                     frame = bytes(pcm_data[i:i+frame_bytes])
                     if len(frame) < frame_bytes:
@@ -353,5 +353,5 @@ class TTSProvider(TTSProviderBase):
                 return opus_datas
 
         except Exception as e:
-            logger.bind(tag=TAG).error(f"TTS请求异常: {e}")
+            logger.bind(tag=TAG).error(f"Yêu cầu TTS bất thường: {e}")
             return []

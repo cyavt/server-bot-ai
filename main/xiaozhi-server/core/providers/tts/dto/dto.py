@@ -3,37 +3,37 @@ from typing import Union, Optional
 
 
 class SentenceType(Enum):
-    # 说话阶段
-    FIRST = "FIRST"  # 首句话
-    MIDDLE = "MIDDLE"  # 说话中
-    LAST = "LAST"  # 最后一句
+    # Giai đoạn nói
+    FIRST = "FIRST"  # Câu đầu tiên
+    MIDDLE = "MIDDLE"  # Đang nói
+    LAST = "LAST"  # Câu cuối cùng
 
 
 class ContentType(Enum):
-    # 内容类型
-    TEXT = "TEXT"  # 文本内容
-    FILE = "FILE"  # 文件内容
-    ACTION = "ACTION"  # 动作内容
+    # Loại nội dung
+    TEXT = "TEXT"  # Nội dung văn bản
+    FILE = "FILE"  # Nội dung tệp
+    ACTION = "ACTION"  # Nội dung hành động
 
 
 class InterfaceType(Enum):
-    # 接口类型
-    DUAL_STREAM = "DUAL_STREAM"  # 双流式
-    SINGLE_STREAM = "SINGLE_STREAM"  # 单流式
-    NON_STREAM = "NON_STREAM"  # 非流式
+    # Loại giao diện
+    DUAL_STREAM = "DUAL_STREAM"  # Luồng kép
+    SINGLE_STREAM = "SINGLE_STREAM"  # Luồng đơn
+    NON_STREAM = "NON_STREAM"  # Không luồng
 
 
 class TTSMessageDTO:
     def __init__(
         self,
         sentence_id: str,
-        # 说话阶段
+        # Giai đoạn nói
         sentence_type: SentenceType,
-        # 内容类型
+        # Loại nội dung
         content_type: ContentType,
-        # 内容详情，一般是需要转换的文本或者音频的歌词
+        # Chi tiết nội dung, thường là văn bản cần chuyển đổi hoặc lời bài hát của âm thanh
         content_detail: Optional[str] = None,
-        # 如果内容类型为文件，则需要传入文件路径
+        # Nếu loại nội dung là tệp, thì cần truyền đường dẫn tệp
         content_file: Optional[str] = None,
     ):
         self.sentence_id = sentence_id

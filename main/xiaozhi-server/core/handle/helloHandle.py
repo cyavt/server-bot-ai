@@ -32,29 +32,29 @@ WAKEUP_CONFIG = {
     ],
 }
 
-# 创建全局的唤醒词配置管理器
+# Tạo trình quản lý cấu hình từ đánh thức toàn cục
 wakeup_words_config = WakeupWordsConfig()
 
-# 用于防止并发调用wakeupWordsResponse的锁
+# Khóa để ngăn gọi đồng thời wakeupWordsResponse
 _wakeup_response_lock = asyncio.Lock()
 
 
 async def handleHelloMessage(conn: "ConnectionHandler", msg_json):
-    """处理hello消息"""
+    """Xử lý tin nhắn hello"""
     audio_params = msg_json.get("audio_params")
     if audio_params:
         format = audio_params.get("format")
-        conn.logger.bind(tag=TAG).debug(f"客户端音频格式: {format}")
+        conn.logger.bind(tag=TAG).debug(f"Định dạng âm thanh khách hàng: {format}")
         conn.audio_format = format
         conn.welcome_msg["audio_params"] = audio_params
     features = msg_json.get("features")
     if features:
-        conn.logger.bind(tag=TAG).debug(f"客户端特性: {features}")
+        conn.logger.bind(tag=TAG).debug(f"Tính năng khách hàng: {features}")
         conn.features = features
         if features.get("mcp"):
-            conn.logger.bind(tag=TAG).debug("客户端支持MCP")
+            conn.logger.bind(tag=TAG).debug("Khách hàng hỗ trợ MCP")
             conn.mcp_client = MCPClient()
-            # 发送初始化
+            # Gửi khởi tạo
             asyncio.create_task(send_mcp_initialize_message(conn))
 
     await conn.websocket.send(json.dumps(conn.welcome_msg))
@@ -65,7 +65,7 @@ async def checkWakeupWords(conn: "ConnectionHandler", text):
         "enable_wakeup_words_response_cache"
     ]
 
-    # 等待tts初始化，最多等待3秒
+    # Chờ khởi tạo tts, tối đa chờ 3 giây
     start_time = time.time()
     while time.time() - start_time < 3:
         if conn.tts:
@@ -84,12 +84,12 @@ async def checkWakeupWords(conn: "ConnectionHandler", text):
     conn.just_woken_up = True
     await send_tts_message(conn, "start")
 
-    # 获取当前音色
+    # Lấy giọng nói hiện tại
     voice = getattr(conn.tts, "voice", "default")
     if not voice:
         voice = "default"
 
-    # 获取唤醒词回复配置
+    # Lấy cấu hình phản hồi từ đánh thức
     response = wakeup_words_config.get_wakeup_response(voice)
     if not response or not response.get("file_path"):
         response = {
@@ -99,22 +99,22 @@ async def checkWakeupWords(conn: "ConnectionHandler", text):
             "text": "我在这里哦！",
         }
 
-    # 获取音频数据
+    # Lấy dữ liệu âm thanh
     opus_packets = await audio_to_data(response.get("file_path"), use_cache=False)
-    # 播放唤醒词回复
+    # Phát phản hồi từ đánh thức
     conn.client_abort = False
 
-    # 将唤醒词回复视为新会话，生成新的 sentence_id，确保流控器重置
+    # Coi phản hồi từ đánh thức là phiên mới, tạo sentence_id mới, đảm bảo bộ điều khiển luồng được đặt lại
     conn.sentence_id = str(uuid.uuid4().hex)
 
-    conn.logger.bind(tag=TAG).info(f"播放唤醒词回复: {response.get('text')}")
+    conn.logger.bind(tag=TAG).info(f"Phát phản hồi từ đánh thức: {response.get('text')}")
     await sendAudioMessage(conn, SentenceType.FIRST, opus_packets, response.get("text"))
     await sendAudioMessage(conn, SentenceType.LAST, [], None)
 
-    # 补充对话
+    # Bổ sung đối thoại
     conn.dialogue.put(Message(role="assistant", content=response.get("text")))
 
-    # 检查是否需要更新唤醒词回复
+    # Kiểm tra xem có cần cập nhật phản hồi từ đánh thức không
     if time.time() - response.get("time", 0) > WAKEUP_CONFIG["refresh_time"]:
         if not _wakeup_response_lock.locked():
             asyncio.create_task(wakeupWordsResponse(conn))
@@ -126,31 +126,31 @@ async def wakeupWordsResponse(conn: "ConnectionHandler"):
         return
 
     try:
-        # 尝试获取锁，如果获取不到就返回
+        # Thử lấy khóa, nếu không lấy được thì trả về
         if not await _wakeup_response_lock.acquire():
             return
 
-        # 从预定义回复列表中随机选择一个回复
+        # Từ danh sách phản hồi định nghĩa trước, chọn ngẫu nhiên một phản hồi
         result = random.choice(WAKEUP_CONFIG["responses"])
         if not result or len(result) == 0:
             return
 
-        # 生成TTS音频
+        # Tạo âm thanh TTS
         tts_result = await asyncio.to_thread(conn.tts.to_tts, result)
         if not tts_result:
             return
 
-        # 获取当前音色
+        # Lấy giọng nói hiện tại
         voice = getattr(conn.tts, "voice", "default")
 
-        # 使用链接的sample_rate
+        # Sử dụng sample_rate của liên kết
         wav_bytes = opus_datas_to_wav_bytes(tts_result, sample_rate=conn.sample_rate)
         file_path = wakeup_words_config.generate_file_path(voice)
         with open(file_path, "wb") as f:
             f.write(wav_bytes)
-        # 更新配置
+        # Cập nhật cấu hình
         wakeup_words_config.update_wakeup_response(voice, file_path, result)
     finally:
-        # 确保在任何情况下都释放锁
+        # Đảm bảo giải phóng khóa trong mọi trường hợp
         if _wakeup_response_lock.locked():
             _wakeup_response_lock.release()

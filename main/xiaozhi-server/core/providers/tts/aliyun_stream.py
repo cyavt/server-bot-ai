@@ -42,7 +42,7 @@ class AccessToken:
             "AccessKeyId": access_key_id,
             "Action": "CreateToken",
             "Format": "JSON",
-            "RegionId": "cn-shanghai",  # 使用上海地域进行Token获取
+            "RegionId": "cn-shanghai",  # Sử dụng khu vực Thượng Hải để lấy Token
             "SignatureMethod": "HMAC-SHA1",
             "SignatureNonce": str(uuid.uuid1()),
             "SignatureVersion": "1.0",
@@ -89,23 +89,23 @@ class TTSProvider(TTSProviderBase):
     def __init__(self, config, delete_audio_file):
         super().__init__(config, delete_audio_file)
 
-        # 设置为流式接口类型
+        # Thiết lập loại giao diện streaming
         self.interface_type = InterfaceType.DUAL_STREAM
 
-        # 基础配置
+        # Cấu hình cơ bản
         self.access_key_id = config.get("access_key_id")
         self.access_key_secret = config.get("access_key_secret")
         self.appkey = config.get("appkey")
         self.format = config.get("format", "pcm")
         self.audio_file_type = config.get("format", "pcm")
 
-        # 音色配置 - CosyVoice大模型音色
+        # Cấu hình giọng nói - Giọng nói model lớn CosyVoice
         if config.get("private_voice"):
             self.voice = config.get("private_voice")
         else:
-            self.voice = config.get("voice", "longxiaochun")  # CosyVoice默认音色
+            self.voice = config.get("voice", "longxiaochun")  # Giọng nói mặc định CosyVoice
 
-        # 音频参数配置
+        # Cấu hình tham số audio
         volume = config.get("volume", "50")
         self.volume = int(volume) if volume else 50
 
@@ -115,22 +115,22 @@ class TTSProvider(TTSProviderBase):
         pitch_rate = config.get("pitch_rate", "0")
         self.pitch_rate = int(pitch_rate) if pitch_rate else 0
 
-        # WebSocket配置
+        # Cấu hình WebSocket
         self.host = config.get("host", "nls-gateway-cn-beijing.aliyuncs.com")
-        # 如果配置的是内网地址（包含-internal.aliyuncs.com），则使用ws协议，默认是wss协议
+        # Nếu cấu hình là địa chỉ nội bộ (chứa -internal.aliyuncs.com), thì sử dụng giao thức ws, mặc định là giao thức wss
         if "-internal." in self.host:
             self.ws_url = f"ws://{self.host}/ws/v1"
         else:
-            # 默认使用wss协议
+            # Mặc định sử dụng giao thức wss
             self.ws_url = f"wss://{self.host}/ws/v1"
         self.ws = None
         self._monitor_task = None
         self.last_active_time = None
 
-        # 专属tts设置
+        # Cài đặt TTS riêng
         self.task_id = uuid.uuid4().hex
 
-        # Token管理
+        # Quản lý Token
         if self.access_key_id and self.access_key_secret:
             self._refresh_token()
         else:
@@ -138,13 +138,13 @@ class TTSProvider(TTSProviderBase):
             self.expire_time = None
 
     def _refresh_token(self):
-        """刷新Token并记录过期时间"""
+        """Làm mới Token và ghi lại thời gian hết hạn"""
         if self.access_key_id and self.access_key_secret:
             self.token, expire_time_str = AccessToken.create_token(
                 self.access_key_id, self.access_key_secret
             )
             if not expire_time_str:
-                raise ValueError("无法获取有效的Token过期时间")
+                raise ValueError("Không thể lấy thời gian hết hạn Token hợp lệ")
 
             expire_str = str(expire_time_str).strip()
 
@@ -155,32 +155,32 @@ class TTSProvider(TTSProviderBase):
                     expire_time = datetime.strptime(expire_str, "%Y-%m-%dT%H:%M:%SZ")
                 self.expire_time = expire_time.timestamp() - 60
             except Exception as e:
-                raise ValueError(f"无效的过期时间格式: {expire_str}") from e
+                raise ValueError(f"Định dạng thời gian hết hạn không hợp lệ: {expire_str}") from e
         else:
             self.expire_time = None
 
         if not self.token:
-            raise ValueError("无法获取有效的访问Token")
+            raise ValueError("Không thể lấy Token truy cập hợp lệ")
 
     def _is_token_expired(self):
-        """检查Token是否过期"""
+        """Kiểm tra xem Token có hết hạn không"""
         if not self.expire_time:
             return False
         return time.time() > self.expire_time
 
     async def _ensure_connection(self):
-        """确保WebSocket连接可用"""
+        """Đảm bảo kết nối WebSocket khả dụng"""
         try:
             if self._is_token_expired():
-                logger.bind(tag=TAG).warning("Token已过期，正在自动刷新...")
+                logger.bind(tag=TAG).warning("Token đã hết hạn, đang tự động làm mới...")
                 self._refresh_token()
             current_time = time.time()
             if self.ws and current_time - self.last_active_time < 10:
-                # 10秒内才可以复用链接进行连续对话
+                # Chỉ có thể tái sử dụng kết nối để đối thoại liên tục trong vòng 10 giây
                 self.task_id = uuid.uuid4().hex
-                logger.bind(tag=TAG).info(f"使用已有链接..., task_id: {self.task_id}")
+                logger.bind(tag=TAG).info(f"Sử dụng kết nối hiện có..., task_id: {self.task_id}")
                 return self.ws
-            logger.bind(tag=TAG).debug("开始建立新连接...")
+            logger.bind(tag=TAG).debug("Bắt đầu thiết lập kết nối mới...")
 
             self.ws = await websockets.connect(
                 self.ws_url,
@@ -190,93 +190,93 @@ class TTSProvider(TTSProviderBase):
                 close_timeout=10,
             )
             self.task_id = uuid.uuid4().hex
-            logger.bind(tag=TAG).debug(f"WebSocket连接建立成功, task_id: {self.task_id}")
+            logger.bind(tag=TAG).debug(f"Kết nối WebSocket được thiết lập thành công, task_id: {self.task_id}")
             self.last_active_time = time.time()
             return self.ws
         except Exception as e:
-            logger.bind(tag=TAG).error(f"建立连接失败: {str(e)}")
+            logger.bind(tag=TAG).error(f"Thiết lập kết nối thất bại: {str(e)}")
             self.ws = None
             self.last_active_time = None
             raise
 
     def tts_text_priority_thread(self):
-        """流式文本处理线程"""
+        """Luồng xử lý văn bản dạng luồng"""
         while not self.conn.stop_event.is_set():
             try:
                 message = self.tts_text_queue.get(timeout=1)
                 logger.bind(tag=TAG).debug(
-                    f"收到TTS任务｜{message.sentence_type.name} ｜ {message.content_type.name} | 会话ID: {self.conn.sentence_id}"
+                    f"Nhận nhiệm vụ TTS｜{message.sentence_type.name} ｜ {message.content_type.name} | ID phiên: {self.conn.sentence_id}"
                 )
 
                 if message.sentence_type == SentenceType.FIRST:
                     self.conn.client_abort = False
 
                 if self.conn.client_abort:
-                    logger.bind(tag=TAG).info("收到打断信息，终止TTS文本处理线程")
+                    logger.bind(tag=TAG).info("Nhận thông tin ngắt, dừng luồng xử lý văn bản TTS")
                     continue
 
                 if message.sentence_type == SentenceType.FIRST:
-                    # 初始化参数
+                    # Khởi tạo tham số
                     try:
-                        logger.bind(tag=TAG).debug("开始启动TTS会话...")
+                        logger.bind(tag=TAG).debug("Bắt đầu khởi động phiên TTS...")
                         future = asyncio.run_coroutine_threadsafe(
                             self.start_session(self.task_id),
                             loop=self.conn.loop,
                         )
                         future.result()
                         self.before_stop_play_files.clear()
-                        logger.bind(tag=TAG).debug("TTS会话启动成功")
+                        logger.bind(tag=TAG).debug("Khởi động phiên TTS thành công")
 
                     except Exception as e:
-                        logger.bind(tag=TAG).error(f"启动TTS会话失败: {str(e)}")
+                        logger.bind(tag=TAG).error(f"Khởi động phiên TTS thất bại: {str(e)}")
                         continue
 
                 elif ContentType.TEXT == message.content_type:
                     if message.content_detail:
                         try:
                             logger.bind(tag=TAG).debug(
-                                f"开始发送TTS文本: {message.content_detail}"
+                                f"Bắt đầu gửi văn bản TTS: {message.content_detail}"
                             )
                             future = asyncio.run_coroutine_threadsafe(
                                 self.text_to_speak(message.content_detail, None),
                                 loop=self.conn.loop,
                             )
                             future.result()
-                            logger.bind(tag=TAG).debug("TTS文本发送成功")
+                            logger.bind(tag=TAG).debug("Gửi văn bản TTS thành công")
                         except Exception as e:
-                            logger.bind(tag=TAG).error(f"发送TTS文本失败: {str(e)}")
+                            logger.bind(tag=TAG).error(f"Gửi văn bản TTS thất bại: {str(e)}")
                             continue
 
                 elif ContentType.FILE == message.content_type:
                     logger.bind(tag=TAG).info(
-                        f"添加音频文件到待播放列表: {message.content_file}"
+                        f"Thêm tệp âm thanh vào danh sách chờ phát: {message.content_file}"
                     )
                     if message.content_file and os.path.exists(message.content_file):
-                        # 先处理文件音频数据
+                        # Xử lý dữ liệu âm thanh tệp trước
                         self._process_audio_file_stream(message.content_file, callback=lambda audio_data: self.handle_audio_file(audio_data, message.content_detail))
                 if message.sentence_type == SentenceType.LAST:
                     try:
-                        logger.bind(tag=TAG).debug("开始结束TTS会话...")
+                        logger.bind(tag=TAG).debug("Bắt đầu kết thúc phiên TTS...")
                         future = asyncio.run_coroutine_threadsafe(
                             self.finish_session(self.task_id),
                             loop=self.conn.loop,
                         )
                         future.result()
                     except Exception as e:
-                        logger.bind(tag=TAG).error(f"结束TTS会话失败: {str(e)}")
+                        logger.bind(tag=TAG).error(f"Kết thúc phiên TTS thất bại: {str(e)}")
                         continue
 
             except queue.Empty:
                 continue
             except Exception as e:
                 logger.bind(tag=TAG).error(
-                    f"处理TTS文本失败: {str(e)}, 类型: {type(e).__name__}, 堆栈: {traceback.format_exc()}"
+                    f"Xử lý văn bản TTS thất bại: {str(e)}, Loại: {type(e).__name__}, Stack: {traceback.format_exc()}"
                 )
 
     async def text_to_speak(self, text, _):
         try:
             if self.ws is None:
-                logger.bind(tag=TAG).warning(f"WebSocket连接不存在，终止发送文本")
+                logger.bind(tag=TAG).warning(f"Kết nối WebSocket không tồn tại, dừng gửi văn bản")
                 return
             filtered_text = MarkdownCleaner.clean_markdown(text)
             if filtered_text:
@@ -295,7 +295,7 @@ class TTSProvider(TTSProviderBase):
             return
 
         except Exception as e:
-            logger.bind(tag=TAG).error(f"发送TTS文本失败: {str(e)}")
+            logger.bind(tag=TAG).error(f"Gửi văn bản TTS thất bại: {str(e)}")
             if self.ws:
                 try:
                     await self.ws.close()
@@ -305,23 +305,23 @@ class TTSProvider(TTSProviderBase):
             raise
 
     async def start_session(self, task_id):
-        logger.bind(tag=TAG).debug("开始会话～～")
+        logger.bind(tag=TAG).debug("Bắt đầu phiên～～")
         try:
-            # 会话开始时检测上个会话的监听状态
+            # Khi phiên bắt đầu, kiểm tra trạng thái lắng nghe của phiên trước
             if (
                 self._monitor_task is not None
                 and isinstance(self._monitor_task, Task)
                 and not self._monitor_task.done()
             ):
                 logger.bind(tag=TAG).info(
-                    "检测到未完成的上个会话，关闭监听任务和连接..."
+                    "Phát hiện phiên trước chưa hoàn thành, đóng tác vụ lắng nghe và kết nối..."
                 )
                 await self.close()
 
-            # 建立新连接
+            # Thiết lập kết nối mới
             await self._ensure_connection()
 
-            # 启动监听任务
+            # Khởi động tác vụ lắng nghe
             self._monitor_task = asyncio.create_task(self._start_monitor_tts_response())
 
             start_request = {
@@ -344,15 +344,15 @@ class TTSProvider(TTSProviderBase):
             }
             await self.ws.send(json.dumps(start_request))
             self.last_active_time = time.time()
-            logger.bind(tag=TAG).debug("会话启动请求已发送")
+            logger.bind(tag=TAG).debug("Yêu cầu khởi động phiên đã được gửi")
         except Exception as e:
-            logger.bind(tag=TAG).error(f"启动会话失败: {str(e)}")
-            # 确保清理资源
+            logger.bind(tag=TAG).error(f"Khởi động phiên thất bại: {str(e)}")
+            # Đảm bảo dọn dẹp tài nguyên
             await self.close()
             raise
 
     async def finish_session(self, task_id):
-        logger.bind(tag=TAG).debug(f"关闭会话～～{task_id}")
+        logger.bind(tag=TAG).debug(f"Đóng phiên～～{task_id}")
         try:
             if self.ws:
                 stop_request = {
@@ -365,25 +365,25 @@ class TTSProvider(TTSProviderBase):
                     }
                 }
                 await self.ws.send(json.dumps(stop_request))
-                logger.bind(tag=TAG).debug("会话结束请求已发送")
+                logger.bind(tag=TAG).debug("Yêu cầu kết thúc phiên đã được gửi")
                 self.last_active_time = time.time()
                 if self._monitor_task:
                     try:
                         await self._monitor_task
                     except Exception as e:
                         logger.bind(tag=TAG).error(
-                            f"等待监听任务完成时发生错误: {str(e)}"
+                            f"Xảy ra lỗi khi chờ tác vụ lắng nghe hoàn thành: {str(e)}"
                         )
                     finally:
                         self._monitor_task = None
         except Exception as e:
-            logger.bind(tag=TAG).error(f"关闭会话失败: {str(e)}")
-            # 确保清理资源
+            logger.bind(tag=TAG).error(f"Đóng phiên thất bại: {str(e)}")
+            # Đảm bảo dọn dẹp tài nguyên
             await self.close()
             raise
 
     async def close(self):
-        """资源清理"""
+        """Dọn dẹp tài nguyên"""
         if self._monitor_task:
             try:
                 self._monitor_task.cancel()
@@ -391,7 +391,7 @@ class TTSProvider(TTSProviderBase):
             except asyncio.CancelledError:
                 pass
             except Exception as e:
-                logger.bind(tag=TAG).warning(f"关闭时取消监听任务错误: {e}")
+                logger.bind(tag=TAG).warning(f"Lỗi khi hủy tác vụ lắng nghe khi đóng: {e}")
             self._monitor_task = None
 
         if self.ws:
@@ -403,82 +403,82 @@ class TTSProvider(TTSProviderBase):
             self.last_active_time = None
 
     async def _start_monitor_tts_response(self):
-        """监听TTS响应"""
+        """Lắng nghe phản hồi TTS"""
         try:
-            session_finished = False  # 标记会话是否正常结束
+            session_finished = False  # Đánh dấu xem phiên có kết thúc bình thường không
             while not self.conn.stop_event.is_set():
                 try:
                     msg = await self.ws.recv()
                     self.last_active_time = time.time()
-                    # 检查客户端是否中止
+                    # Kiểm tra xem client có bị hủy không
                     if self.conn.client_abort:
-                        logger.bind(tag=TAG).info("收到打断信息，终止监听TTS响应")
+                        logger.bind(tag=TAG).info("Nhận thông tin ngắt, dừng lắng nghe phản hồi TTS")
                         break
-                    if isinstance(msg, str):  # 文本控制消息
+                    if isinstance(msg, str):  # Tin nhắn điều khiển văn bản
                         try:
                             data = json.loads(msg)
                             header = data.get("header", {})
                             event_name = header.get("name")
                             if event_name == "SynthesisStarted":
-                                logger.bind(tag=TAG).debug("TTS合成已启动")
+                                logger.bind(tag=TAG).debug("Tổng hợp TTS đã khởi động")
                                 self.tts_audio_queue.put(
                                     (SentenceType.FIRST, [], None)
                                 )
                             elif event_name == "SentenceEnd":
-                                # 发送缓存的数据
+                                # Gửi dữ liệu đã lưu vào bộ đệm
                                 if self.conn.tts_MessageText:
                                     logger.bind(tag=TAG).info(
-                                        f"句子语音生成成功： {self.conn.tts_MessageText}"
+                                        f"Tạo giọng nói câu thành công: {self.conn.tts_MessageText}"
                                     )
                                     self.tts_audio_queue.put(
                                         (SentenceType.FIRST, [], self.conn.tts_MessageText)
                                     )
                                     self.conn.tts_MessageText = None
                             elif event_name == "SynthesisCompleted":
-                                logger.bind(tag=TAG).debug(f"会话结束～～")
+                                logger.bind(tag=TAG).debug(f"Phiên kết thúc～～")
                                 self._process_before_stop_play_files()
                                 session_finished = True
                                 break
                         except json.JSONDecodeError:
-                            logger.bind(tag=TAG).warning("收到无效的JSON消息")
-                    # 二进制消息（音频数据）
+                            logger.bind(tag=TAG).warning("Nhận tin nhắn JSON không hợp lệ")
+                    # Tin nhắn nhị phân (dữ liệu âm thanh)
                     elif isinstance(msg, (bytes, bytearray)):
                         self.opus_encoder.encode_pcm_to_opus_stream(msg, False, self.handle_opus)
                 except websockets.ConnectionClosed:
-                    logger.bind(tag=TAG).warning("WebSocket连接已关闭")
+                    logger.bind(tag=TAG).warning("Kết nối WebSocket đã đóng")
                     break
                 except Exception as e:
                     logger.bind(tag=TAG).error(
-                        f"处理TTS响应时出错: {e}\n{traceback.format_exc()}"
+                        f"Xảy ra lỗi khi xử lý phản hồi TTS: {e}\n{traceback.format_exc()}"
                     )
                     break
-            # 仅在连接异常时才关闭
+            # Chỉ đóng khi kết nối bất thường
             if not session_finished and self.ws:
                 try:
                     await self.ws.close()
                 except:
                     pass
                 self.ws = None
-        # 监听任务退出时清理引用
+        # Dọn dẹp tham chiếu khi tác vụ lắng nghe thoát
         finally:
             self._monitor_task = None
 
     def to_tts(self, text: str) -> list:
-        """非流式TTS处理，用于测试及保存音频文件的场景"""
+        """Xử lý TTS không luồng, dùng cho các trường hợp kiểm tra và lưu tệp âm thanh"""
         try:
-            # 创建新的事件循环
+            # Tạo vòng lặp sự kiện mới
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
 
-            # 存储音频数据
+            # Lưu trữ dữ liệu âm thanh
             audio_data = []
 
             async def _generate_audio():
-                # 刷新Token（如果需要）
+                # Làm mới Token (nếu cần)
                 if self._is_token_expired():
                     self._refresh_token()
 
-                # 建立WebSocket连接
+                # Thiết lập kết nối WebSocket
                 ws = await websockets.connect(
                     self.ws_url,
                     additional_headers={"X-NLS-Token": self.token},
@@ -487,7 +487,7 @@ class TTSProvider(TTSProviderBase):
                     close_timeout=10,
                 )
                 try:
-                    # 发送StartSynthesis请求
+                    # Gửi yêu cầu StartSynthesis
                     start_request = {
                         "header": {
                             "message_id": uuid.uuid4().hex,
@@ -508,7 +508,7 @@ class TTSProvider(TTSProviderBase):
                     }
                     await ws.send(json.dumps(start_request))
 
-                    # 等待SynthesisStarted响应
+                    # Chờ phản hồi SynthesisStarted
                     synthesis_started = False
                     while not synthesis_started:
                         msg = await ws.recv()
@@ -517,20 +517,20 @@ class TTSProvider(TTSProviderBase):
                             header = data.get("header", {})
                             if header.get("name") == "SynthesisStarted":
                                 synthesis_started = True
-                                logger.bind(tag=TAG).debug("TTS合成已启动")
+                                logger.bind(tag=TAG).debug("Tổng hợp TTS đã khởi động")
                             elif header.get("name") == "TaskFailed":
                                 error_info = data.get("payload", {}).get(
                                     "error_info", {}
                                 )
                                 error_code = error_info.get("error_code")
                                 error_message = error_info.get(
-                                    "error_message", "未知错误"
+                                    "error_message", "Lỗi không xác định"
                                 )
                                 raise Exception(
-                                    f"启动合成失败: {error_code} - {error_message}"
+                                    f"Khởi động tổng hợp thất bại: {error_code} - {error_message}"
                                 )
 
-                    # 发送文本合成请求
+                    # Gửi yêu cầu tổng hợp văn bản
                     filtered_text = MarkdownCleaner.clean_markdown(text)
                     run_request = {
                         "header": {
@@ -544,7 +544,7 @@ class TTSProvider(TTSProviderBase):
                     }
                     await ws.send(json.dumps(run_request))
 
-                    # 发送停止合成请求
+                    # Gửi yêu cầu dừng tổng hợp
                     stop_request = {
                         "header": {
                             "message_id": uuid.uuid4().hex,
@@ -556,7 +556,7 @@ class TTSProvider(TTSProviderBase):
                     }
                     await ws.send(json.dumps(stop_request))
 
-                    # 接收音频数据
+                    # Nhận dữ liệu âm thanh
                     synthesis_completed = False
                     while not synthesis_completed:
                         msg = await ws.recv()
@@ -572,17 +572,17 @@ class TTSProvider(TTSProviderBase):
                             event_name = header.get("name")
                             if event_name == "SynthesisCompleted":
                                 synthesis_completed = True
-                                logger.bind(tag=TAG).debug("TTS合成完成")
+                                logger.bind(tag=TAG).debug("Tổng hợp TTS hoàn thành")
                             elif event_name == "TaskFailed":
                                 error_info = data.get("payload", {}).get(
                                     "error_info", {}
                                 )
                                 error_code = error_info.get("error_code")
                                 error_message = error_info.get(
-                                    "error_message", "未知错误"
+                                    "error_message", "Lỗi không xác định"
                                 )
                                 raise Exception(
-                                    f"合成失败: {error_code} - {error_message}"
+                                    f"Tổng hợp thất bại: {error_code} - {error_message}"
                                 )
                 finally:
                     try:
@@ -595,5 +595,5 @@ class TTSProvider(TTSProviderBase):
 
             return audio_data
         except Exception as e:
-            logger.bind(tag=TAG).error(f"生成音频数据失败: {str(e)}")
+            logger.bind(tag=TAG).error(f"Tạo dữ liệu âm thanh thất bại: {str(e)}")
             return []
