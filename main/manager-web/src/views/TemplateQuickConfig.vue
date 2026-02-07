@@ -11,7 +11,7 @@
         <div class="content-area">
           <el-card class="config-card" shadow="never">
               <div class="config-header">
-              <!-- 使用角色配置页面相同的彩色图标效果 -->
+              <!-- Sử dụng hiệu ứng biểu tượng màu sắc giống như trang cấu hình vai trò -->
               <div class="header-icon">
                 <img loading="lazy" src="@/assets/home/setting-user.png" alt="">
               </div>
@@ -27,7 +27,7 @@
             <div class="divider"></div>
 
             <el-form ref="form" :model="form" label-width="72px" class="full-height-form">
-              <!-- 助手昵称 -->
+              <!-- Biệt danh trợ lý -->
               <el-form-item :label="$t('templateQuickConfig.agentSettings.agentName')" prop="agentName" class="nickname-item">
                 <el-input
                   v-model="form.agentName"
@@ -37,7 +37,7 @@
                 />
               </el-form-item>
               
-              <!-- 角色介绍 -->
+              <!-- Giới thiệu vai trò -->
               <el-form-item :label="$t('templateQuickConfig.agentSettings.systemPrompt')" prop="systemPrompt" class="description-item">
                 <el-input
                   v-model="form.systemPrompt"
@@ -60,7 +60,7 @@
 import HeaderBar from "@/components/HeaderBar.vue";
 import agentApi from '@/apis/module/agent';
 
-// 默认模型配置常量
+// Hằng số cấu hình mô hình mặc định
 const DEFAULT_MODEL_CONFIG = {
   ttsModelId: "TTS_EdgeTTS",
   vadModelId: "VAD_SileroVAD",
@@ -77,7 +77,7 @@ export default {
   data() {
     return {
       form: {
-        agentCode: "小智",
+        agentCode: "小智", // Giữ nguyên giá trị gốc
         agentName: "",
         systemPrompt: "",
         sort: 0,
@@ -88,12 +88,12 @@ export default {
     };
   },
   methods: {
-    // 返回模板管理页面
+    // Trở về trang quản lý mẫu
     goToHome() {
       this.$router.push('/agent-template-management');
     },
     
-    // 保存配置
+    // Lưu cấu hình
     saveConfig() {
       const configData = this.prepareConfigData();
       
@@ -104,7 +104,7 @@ export default {
       }
     },
     
-    // 准备配置数据
+    // Chuẩn bị dữ liệu cấu hình
     prepareConfigData() {
       return {
         id: this.templateId || '',
@@ -113,12 +113,12 @@ export default {
         systemPrompt: this.form.systemPrompt,
         sort: this.form.sort,
         functions: [],
-        // 包含必要的模型字段以确保API调用成功
+        // Bao gồm các trường mô hình cần thiết để đảm bảo gọi API thành công
         ...this.form.model
       };
     },
     
-    // 更新现有模板
+    // Cập nhật mẫu hiện có
     updateExistingTemplate(configData) {
       agentApi.updateAgentTemplate(configData, (res) => {
         if (res && res.data && res.data.code === 0) {
@@ -136,7 +136,7 @@ export default {
       });
     },
     
-    // 创建新模板
+    // Tạo mẫu mới
     createNewTemplate(configData) {
       agentApi.addAgentTemplate(configData, (res) => {
         if (res && res.data && res.data.code === 0) {
@@ -154,7 +154,7 @@ export default {
       });
     },
     
-    // 重置配置
+    // Đặt lại cấu hình
     resetConfig() {
       this.$confirm(
         this.$t('templateQuickConfig.confirmReset'), 
@@ -175,7 +175,7 @@ export default {
       }).catch(() => {});
     },
     
-    // 根据ID获取模板
+    // Lấy mẫu theo ID
     fetchTemplateById(templateId) {
       agentApi.getAgentTemplateById(templateId, (res) => {
         if (res && res.data && res.data.code === 0 && res.data.data) {
@@ -189,7 +189,7 @@ export default {
       });
     },
     
-    // 应用模板数据
+    // Áp dụng dữ liệu mẫu
     applyTemplateData(templateData) {
       this.form = {
         ...this.form,
@@ -209,12 +209,12 @@ export default {
       };
     },
     
-    // 设置默认模板值
+    // Đặt giá trị mẫu mặc định
     setDefaultTemplateValues() {
       this.form = {
         ...this.form,
         agentName: this.$t('templateQuickConfig.newTemplate'),
-        agentCode: '小智',
+        agentCode: '小智', // Giữ nguyên giá trị gốc
         systemPrompt: '',
         sort: 1
       };
@@ -222,7 +222,7 @@ export default {
       this.originalForm = JSON.parse(JSON.stringify(this.form));
     },
     
-    // 获取模板列表并设置排序号
+    // Lấy danh sách mẫu và đặt số thứ tự
     fetchTemplateListForSort() {
       agentApi.getAgentTemplate((res) => {
         if (res && res.data && res.data.code === 0) {
@@ -242,15 +242,15 @@ export default {
     }
   },
   
-  // 组件挂载时执行初始化
+  // Thực thi khởi tạo khi component được gắn kết
   mounted() {
     const templateId = this.$route.query.templateId;
     
     if (templateId) {
-      // 编辑模式：加载现有模板
+      // Chế độ chỉnh sửa: tải mẫu hiện có
       this.fetchTemplateById(templateId);
     } else {
-      // 新建模式：设置默认值并获取排序号
+      // Chế độ tạo mới: đặt giá trị mặc định và lấy số thứ tự
       this.form.agentName = this.$t('templateQuickConfig.newTemplate');
       this.fetchTemplateListForSort();
     }

@@ -103,9 +103,9 @@ export default {
             if (!this.messages || this.messages.length === 0) return [];
 
             const result = [];
-            const TIME_INTERVAL = 60 * 1000; // 1分钟的时间间隔（毫秒）
+            const TIME_INTERVAL = 60 * 1000; // Khoảng thời gian 1 phút (mili giây)
 
-            // 添加第一条消息的时间标记
+            // Thêm dấu thời gian cho tin nhắn đầu tiên
             if (this.messages[0]) {
                 result.push({
                     type: 'time',
@@ -114,12 +114,12 @@ export default {
                 });
             }
 
-            // 处理消息列表
+            // Xử lý danh sách tin nhắn
             for (let i = 0; i < this.messages.length; i++) {
                 const currentMessage = this.messages[i];
                 result.push(currentMessage);
 
-                // 检查是否需要添加时间标记
+                // Kiểm tra xem có cần thêm dấu thời gian không
                 if (i < this.messages.length - 1) {
                     const currentTime = new Date(currentMessage.createdAt).getTime();
                     const nextTime = new Date(this.messages[i + 1].createdAt).getTime();
@@ -139,29 +139,29 @@ export default {
     },
     methods: {
         /**
-         * 从 content 字段中提取聊天内容
-         * 如果 content 是 JSON 格式（如 {"speaker": "未知说话人", "content": "现在几点了。"}），则提取 content 字段
-         * 如果 content 是普通字符串，则直接返回
+         * Trích xuất nội dung trò chuyện từ trường content
+         * Nếu content là định dạng JSON (ví dụ: {"speaker": "未知说话人", "content": "现在几点了。"}), thì trích xuất trường content
+         * Nếu content là chuỗi thông thường, thì trả về trực tiếp
          * 
-         * @param {string} content 原始内容
-         * @returns {string} 提取的聊天内容
+         * @param {string} content Nội dung gốc
+         * @returns {string} Nội dung trò chuyện đã trích xuất
          */
         extractContentFromString(content) {
             if (!content || content.trim() === '') {
                 return content;
             }
 
-            // 尝试解析为 JSON
+            // Thử phân tích thành JSON
             try {
                 const jsonObj = JSON.parse(content);
                 if (jsonObj && typeof jsonObj === 'object' && jsonObj.content) {
                     return jsonObj.content;
                 }
             } catch (e) {
-                // 如果不是有效的 JSON，直接返回原内容
+                // Nếu không phải JSON hợp lệ, trả về nội dung gốc
             }
 
-            // 如果不是 JSON 格式或没有 content 字段，直接返回原内容
+            // Nếu không phải định dạng JSON hoặc không có trường content, trả về nội dung gốc
             return content;
         },
         resetData() {
@@ -222,7 +222,7 @@ export default {
 
             this.scrollTimer = setTimeout(() => {
                 const { scrollTop, scrollHeight, clientHeight } = e.target;
-                // 当滚动到底部时加载更多
+                // Tải thêm khi cuộn đến cuối
                 if (scrollHeight - scrollTop <= clientHeight + 50) {
                     this.loadSessions();
                 }
@@ -257,7 +257,7 @@ export default {
         },
         playAudio(message) {
             if (this.playingAudioId === message.audioId) {
-                // 如果正在播放当前音频，则停止播放
+                // Nếu đang phát âm thanh hiện tại, thì dừng phát
                 if (this.audioElement) {
                     this.audioElement.pause();
                     this.audioElement = null;
@@ -266,17 +266,17 @@ export default {
                 return;
             }
 
-            // 停止当前正在播放的音频
+            // Dừng âm thanh đang phát hiện tại
             if (this.audioElement) {
                 this.audioElement.pause();
                 this.audioElement = null;
             }
 
-            // 先获取音频下载ID
+            // Đầu tiên lấy ID tải xuống âm thanh
             this.playingAudioId = message.audioId;
             Api.agent.getAudioId(message.audioId, (res) => {
                 if (res.data && res.data.data) {
-                    // 使用获取到的下载ID播放音频
+                    // Sử dụng ID tải xuống đã lấy được để phát âm thanh
                     this.audioElement = new Audio(Api.getServiceUrl() + `/agent/play/${res.data.data}`);
 
                     this.audioElement.onended = () => {
@@ -289,21 +289,21 @@ export default {
             });
         },
         getUserAvatar(sessionId) {
-            // 从 sessionId 中提取所有数字
+            // Trích xuất tất cả các số từ sessionId
             const numbers = sessionId.match(/\d+/g);
             if (!numbers) return require('@/assets/user-avatar1.png');
 
-            // 将所有数字相加
+            // Cộng tất cả các số lại
             const sum = numbers.reduce((acc, num) => acc + parseInt(num), 0);
 
-            // 计算模5并加1，得到1-5之间的数字
+            // Tính modulo 5 và cộng 1, được số từ 1-5
             const avatarIndex = (sum % 5) + 1;
 
-            // 返回对应的头像图片
+            // Trả về hình ảnh avatar tương ứng
             return require(`@/assets/user-avatar${avatarIndex}.png`);
         },
 
-        // 下载本会话聊天记录
+        // Tải xuống lịch sử trò chuyện của phiên này
         downloadCurrentSession() {
             Api.agent.getDownloadUrl(this.agentId, this.currentSessionId, (res) => {
                 if (res && res.data && res.data.code === 0 && res.data.data) {
@@ -315,7 +315,7 @@ export default {
             });
         },
 
-        // 下载本会话及前20条会话聊天记录
+        // Tải xuống lịch sử trò chuyện của phiên này và 20 phiên trước đó
         downloadCurrentSessionWithPrevious() {
             Api.agent.getDownloadUrl(this.agentId, this.currentSessionId, (res) => {
                 if (res && res.data && res.data.code === 0 && res.data.data) {
@@ -378,7 +378,7 @@ export default {
     height: 30px;
     line-height: 30px;
     width: calc(100% - 30px);
-    /* 为消息数量留出空间 */
+    /* Dành không gian cho số lượng tin nhắn */
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -517,6 +517,6 @@ export default {
     padding: 0;
     overflow: hidden;
     height: calc(90vh - 54px);
-    /* 减去标题栏的高度 */
+    /* Trừ đi chiều cao thanh tiêu đề */
 }
 </style>

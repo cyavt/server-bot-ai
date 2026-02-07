@@ -15,10 +15,10 @@
             </div>
         </div>
 
-        <!-- 主体内容 -->
+        <!-- Nội dung chính -->
         <div class="main-wrapper">
             <div class="content-panel">
-                <!-- 左侧字典类型列表 -->
+                <!-- Danh sách loại từ điển bên trái -->
                 <div class="dict-type-panel">
                     <div class="dict-type-header">
                         <el-button type="success" size="mini" @click="showAddDictTypeDialog">{{ $t('dictManagement.addDictType') }}</el-button>
@@ -28,7 +28,7 @@
                         </el-button>
                     </div>
                     <el-table ref="dictTypeTable" :data="dictTypeList" style="width: 100%" v-loading="dictTypeLoading"
-                        element-loading-text="拼命加载中" element-loading-spinner="el-icon-loading"
+                        element-loading-text="Đang tải..." element-loading-spinner="el-icon-loading"
                         element-loading-background="rgba(255, 255, 255, 0.7)" @row-click="handleDictTypeRowClick"
                         @selection-change="handleDictTypeSelectionChange" :row-class-name="tableRowClassName"
                         class="dict-type-table" :header-cell-class-name="headerCellClassName">
@@ -42,7 +42,7 @@
                     </el-table>
                 </div>
 
-                <!-- 右侧字典数据列表 -->
+                <!-- Danh sách dữ liệu từ điển bên phải -->
                 <div class="content-area">
                     <el-card class="dict-data-card" shadow="never">
                         <el-table ref="dictDataTable" :data="dictDataList" style="width: 100%"

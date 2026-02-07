@@ -19,7 +19,7 @@
       </div>
     </div>
 
-    <!-- 主体内容 -->
+    <!-- Nội dung chính -->
     <div class="main-wrapper">
       <div class="content-panel">
         <div class="content-area">
@@ -36,8 +36,8 @@
               :header-cell-style="{ padding: '10px 20px' }"
               :cell-style="{ padding: '10px 20px' }"
             >
-              <!-- 移除@row-click="handleRowClick" -->
-              <!-- 自定义选择列，实现表头是"选择"文字，数据行是小方框 -->
+              <!-- Xóa @row-click="handleRowClick" -->
+              <!-- Cột chọn tùy chỉnh, hiện thị văn bản "Chọn" ở tiêu đề bảng và ô vuông nhỏ ở hàng dữ liệu -->
               <el-table-column
                 :label="$t('agentTemplateManagement.select')"
                 align="center"
@@ -51,7 +51,7 @@
                   ></el-checkbox>
                 </template>
               </el-table-column>
-              <!-- 模板名称 -->
+              <!-- Tên mẫu -->
               <el-table-column
                 :label="$t('agentTemplateManagement.templateName')"
                 prop="agentName"
@@ -62,7 +62,7 @@
                   <span>{{ scope.row.agentName }}</span>
                 </template>
               </el-table-column>
-              <!-- 修改为序号列，并移动到此处 -->
+              <!-- Thay đổi thành cột số thứ tự và di chuyển đến đây -->
               <el-table-column
                 :label="$t('agentTemplateManagement.serialNumber')"
                 min-width="120"
@@ -72,7 +72,7 @@
                   <span>{{ (currentPage - 1) * pageSize + scope.$index + 1 }}</span>
                 </template>
               </el-table-column>
-              <!-- 操作列 -->
+              <!-- Cột thao tác -->
               <el-table-column
                 :label="$t('agentTemplateManagement.action')"
                 min-width="250"
@@ -91,7 +91,7 @@
               </el-table-column>
             </el-table>
 
-            <!-- 表格底部操作栏 -->
+            <!-- Thanh thao tác dưới cùng bảng -->
             <div class="table_bottom">
               <div class="ctrl_btn">
                 <el-button
@@ -119,7 +119,7 @@
                 </el-button>
               </div>
 
-              <!-- 分页 -->
+              <!-- Phân trang -->
               <div class="custom-pagination">
                 <el-pagination
                   v-model:current-page="currentPage"
@@ -168,7 +168,7 @@ export default {
   created() {
     this.loadTemplateList();
   },
-  // 在computed部分添加hasSelected属性
+  // Thêm thuộc tính hasSelected trong phần computed
   computed: {
     pageCount() {
       return Math.ceil(this.total / this.pageSize);
@@ -181,8 +181,8 @@ export default {
     },
   },
   methods: {
-    // 加载模板列表
-    // 改进loadTemplateList方法的错误处理逻辑
+    // Tải danh sách mẫu
+    // Cải thiện logic xử lý lỗi của phương thức loadTemplateList
     loadTemplateList() {
       this.templateLoading = true;
       const params = {

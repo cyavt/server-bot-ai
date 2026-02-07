@@ -13,7 +13,7 @@
         <div class="main-wrapper">
             <div class="content-panel">
                 <div class="content-area">
-                    <!-- 显示表格或空状态 -->
+                    <!-- Hiển thị bảng hoặc trạng thái trống -->
                     <el-card class="params-card" shadow="never" v-if="total > 0">
                         <el-table ref="paramsTable" :data="voiceCloneList" class="transparent-table" v-loading="loading"
                             element-loading-text="Loading" element-loading-spinner="el-icon-loading"
@@ -96,7 +96,7 @@
                         </div>
                     </el-card>
 
-                    <!-- 空状态提示 -->
+                    <!-- Thông báo trạng thái trống -->
                     <div v-else-if="!loading" class="empty-state-wrapper">
                         <div class="empty-state">
                             <div class="empty-icon">
@@ -117,7 +117,7 @@
             <version-footer />
         </el-footer>
 
-        <!-- 复刻弹框 -->
+        <!-- Hộp thoại sao chép -->
         <VoiceCloneDialog :visible.sync="cloneDialogVisible" :voiceCloneData="currentVoiceClone"
             @success="handleCloneSuccess" />
     </div>
@@ -150,9 +150,9 @@ export default {
                 voiceIds: [],
                 userId: null
             },
-            // 音频播放相关
-            currentAudio: null, // 当前正在播放的音频对象
-            playingRowId: null  // 当前正在播放的行 ID
+            // Liên quan đến phát âm thanh
+            currentAudio: null, // Đối tượng âm thanh đang phát
+            playingRowId: null  // ID dòng đang phát
         };
     },
     created() {
@@ -182,26 +182,26 @@ export default {
     methods: {
         getTooltipContent(row) {
             if (!row.hasVoice) {
-                return '待上传';
+                return 'Chờ tải lên';
             }
             switch (row.trainStatus) {
                 case 0:
-                    return '待复刻';
+                    return 'Chờ sao chép';
                 case 2:
-                    return '训练成功';
+                    return 'Huấn luyện thành công';
                 case 3:
-                    // 训练失败时，根据错误信息智能展示
+                    // Khi huấn luyện thất bại, hiển thị thông minh theo thông tin lỗi
                     if (row.trainError) {
-                        return `训练失败：${row.trainError}`;
+                        return `Huấn luyện thất bại：${row.trainError}`;
                     }
-                    return '训练失败';
+                    return 'Huấn luyện thất bại';
                 default:
                     return '';
             }
         },
         handleViewDetails(row) {
-            console.log('查看详情:', row);
-            // 可以在这里添加查看详情的逻辑
+            console.log('Xem chi tiết:', row);
+            // Có thể thêm logic xem chi tiết ở đây
         },
         handlePageSizeChange(val) {
             this.pageSize = val;
@@ -273,7 +273,7 @@ export default {
                     return '';
             }
         },
-        // 获取状态按钮样式
+        // Lấy kiểu nút trạng thái
         getStatusButtonClass(row) {
             if (!row.hasVoice || row.trainStatus === 0) {
                 return 'status-waiting';
@@ -284,9 +284,9 @@ export default {
             }
             return '';
         },
-        // 处理复刻操作
+        // Xử lý thao tác sao chép
         handleClone(row) {
-            // 防止重复提交
+            // Ngăn chặn gửi trùng lặp
             if (row._cloning) {
                 return;
             }
@@ -301,85 +301,85 @@ export default {
                         res = res.data;
                         if (res.code === 0) {
                             this.$message.success(this.$t('message.success'));
-                            // 复刻成功后刷新列表
+                            // Sau khi sao chép thành công, làm mới danh sách
                             this.fetchVoiceCloneList();
                         } else {
-                            // 复刻失败时刷新列表以获取完整的错误信息
-                            console.log('API返回错误，刷新列表获取详细错误信息');
+                            // Khi sao chép thất bại, làm mới danh sách để lấy thông tin lỗi đầy đủ
+                            console.log('API trả về lỗi, làm mới danh sách để lấy thông tin lỗi chi tiết');
                             this.$message.error(res.msg || this.$t('message.error'));
-                            // 刷新列表以获取后端保存的完整错误详情
+                            // Làm mới danh sách để lấy chi tiết lỗi đầy đủ được lưu ở backend
                             this.fetchVoiceCloneList();
                         }
                     } catch (error) {
-                        // 处理响应时出错，刷新列表
-                        console.error('处理响应时出错:', error);
-                        this.$message.error('处理响应时出错');
+                        // Lỗi khi xử lý phản hồi, làm mới danh sách
+                        console.error('Lỗi khi xử lý phản hồi:', error);
+                        this.$message.error('Lỗi khi xử lý phản hồi');
                         this.fetchVoiceCloneList();
                     } finally {
                         this.$set(row, '_cloning', false);
                     }
                 }, (error) => {
-                    // API调用失败，刷新列表以获取最新状态
-                    console.error('API调用失败:', error);
-                    this.$message.error('克隆失败，请将鼠标悬停在错误提示上，查看错误详情');
+                    // Gọi API thất bại, làm mới danh sách để lấy trạng thái mới nhất
+                    console.error('Gọi API thất bại:', error);
+                    this.$message.error('Sao chép thất bại, vui lòng di chuột qua thông báo lỗi để xem chi tiết lỗi');
                     this.fetchVoiceCloneList();
                     this.$set(row, '_cloning', false);
                 });
             } catch (error) {
-                // 调用API时出错，刷新列表
-                console.error('调用API时出错:', error);
-                this.$message.error('调用API时出错');
+                // Lỗi khi gọi API, làm mới danh sách
+                console.error('Lỗi khi gọi API:', error);
+                this.$message.error('Lỗi khi gọi API');
                 this.fetchVoiceCloneList();
                 this.$set(row, '_cloning', false);
             }
         },
 
-        // 更新行状态并触发视图更新
+        // Cập nhật trạng thái dòng và kích hoạt cập nhật chế độ xem
         updateRowStatus(row, status, statusCode = null) {
-            // 在Vue中直接修改数组中的对象属性可能不会触发视图更新
+            // Trong Vue, việc sửa đổi trực tiếp thuộc tính đối tượng trong mảng có thể không kích hoạt cập nhật chế độ xem
             const index = this.voiceCloneList.findIndex(item => item.id === row.id);
             const updateData = {
                 trainStatus: status
             };
 
-            // 如果提供了状态码，也更新状态码信息
+            // Nếu cung cấp mã trạng thái, cũng cập nhật thông tin mã trạng thái
             if (statusCode !== null) {
                 updateData.statusCode = statusCode;
             }
 
             if (index !== -1) {
-                // 使用Vue.set来确保响应式更新
+                // Sử dụng Vue.set để đảm bảo cập nhật phản ứng
                 this.$set(this.voiceCloneList, index, {
                     ...this.voiceCloneList[index],
                     ...updateData
                 });
-                // 强制表格重新渲染
+                // Buộc bảng render lại
                 if (this.$refs.paramsTable) {
                     this.$refs.paramsTable.doLayout();
                 }
             } else {
-                // 如果找不到索引，直接更新row对象
+                // Nếu không tìm thấy chỉ mục, cập nhật trực tiếp đối tượng row
                 row.trainStatus = status;
                 if (statusCode !== null) {
                     row.statusCode = statusCode;
                 }
-                // 强制整个表格重新渲染
+                // Buộc toàn bộ bảng render lại
                 this.$forceUpdate();
             }
-            console.log('更新行状态:', row.id, '状态:', status, '状态码:', statusCode);
+            console.log('Cập nhật trạng thái dòng:', row.id, 'Trạng thái:', status, 'Mã trạng thái:', statusCode);
         },
-        // 复刻成功后的回调
+        // Callback sau khi sao chép thành công
         handleCloneSuccess() {
             this.fetchVoiceCloneList();
         },
-        // 进入编辑模式
+        // Vào chế độ chỉnh sửa
         handleEditName(row) {
             this.$set(row, 'isEdit', true);
             this.$nextTick(() => {
-                // 聚焦到输入框
+                // Tập trung vào hộp nhập
                 const input = this.$refs.nameInput;
                 if (input) {
-                    // nameInput 可能是一个数组
+                    // nameInput có thể là một mảng
                     if (Array.isArray(input)) {
                         const idx = this.voiceCloneList.indexOf(row);
                         if (input[idx]) {
@@ -391,9 +391,9 @@ export default {
                 }
             });
         },
-        // 提交名称修改
+        // Gửi sửa đổi tên
         submitName(row) {
-            // 防止重复提交
+            // Ngăn chặn gửi trùng lặp
             if (row._submitting) {
                 return;
             }
@@ -407,75 +407,75 @@ export default {
             Api.voiceClone.updateName(params, (res) => {
                 res = res.data;
                 if (res.code === 0) {
-                    this.$message.success(this.$t('voiceClone.updateNameSuccess') || '名称更新成功');
+                    this.$message.success(this.$t('voiceClone.updateNameSuccess') || 'Cập nhật tên thành công');
                 } else {
-                    this.$message.error(res.msg || this.$t('voiceClone.updateNameFailed') || '名称更新失败');
-                    // 失败时恢复原值
+                    this.$message.error(res.msg || this.$t('voiceClone.updateNameFailed') || 'Cập nhật tên thất bại');
+                    // Khi thất bại, khôi phục giá trị gốc
                     this.fetchVoiceCloneList();
                 }
                 row._submitting = false;
             });
         },
-        // 名称输入框:失焦时提交
+        // Hộp nhập tên: gửi khi mất tiêu điểm
         onNameBlur(row) {
             row.isEdit = false;
             setTimeout(() => {
                 this.submitName(row);
-            }, 100); // 延迟 100ms，避开 enter+blur 同时触发的窗口
+            }, 100); // Trì hoãn 100ms, tránh cửa sổ được kích hoạt đồng thời bởi enter+blur
         },
-        // 名称输入框:按回车时提交
+        // Hộp nhập tên: gửi khi nhấn Enter
         onNameEnter(row) {
             row.isEdit = false;
             this.submitName(row);
         },
-        // 播放音频
+        // Phát âm thanh
         handlePlay(row) {
-            // 如果点击的是正在播放的行,则停止播放
+            // Nếu nhấp vào dòng đang phát, thì dừng phát
             if (this.playingRowId === row.id && this.currentAudio) {
                 this.stopCurrentAudio();
                 return;
             }
 
-            // 停止当前正在播放的音频(如果有)
+            // Dừng âm thanh đang phát (nếu có)
             this.stopCurrentAudio();
 
-            // 先获取音频下载ID
+            // Đầu tiên lấy ID tải xuống âm thanh
             Api.voiceClone.getAudioId(row.id, (res) => {
                 res = res.data;
                 if (res.code === 0) {
                     const uuid = res.data;
-                    // 使用获取到的uuid播放音频
+                    // Sử dụng uuid đã lấy để phát âm thanh
                     const audioUrl = Api.voiceClone.getPlayVoiceUrl(uuid);
                     const audio = new Audio(audioUrl);
 
-                    // 设置当前播放状态
+                    // Đặt trạng thái phát hiện tại
                     this.currentAudio = audio;
                     this.playingRowId = row.id;
 
-                    // 播放结束时清除状态
+                    // Xóa trạng thái khi phát kết thúc
                     audio.addEventListener('ended', () => {
                         this.playingRowId = null;
                         this.currentAudio = null;
                     });
 
-                    // 播放出错时清除状态
+                    // Xóa trạng thái khi phát lỗi
                     audio.addEventListener('error', () => {
                         this.playingRowId = null;
                         this.currentAudio = null;
                     });
 
                     audio.play().catch(err => {
-                        console.error('播放失败:', err);
-                        this.$message.error(this.$t('voiceClone.playFailed') || '播放失败');
+                        console.error('Phát thất bại:', err);
+                        this.$message.error(this.$t('voiceClone.playFailed') || 'Phát thất bại');
                         this.playingRowId = null;
                         this.currentAudio = null;
                     });
                 } else {
-                    this.$message.error(res.msg || this.$t('voiceClone.audioNotExist') || '音频不存在');
+                    this.$message.error(res.msg || this.$t('voiceClone.audioNotExist') || 'Âm thanh không tồn tại');
                 }
             });
         },
-        // 停止当前音频播放
+        // Dừng phát âm thanh hiện tại
         stopCurrentAudio() {
             if (this.currentAudio) {
                 this.currentAudio.pause();
@@ -484,7 +484,7 @@ export default {
             }
             this.playingRowId = null;
         },
-        // 上传音频
+        // Tải lên âm thanh
         handleUpload(row) {
             this.currentVoiceClone = row;
             this.cloneDialogVisible = true;
@@ -774,7 +774,7 @@ export default {
     color: #5a64b5 !important;
 }
 
-/* 状态按钮样式 */
+/* Kiểu nút trạng thái */
 .status-button {
     display: inline-flex;
     align-items: center;

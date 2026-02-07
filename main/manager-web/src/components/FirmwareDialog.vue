@@ -88,12 +88,12 @@ export default {
   },
   computed: {
     isTypeDisabled() {
-      // 如果有id，说明是编辑模式，禁用类型选择
+      // Nếu có id, nghĩa là đang ở chế độ chỉnh sửa, vô hiệu hóa lựa chọn loại
       return !!this.form.id
     }
   },
   created() {
-    // 移除 getDictDataByType 调用
+    // Xóa lời gọi getDictDataByType
   },
   watch: {
     visible(val) {
@@ -104,7 +104,7 @@ export default {
     },
   },
   methods: {
-    // 移除 getFirmwareTypes 方法
+    // Xóa phương thức getFirmwareTypes
     handleClose() {
       this.dialogVisible = false;
       this.$emit('cancel');
@@ -116,12 +116,12 @@ export default {
     handleSubmit() {
       this.$refs.form.validate(valid => {
         if (valid) {
-          // 如果是新增模式且没有上传文件，则提示错误
+          // Nếu là chế độ thêm mới và chưa tải tệp lên, thì hiển thị lỗi
           if (!this.form.id && !this.form.firmwarePath) {
             this.$message.error(this.$t('firmwareDialog.requiredFirmwareFile'))
             return
           }
-          // 提交成功后将关闭对话框的逻辑交给父组件处理
+          // Sau khi gửi thành công, giao logic đóng hộp thoại cho component cha xử lý
           this.$emit('submit', this.form)
         }
       })
@@ -146,15 +146,15 @@ export default {
       this.uploadStatus = ''
       this.isUploading = true
 
-      // 使用setTimeout实现简单的0-50%过渡
+      // Sử dụng setTimeout để thực hiện chuyển tiếp đơn giản từ 0-50%
       const timer = setTimeout(() => {
-        if (this.uploadProgress < 50) {  // 只有当进度小于50%时才设置
+        if (this.uploadProgress < 50) {  // Chỉ đặt khi tiến trình nhỏ hơn 50%
           this.uploadProgress = 50
         }
       }, 1000)
 
       Api.ota.uploadFirmware(file, (res) => {
-        clearTimeout(timer)  // 清除定时器
+        clearTimeout(timer)  // Xóa bộ đếm thời gian
         res = res.data
         if (res.code === 0) {
           this.form.firmwarePath = res.data
@@ -162,7 +162,7 @@ export default {
           this.uploadProgress = 100
           this.uploadStatus = 'success'
           this.$message.success(this.$t('firmwareDialog.uploadSuccess'))
-          // 延迟2秒后隐藏进度条
+          // Trì hoãn 2 giây sau đó ẩn thanh tiến trình
           setTimeout(() => {
             this.isUploading = false
           }, 2000)
@@ -174,11 +174,11 @@ export default {
       }, (progressEvent) => {
         if (progressEvent.total) {
           const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total)
-          // 只有当进度大于50%时才更新
+          // Chỉ cập nhật khi tiến trình lớn hơn 50%
           if (progress > 50) {
             this.uploadProgress = progress
           }
-          // 如果上传完成但还没收到成功响应，保持进度条显示
+          // Nếu tải lên hoàn tất nhưng chưa nhận được phản hồi thành công, giữ thanh tiến trình hiển thị
           if (progress === 100) {
             this.uploadStatus = ''
           }
@@ -193,16 +193,16 @@ export default {
       this.isUploading = false
     },
     handleOpen() {
-      // 重置上传相关状态
+      // Đặt lại trạng thái liên quan đến tải lên
       this.uploadProgress = 0
       this.uploadStatus = ''
       this.isUploading = false
-      // 重置表单中的文件相关字段
-      if (!this.form.id) {  // 只在新增时重置
+      // Đặt lại các trường liên quan đến tệp trong biểu mẫu
+      if (!this.form.id) {  // Chỉ đặt lại khi thêm mới
         this.form.firmwarePath = ''
         this.form.size = 0
       }
-      // 无论是否编辑模式，都重置上传组件
+      // Bất kể có ở chế độ chỉnh sửa hay không, đều đặt lại component tải lên
       this.$nextTick(() => {
         if (this.$refs.upload) {
           this.$refs.upload.clearFiles()

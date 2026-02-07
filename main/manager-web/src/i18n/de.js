@@ -666,7 +666,7 @@ export default {
 
   // Home page text
   'home.addAgent': 'Agent hinzufügen',
-  'home.greeting': 'Hallo XiaoZhi',
+  'home.greeting': 'Hallo Windify',
   'home.wish': 'Lassen Sie uns einen wunderbaren Tag haben!',
   'home.languageModel': 'LLM',
   'home.voiceModel': 'TTS',

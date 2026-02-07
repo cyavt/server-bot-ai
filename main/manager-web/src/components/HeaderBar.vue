@@ -1,13 +1,12 @@
 <template>
   <el-header class="header">
     <div class="header-container">
-      <!-- 左侧元素 -->
+      <!-- Phần tử bên trái -->
       <div class="header-left" @click="goHome">
-        <img loading="lazy" alt="" src="@/assets/xiaozhi-logo.png" class="logo-img" />
-        <img loading="lazy" alt="" :src="xiaozhiAiIcon" class="brand-img" />
+        <img loading="lazy" alt="" src="@/assets/windify.png" class="logo-img" />
       </div>
 
-      <!-- 中间导航菜单 -->
+      <!-- Menu điều hướng ở giữa -->
       <div class="header-center">
         <div class="equipment-management" :class="{
           'active-tab':
@@ -25,7 +24,7 @@
           }" />
           <span class="nav-text">{{ $t("header.smartManagement") }}</span>
         </div>
-        <!-- 普通用户显示音色克隆 -->
+        <!-- Người dùng thông thường hiển thị nhân bản âm sắc -->
         <div v-if="!isSuperAdmin && featureStatus.voiceClone" class="equipment-management"
           :class="{ 'active-tab': $route.path === '/voice-clone-management' }" @click="goVoiceCloneManagement">
           <img loading="lazy" alt="" src="@/assets/header/voice.png" :style="{
@@ -37,7 +36,7 @@
           <span class="nav-text">{{ $t("header.voiceCloneManagement") }}</span>
         </div>
 
-        <!-- 超级管理员显示音色克隆下拉菜单 -->
+        <!-- Quản trị viên siêu cấp hiển thị menu thả xuống nhân bản âm sắc -->
         <el-dropdown v-if="isSuperAdmin && featureStatus.voiceClone" trigger="click" class="equipment-management more-dropdown" :class="{
           'active-tab':
             $route.path === '/voice-clone-management' ||
@@ -138,7 +137,7 @@
         </el-dropdown>
       </div>
 
-      <!-- 右侧元素 -->
+      <!-- Phần tử bên phải -->
       <div class="header-right">
         <div class="search-container" v-if="$route.path === '/home' && !(isSuperAdmin && isSmallScreen)">
           <div class="search-wrapper">
@@ -147,7 +146,7 @@
               ref="searchInput">
               <i slot="suffix" class="el-icon-search search-icon" @click="handleSearch"></i>
             </el-input>
-            <!-- 搜索历史下拉框 -->
+            <!-- Hộp thả xuống lịch sử tìm kiếm -->
             <div v-if="showHistory && searchHistory.length > 0" class="search-history-dropdown">
               <div class="search-history-header">
                 <span>{{ $t("header.searchHistory") }}</span>
@@ -168,7 +167,7 @@
 
         <img loading="lazy" alt="" src="@/assets/home/avatar.png" class="avatar-img" @click="handleAvatarClick" />
         <span class="el-user-dropdown" @click="handleAvatarClick">
-          {{ userInfo.username || "加载中..." }}
+          {{ userInfo.username || "Đang tải..." }}
           <i class="el-icon-arrow-down el-icon--right" :class="{ 'rotate-down': userMenuVisible }"></i>
         </span>
         <el-cascader :options="userMenuOptions" trigger="click" :props="cascaderProps"
@@ -181,7 +180,7 @@
       </div>
     </div>
 
-    <!-- 修改密码弹窗 -->
+    <!-- Hộp thoại đổi mật khẩu -->
     <ChangePasswordDialog v-model="isChangePasswordDialogVisible" />
   </el-header>
 </template>
@@ -190,15 +189,15 @@
 import userApi from "@/apis/module/user";
 import i18n, { changeLanguage } from "@/i18n";
 import { mapActions, mapGetters } from "vuex";
-import ChangePasswordDialog from "./ChangePasswordDialog.vue"; // 引入修改密码弹窗组件
-import featureManager from "@/utils/featureManager"; // 引入功能管理工具类
+import ChangePasswordDialog from "./ChangePasswordDialog.vue"; // Nhập component hộp thoại đổi mật khẩu
+import featureManager from "@/utils/featureManager"; // Nhập lớp công cụ quản lý chức năng
 
 export default {
   name: "HeaderBar",
   components: {
     ChangePasswordDialog,
   },
-  props: ["devices"], // 接收父组件设备列表
+  props: ["devices"], // Nhận danh sách thiết bị từ component cha
   data() {
     return {
       search: "",
@@ -206,27 +205,27 @@ export default {
         username: "",
         mobile: "",
       },
-      isChangePasswordDialogVisible: false, // 控制修改密码弹窗的显示
+      isChangePasswordDialogVisible: false, // Điều khiển hiển thị hộp thoại đổi mật khẩu
       paramDropdownVisible: false,
       voiceCloneDropdownVisible: false,
-      userMenuVisible: false, // 添加用户菜单可见状态
+      userMenuVisible: false, // Thêm trạng thái hiển thị menu người dùng
       isSmallScreen: false,
-      // 搜索历史相关
+      // Liên quan đến lịch sử tìm kiếm
       searchHistory: [],
       showHistory: false,
       SEARCH_HISTORY_KEY: "xiaozhi_search_history",
       MAX_HISTORY_COUNT: 3,
-      // Cascader 配置
+      // Cấu hình Cascader
       cascaderProps: {
         expandTrigger: "click",
         value: "value",
         label: "label",
         children: "children",
       },
-      // 功能状态
+      // Trạng thái chức năng
       featureStatus: {
-        voiceClone: false, // 音色克隆功能状态
-        knowledgeBase: false, // 知识库功能状态
+        voiceClone: false, // Trạng thái chức năng nhân bản âm sắc
+        knowledgeBase: false, // Trạng thái chức năng cơ sở tri thức
       },
     };
   },
@@ -235,11 +234,11 @@ export default {
     isSuperAdmin() {
       return this.getIsSuperAdmin;
     },
-    // 获取当前语言
+    // Lấy ngôn ngữ hiện tại
     currentLanguage() {
       return i18n.locale || "zh_CN";
     },
-    // 获取当前语言显示文本
+    // Lấy văn bản hiển thị của ngôn ngữ hiện tại
     currentLanguageText() {
       const currentLang = this.currentLanguage;
       switch (currentLang) {
@@ -257,7 +256,7 @@ export default {
           return this.$t("language.zhCN");
       }
     },
-    // 根据当前语言获取对应的xiaozhi-ai图标
+    // Lấy biểu tượng xiaozhi-ai tương ứng với ngôn ngữ hiện tại
     xiaozhiAiIcon() {
       const currentLang = this.currentLanguage;
       switch (currentLang) {
@@ -275,7 +274,7 @@ export default {
           return require("@/assets/xiaozhi-ai.png");
       }
     },
-    // 用户菜单选项
+    // Tùy chọn menu người dùng
     userMenuOptions() {
       return [
         {
@@ -319,18 +318,18 @@ export default {
     this.fetchUserInfo();
     this.checkScreenSize();
     window.addEventListener("resize", this.checkScreenSize);
-    // 从localStorage加载搜索历史
+    // Tải lịch sử tìm kiếm từ localStorage
     this.loadSearchHistory();
-    // 等待featureManager初始化完成后再加载功能状态
+    // Đợi featureManager khởi tạo hoàn tất sau đó mới tải trạng thái chức năng
     await this.loadFeatureStatus();
   },
-  //移除事件监听器
+  // Xóa trình lắng nghe sự kiện
   beforeDestroy() {
     window.removeEventListener("resize", this.checkScreenSize);
   },
   methods: {
     goHome() {
-      // 跳转到首页
+      // Chuyển đến trang chủ
       this.$router.push("/home");
     },
     goUserManagement() {
@@ -361,21 +360,21 @@ export default {
       this.$router.push("/server-side-management");
     },
 
-    // 跳转到音色资源管理
+    // Chuyển đến quản lý tài nguyên âm sắc
     goVoiceResourceManagement() {
       this.$router.push("/voice-resource-management");
     },
-    // 添加默认角色模板管理导航方法
+    // Thêm phương thức điều hướng quản lý mẫu vai trò mặc định
     goAgentTemplateManagement() {
       this.$router.push("/agent-template-management");
     },
-    // 跳转到功能管理
+    // Chuyển đến quản lý chức năng
     goFeatureManagement() {
       this.$router.push("/feature-management");
     },
-    // 加载功能状态
+    // Tải trạng thái chức năng
     async loadFeatureStatus() {
-      // 等待featureManager初始化完成
+      // Đợi featureManager khởi tạo hoàn tất
       await featureManager.waitForInitialization();
       
       const config = featureManager.getConfig();
@@ -383,7 +382,7 @@ export default {
       this.featureStatus.voiceClone = config.voiceClone;
       this.featureStatus.knowledgeBase = config.knowledgeBase;
     },
-    // 获取用户信息
+    // Lấy thông tin người dùng
     fetchUserInfo() {
       userApi.getUserInfo(({ data }) => {
         this.userInfo = data.data;
@@ -395,42 +394,42 @@ export default {
     checkScreenSize() {
       this.isSmallScreen = window.innerWidth <= 1386;
     },
-    // 处理搜索
+    // Xử lý tìm kiếm
     handleSearch() {
       const searchValue = this.search.trim();
 
-      // 如果搜索内容为空，触发重置事件
+      // Nếu nội dung tìm kiếm trống, kích hoạt sự kiện đặt lại
       if (!searchValue) {
         this.$emit("search-reset");
         return;
       }
 
-      // 保存搜索历史
+      // Lưu lịch sử tìm kiếm
       this.saveSearchHistory(searchValue);
 
-      // 触发搜索事件，将搜索关键词传递给父组件
+      // Kích hoạt sự kiện tìm kiếm, truyền từ khóa tìm kiếm cho component cha
       this.$emit("search", searchValue);
 
-      // 搜索完成后让输入框失去焦点，从而触发blur事件隐藏搜索历史
+      // Sau khi tìm kiếm xong, làm cho ô nhập mất tiêu điểm, từ đó kích hoạt sự kiện blur để ẩn lịch sử tìm kiếm
       if (this.$refs.searchInput) {
         this.$refs.searchInput.blur();
       }
     },
 
-    // 显示搜索历史
+    // Hiển thị lịch sử tìm kiếm
     showSearchHistory() {
       this.showHistory = true;
     },
 
-    // 隐藏搜索历史
+    // Ẩn lịch sử tìm kiếm
     hideSearchHistory() {
-      // 延迟隐藏，以便点击事件能够执行
+      // Trì hoãn ẩn để sự kiện nhấp có thể thực thi
       setTimeout(() => {
         this.showHistory = false;
       }, 200);
     },
 
-    // 加载搜索历史
+    // Tải lịch sử tìm kiếm
     loadSearchHistory() {
       try {
         const history = localStorage.getItem(this.SEARCH_HISTORY_KEY);
@@ -438,92 +437,92 @@ export default {
           this.searchHistory = JSON.parse(history);
         }
       } catch (error) {
-        console.error("加载搜索历史失败:", error);
+        console.error("Tải lịch sử tìm kiếm thất bại:", error);
         this.searchHistory = [];
       }
     },
 
-    // 保存搜索历史
+    // Lưu lịch sử tìm kiếm
     saveSearchHistory(keyword) {
       if (!keyword || this.searchHistory.includes(keyword)) {
         return;
       }
 
-      // 添加到历史记录开头
+      // Thêm vào đầu lịch sử
       this.searchHistory.unshift(keyword);
 
-      // 限制历史记录数量
+      // Giới hạn số lượng lịch sử
       if (this.searchHistory.length > this.MAX_HISTORY_COUNT) {
         this.searchHistory = this.searchHistory.slice(0, this.MAX_HISTORY_COUNT);
       }
 
-      // 保存到localStorage
+      // Lưu vào localStorage
       try {
         localStorage.setItem(this.SEARCH_HISTORY_KEY, JSON.stringify(this.searchHistory));
       } catch (error) {
-        console.error("保存搜索历史失败:", error);
+        console.error("Lưu lịch sử tìm kiếm thất bại:", error);
       }
     },
 
-    // 选择搜索历史项
+    // Chọn mục lịch sử tìm kiếm
     selectSearchHistory(keyword) {
       this.search = keyword;
       this.handleSearch();
     },
 
-    // 移除单个搜索历史项
+    // Xóa một mục lịch sử tìm kiếm
     removeSearchHistory(index) {
       this.searchHistory.splice(index, 1);
       try {
         localStorage.setItem(this.SEARCH_HISTORY_KEY, JSON.stringify(this.searchHistory));
       } catch (error) {
-        console.error("更新搜索历史失败:", error);
+        console.error("Cập nhật lịch sử tìm kiếm thất bại:", error);
       }
     },
 
-    // 清空所有搜索历史
+    // Xóa trống tất cả lịch sử tìm kiếm
     clearSearchHistory() {
       this.searchHistory = [];
       try {
         localStorage.removeItem(this.SEARCH_HISTORY_KEY);
       } catch (error) {
-        console.error("清空搜索历史失败:", error);
+        console.error("Xóa trống lịch sử tìm kiếm thất bại:", error);
       }
     },
-    // 显示修改密码弹窗
+    // Hiển thị hộp thoại đổi mật khẩu
     showChangePasswordDialog() {
       this.isChangePasswordDialogVisible = true;
-      // 添加：显示修改密码弹窗后重置用户菜单可见状态
+      // Thêm: Đặt lại trạng thái hiển thị menu người dùng sau khi hiển thị hộp thoại đổi mật khẩu
       this.userMenuVisible = false;
     },
-    // 退出登录
+    // Đăng xuất
     async handleLogout() {
       try {
-        // 调用 Vuex 的 logout action
+        // Gọi action logout của Vuex
         await this.logout();
         this.$message.success({
           message: this.$t("message.success"),
           showClose: true,
         });
       } catch (error) {
-        console.error("退出登录失败:", error);
+        console.error("Đăng xuất thất bại:", error);
         this.$message.error({
           message: this.$t("message.error"),
           showClose: true,
         });
       }
     },
-    // 监听参数字典下拉菜单的可见状态变化
+    // Lắng nghe thay đổi trạng thái hiển thị của menu thả xuống từ điển tham số
     handleParamDropdownVisibleChange(visible) {
       this.paramDropdownVisible = visible;
     },
 
-    // 监听音色克隆下拉菜单的可见状态变化
+    // Lắng nghe thay đổi trạng thái hiển thị của menu thả xuống nhân bản âm sắc
     handleVoiceCloneDropdownVisibleChange(visible) {
       this.voiceCloneDropdownVisible = visible;
     },
-    // 在data中添加一个key用于强制重新渲染组件
-    // 处理 Cascader 选择变化
+    // Thêm một key vào data để buộc render lại component
+    // Xử lý thay đổi lựa chọn Cascader
     handleCascaderChange(value) {
       if (!value || value.length === 0) {
         return;
@@ -531,11 +530,11 @@ export default {
 
       const action = value[value.length - 1];
 
-      // 处理语言切换
+      // Xử lý chuyển đổi ngôn ngữ
       if (value.length === 2 && value[0] === "language") {
         this.changeLanguage(action);
       } else {
-        // 处理其他操作
+        // Xử lý các thao tác khác
         switch (action) {
           case "changePassword":
             this.showChangePasswordDialog();
@@ -546,34 +545,34 @@ export default {
         }
       }
 
-      // 操作完成后立即清空选择
+      // Xóa trống lựa chọn ngay sau khi thao tác hoàn tất
       setTimeout(() => {
         this.completeResetCascader();
       }, 300);
     },
 
-    // 切换语言
+    // Chuyển đổi ngôn ngữ
     changeLanguage(lang) {
       changeLanguage(lang);
       this.$message.success({
         message: this.$t("message.success"),
         showClose: true,
       });
-      // 添加：切换语言后重置用户菜单可见状态
+      // Thêm: Đặt lại trạng thái hiển thị menu người dùng sau khi chuyển đổi ngôn ngữ
       this.userMenuVisible = false;
     },
 
-    // 完全重置级联选择器
+    // Đặt lại hoàn toàn bộ chọn cấp
     completeResetCascader() {
       if (this.$refs.userCascader) {
         try {
-          // 尝试所有可能的方法来清空选择
-          // 1. 尝试使用组件提供的clearValue方法
+          // Thử tất cả các phương pháp có thể để xóa trống lựa chọn
+          // 1. Thử sử dụng phương thức clearValue do component cung cấp
           if (this.$refs.userCascader.clearValue) {
             this.$refs.userCascader.clearValue();
           }
 
-          // 2. 直接清空内部属性
+          // 2. Xóa trống trực tiếp các thuộc tính nội bộ
           if (this.$refs.userCascader.$data) {
             this.$refs.userCascader.$data.selectedPaths = [];
             this.$refs.userCascader.$data.displayLabels = [];
@@ -582,7 +581,7 @@ export default {
             this.$refs.userCascader.$data.showAllLevels = false;
           }
 
-          // 3. 操作DOM清除选中状态
+          // 3. Thao tác DOM để xóa trạng thái đã chọn
           const menuElement = this.$refs.userCascader.$refs.menu;
           if (menuElement && menuElement.$el) {
             const activeItems = menuElement.$el.querySelectorAll(
@@ -598,28 +597,28 @@ export default {
 
           console.log("Cascader values cleared");
         } catch (error) {
-          console.error("清空选择值失败:", error);
+          console.error("Xóa trống giá trị đã chọn thất bại:", error);
         }
       }
     },
 
-    // 点击头像触发cascader下拉菜单
+    // Nhấp vào avatar để kích hoạt menu thả xuống cascader
     handleAvatarClick() {
       if (this.$refs.userCascader) {
-        // 切换菜单可见状态
+        // Chuyển đổi trạng thái hiển thị menu
         this.userMenuVisible = !this.userMenuVisible;
 
-        // 菜单收起时清空选择值
+        // Xóa trống giá trị đã chọn khi menu thu gọn
         if (!this.userMenuVisible) {
           this.completeResetCascader();
         }
 
-        // 直接设置菜单的显隐状态
+        // Đặt trực tiếp trạng thái hiển thị/ẩn của menu
         try {
-          // 尝试使用toggleDropDownVisible方法
+          // Thử sử dụng phương thức toggleDropDownVisible
           this.$refs.userCascader.toggleDropDownVisible(this.userMenuVisible);
         } catch (error) {
-          // 如果toggle方法失败，尝试直接设置属性
+          // Nếu phương thức toggle thất bại, thử đặt trực tiếp thuộc tính
           if (this.$refs.userCascader.$refs.menu) {
             this.$refs.userCascader.$refs.menu.showMenu(this.userMenuVisible);
           } else {
@@ -629,17 +628,17 @@ export default {
       }
     },
 
-    // 处理用户菜单可见性变化
+    // Xử lý thay đổi khả năng hiển thị menu người dùng
     handleUserMenuVisibleChange(visible) {
       this.userMenuVisible = visible;
 
-      // 如果菜单关闭了，也要清空选择值
+      // Nếu menu đã đóng, cũng xóa trống giá trị đã chọn
       if (!visible) {
         this.completeResetCascader();
       }
     },
 
-    // 使用 mapActions 引入 Vuex 的 logout action
+    // Sử dụng mapActions để nhập action logout của Vuex
     ...mapActions(["logout"]),
   },
 };
@@ -651,7 +650,7 @@ export default {
   border: 1px solid #fff;
   height: 63px !important;
   min-width: 900px;
-  /* 设置最小宽度防止过度压缩 */
+  /* Đặt chiều rộng tối thiểu để tránh nén quá mức */
   overflow: visible;
 }
 
@@ -672,8 +671,8 @@ export default {
 }
 
 .logo-img {
-  width: 42px;
-  height: 42px;
+  width: 200px;
+  object-fit: contain;
 }
 
 .brand-img {
@@ -712,7 +711,7 @@ export default {
   transition: all 0.3s ease;
   cursor: pointer;
   flex-shrink: 0;
-  /* 防止导航按钮被压缩 */
+  /* Ngăn nút điều hướng bị nén */
   padding: 0 15px;
   position: relative;
 }
@@ -850,7 +849,7 @@ export default {
   cursor: pointer;
 }
 
-/* 导航文本样式 - 支持中英文换行 */
+/* Kiểu văn bản điều hướng - Hỗ trợ xuống dòng cho tiếng Trung và tiếng Anh */
 .nav-text {
   white-space: normal;
   text-align: center;
@@ -858,7 +857,7 @@ export default {
   line-height: 1.2;
 }
 
-/* 响应式调整 */
+/* Điều chỉnh responsive */
 @media (max-width: 1200px) {
   .header-center {
     gap: 14px;
@@ -889,7 +888,7 @@ export default {
   white-space: nowrap;
 }
 
-/* 添加倒三角旋转样式 */
+/* Thêm kiểu xoay tam giác ngược */
 .rotate-down {
   transform: rotate(180deg);
   transition: transform 0.3s ease;

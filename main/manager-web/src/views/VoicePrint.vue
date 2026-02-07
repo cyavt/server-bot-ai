@@ -35,7 +35,7 @@
             </div>
         </div>
 
-        <!-- 新增/编辑参数对话框 -->
+        <!-- Hộp thoại thêm/chỉnh sửa tham số -->
         <voice-print-dialog :title="dialogTitle" :visible.sync="dialogVisible" :agentId="agentId" :form="paramForm"
             @submit="handleSubmit" @cancel="dialogVisible = false" />
         <el-footer>
@@ -112,7 +112,7 @@ export default {
 
         handleSubmit({ form, done }) {
             if (form.id) {
-                // 编辑
+                // Chỉnh sửa
                 Api.agent.updateAgentVoicePrint(form, ({ data }) => {
                     if (data.code === 0) {
                         this.$message.success({
@@ -125,7 +125,7 @@ export default {
                     done && done();
                 });
             } else {
-                // 新增
+                // Thêm mới
                 Api.agent.addAgentVoicePrint({
                     agentId: this.agentId,
                     audioId: form.audioId,
@@ -144,7 +144,7 @@ export default {
                 });
             }
         },
-        // 删除按钮
+        // Nút xóa
         deleteVoicePrint(id) {
             this.$confirm(this.$t('voicePrint.confirmDelete'), this.$t('voicePrint.warning'), {
                 confirmButtonText: this.$t('voicePrint.confirm'),

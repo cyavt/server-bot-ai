@@ -28,7 +28,7 @@
         <div class="content-area">
           <el-card class="provider-card" shadow="never">
             <el-table ref="providersTable" :data="filteredProvidersList" class="transparent-table" v-loading="loading"
-              element-loading-text="拼命加载中" element-loading-spinner="el-icon-loading"
+              element-loading-text="Đang tải..." element-loading-spinner="el-icon-loading"
               element-loading-background="rgba(255, 255, 255, 0.7)" :header-cell-class-name="headerCellClassName">
               <el-table-column :label="$t('modelConfig.select')" align="center" width="120">
                 <template slot-scope="scope">
@@ -116,7 +116,7 @@
       </div>
     </div>
 
-    <!-- 新增/编辑供应器对话框 -->
+    <!-- Hộp thoại thêm/chỉnh sửa nhà cung cấp -->
     <provider-dialog :title="dialogTitle" :visible.sync="dialogVisible" :form="providerForm" :model-types="modelTypes"
       @submit="handleSubmit" @cancel="dialogVisible = false" />
 
@@ -156,7 +156,7 @@ export default {
       pageSizeOptions: [10, 20, 50, 100],
       total: 0,
       dialogVisible: false,
-      dialogTitle: "新增供应器",
+      dialogTitle: "Thêm nhà cung cấp",
       isAllSelected: false,
       isDropdownOpen: false,
       sensitive_keys: ["api_key", "personal_access_token", "access_token", "token", "secret", "access_key_secret", "secret_key"],
@@ -215,7 +215,7 @@ export default {
 
       // list.sort((a, b) => a.sort - b.sort);
 
-      // // 分页处理
+      // // Xử lý phân trang
       // const start = (this.currentPage - 1) * this.pageSize;
       // return list.slice(start, start + this.pageSize);
     }
@@ -244,7 +244,7 @@ export default {
             this.total = data.data.total;
           } else {
             this.$message.error({
-              message: data.msg || '获取参数列表失败'
+              message: data.msg || 'Lấy danh sách tham số thất bại'
             });
           }
         }
@@ -288,11 +288,11 @@ export default {
     handleSubmit({ form, done }) {
       this.loading = true;
       if (form.id) {
-        // 编辑
+        // Chỉnh sửa
         Api.model.updateModelProvider(form, ({ data }) => {
 
           if (data.code === 0) {
-            this.fetchProviders(); // 刷新表格
+            this.fetchProviders(); // Làm mới bảng
             this.$message.success({
             message: this.$t('common.updateSuccess'),
             showClose: true
@@ -300,10 +300,10 @@ export default {
           }
         });
       } else {
-        // 新增
+        // Thêm mới
         Api.model.addModelProvider(form, ({ data }) => {
           if (data.code === 0) {
-            this.fetchProviders(); // 刷新表格
+            this.fetchProviders(); // Làm mới bảng
             this.$message.success({
             message: this.$t('common.addSuccess'),
             showClose: true
@@ -341,7 +341,7 @@ export default {
           if (data.code === 0) {
 
             this.isAllSelected = false;
-            this.fetchProviders(); // 刷新表格
+            this.fetchProviders(); // Làm mới bảng
 
             this.$message.success({
               message: this.$t('common.deleteSuccess'),
@@ -400,7 +400,7 @@ export default {
       return "custom-selection-cell";
     },
     updateSelectionHeaderText() {
-      // 确保表格已渲染
+      // Đảm bảo bảng đã được render
       this.$nextTick(() => {
         if (this.$refs.providersTable && this.$refs.providersTable.$el) {
           const headerCheckbox = this.$refs.providersTable.$el.querySelector('.custom-selection-header .el-checkbox .el-checkbox__label');
@@ -904,7 +904,7 @@ export default {
   color: #409EFF;
 }
 
-/* 确保选择列标题样式正确 */
+/* Đảm bảo kiểu tiêu đề cột chọn đúng */
 .custom-selection-header {
   position: relative;
 }

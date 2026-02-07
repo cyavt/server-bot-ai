@@ -93,7 +93,7 @@
             </div>
         </div>
 
-        <!-- 新增/编辑参数对话框 -->
+        <!-- Hộp thoại thêm/chỉnh sửa tham số -->
         <param-dialog ref="paramDialog" :title="dialogTitle" :visible.sync="dialogVisible" :form="paramForm"
             @submit="handleSubmit" @cancel="dialogVisible = false" />
         <el-footer>
@@ -119,7 +119,7 @@ export default {
             pageSizeOptions: [10, 20, 50, 100],
             total: 0,
             dialogVisible: false,
-            dialogTitle: "新增参数",
+            dialogTitle: "Thêm tham số",
             isAllSelected: false,
             sensitive_keys: ["api_key", "personal_access_token", "access_token", "token", "secret", "access_key_secret", "secret_key", "password", "mqtt_signature_key", "private_key"],
             paramForm: {
@@ -205,7 +205,7 @@ export default {
                 id: null,
                 paramCode: "",
                 paramValue: "",
-                valueType: "string", // 默认值
+                valueType: "string", // Giá trị mặc định
                 remark: ""
             };
             this.dialogVisible = true;
@@ -216,14 +216,14 @@ export default {
                 id: row.id,
                 paramCode: row.paramCode,
                 paramValue: row.paramValue,
-                valueType: row.valueType || "string", // 确保有值
+                valueType: row.valueType || "string", // Đảm bảo có giá trị
                 remark: row.remark
             };
             this.dialogVisible = true;
         },
         handleSubmit(form) {
             if (form.id) {
-                // 更新参数
+                // Cập nhật tham số
                 Api.admin.updateParam(form, ({ data }) => {
                     this.dialogVisible = false;
                     this.fetchParams();
@@ -236,13 +236,13 @@ export default {
                         message: data.msg || this.$t('paramManagement.updateFailed'),
                         showClose: true
                     });
-                    // 调用ParamDialog的resetSaving方法重置保存状态
+                    // Gọi phương thức resetSaving của ParamDialog để đặt lại trạng thái lưu
                     if (this.$refs.paramDialog && typeof this.$refs.paramDialog.resetSaving === 'function') {
                         this.$refs.paramDialog.resetSaving();
                     }
                 });
             } else {
-                // 新增参数
+                // Thêm tham số
                 Api.admin.addParam(form, ({ data }) => {
                     if (data.code === 0) {
                         this.dialogVisible = false;
@@ -256,7 +256,7 @@ export default {
                             message: data.msg || this.$t('paramManagement.addFailed'),
                             showClose: true
                         });
-                        // 调用ParamDialog的resetSaving方法重置保存状态
+                        // Gọi phương thức resetSaving của ParamDialog để đặt lại trạng thái lưu
                         if (this.$refs.paramDialog && typeof this.$refs.paramDialog.resetSaving === 'function') {
                             this.$refs.paramDialog.resetSaving();
                         }

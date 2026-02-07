@@ -21,10 +21,10 @@
       </div>
     </div>
 
-    <!-- 主体内容 -->
+    <!-- Nội dung chính -->
     <div class="main-wrapper">
       <div class="content-panel">
-        <!-- 左侧导航 -->
+        <!-- Điều hướng bên trái -->
         <el-menu
           :default-active="activeTab"
           class="nav-panel"
@@ -57,7 +57,7 @@
           </el-menu-item>
         </el-menu>
 
-        <!-- 右侧内容 -->
+        <!-- Nội dung bên phải -->
         <div class="content-area">
           <el-card class="model-card" shadow="never">
             <el-table
@@ -317,14 +317,14 @@ export default {
   },
 
   mounted() {
-    // 在组件挂载后确保表头翻译文本正确显示
+    // Sau khi component được gắn kết, đảm bảo văn bản dịch tiêu đề bảng hiển thị đúng
     setTimeout(() => {
       this.updateSelectionHeaderText();
     }, 100);
   },
 
   updated() {
-    // 在组件更新后重新设置表头翻译文本
+    // Sau khi component cập nhật, đặt lại văn bản dịch tiêu đề bảng
     this.updateSelectionHeaderText();
   },
 
@@ -355,7 +355,7 @@ export default {
   },
 
   methods: {
-    // 更新选择列表头翻译文本
+    // Cập nhật văn bản dịch tiêu đề cột chọn
     updateSelectionHeaderText() {
       const thElement = document.querySelector(`.el-table__header th:nth-child(1) .cell`);
       if (thElement) {
@@ -379,9 +379,9 @@ export default {
       return "";
     },
     selectionCellClassName({ row, column, rowIndex, columnIndex }) {
-      // 只对表头行设置data-content
+      // Chỉ đặt data-content cho hàng tiêu đề
       if (rowIndex === undefined) {
-        // 使用setTimeout确保DOM已经渲染完成
+        // Sử dụng setTimeout để đảm bảo DOM đã được render xong
         setTimeout(() => {
           const thElement = document.querySelector(
             `.el-table__header th:nth-child(1) .cell`
@@ -395,15 +395,15 @@ export default {
     },
     handleMenuSelect(index) {
       this.activeTab = index;
-      this.currentPage = 1; // 重置到第一页
-      this.pageSize = 10; // 可选：重置每页条数
+      this.currentPage = 1; // Đặt lại về trang đầu tiên
+      this.pageSize = 10; // Tùy chọn: đặt lại số mục mỗi trang
       this.loadData();
     },
     handleSearch() {
       this.currentPage = 1;
       this.loadData();
     },
-    // 批量删除
+    // Xóa hàng loạt
     batchDelete() {
       if (this.selectedModels.length === 0) {
         this.$message.warning(this.$t("modelConfig.selectModelsFirst"));
@@ -454,7 +454,7 @@ export default {
       this.editModelData.duplicateMode = true;
       this.editDialogVisible = true;
     },
-    // 删除单个模型
+    // Xóa một mô hình
     deleteModel(model) {
       this.$confirm(this.$t("modelConfig.confirmDelete"), this.$t("message.info"), {
         confirmButtonText: this.$t("common.confirm"),
@@ -499,7 +499,7 @@ export default {
           } else {
             this.$message.error(data.msg || this.$t("modelConfig.duplicateFailed"));
           }
-          done && done(); // 调用done回调关闭加载状态
+          done && done(); // Gọi callback done để đóng trạng thái tải
         });
       } else {
         Api.model.updateModel({ modelType, provideCode, id, formData }, ({ data }) => {
@@ -510,7 +510,7 @@ export default {
           } else {
             this.$message.error(data.msg || this.$t("modelConfig.saveFailed"));
           }
-          done && done(); // 调用done回调关闭加载状态
+          done && done(); // Gọi callback done để đóng trạng thái tải
         });
       }
     },
@@ -529,7 +529,7 @@ export default {
       }
     },
 
-    // 新增模型配置
+    // Thêm cấu hình mô hình
     handleAddConfirm(newModel) {
       const params = {
         modelType: this.activeTab,
@@ -558,7 +558,7 @@ export default {
       });
     },
 
-    // 分页器
+    // Phân trang
     goFirst() {
       this.currentPage = 1;
       this.loadData();
@@ -580,9 +580,9 @@ export default {
       this.loadData();
     },
 
-    // 获取模型配置列表
+    // Lấy danh sách cấu hình mô hình
     loadData() {
-      this.loading = true; // 开始加载
+      this.loading = true; // Bắt đầu tải
       const params = {
         modelType: this.activeTab,
         modelName: this.search,
@@ -591,7 +591,7 @@ export default {
       };
 
       Api.model.getModelList(params, ({ data }) => {
-        this.loading = false; // 结束加载
+        this.loading = false; // Kết thúc tải
         if (data.code === 0) {
           this.modelList = data.data.list;
           this.total = data.data.total;
@@ -600,7 +600,7 @@ export default {
         }
       });
     },
-    // 处理启用/禁用状态变更
+    // Xử lý thay đổi trạng thái bật/tắt
     handleStatusChange(model) {
       const newStatus = model.isEnabled ? 1 : 0;
       const originalStatus = model.isEnabled;
@@ -614,12 +614,12 @@ export default {
               ? this.$t("modelConfig.enableSuccess")
               : this.$t("modelConfig.disableSuccess")
           );
-          // 保持新状态
+          // Giữ trạng thái mới
           model.isEnabled = newStatus;
-          // 刷新表格数据
+          // Làm mới dữ liệu bảng
           this.loadData();
         } else {
-          // 操作失败时恢复原状态
+          // Khi thao tác thất bại, khôi phục trạng thái gốc
           model.isEnabled = originalStatus;
           this.$message.error(data.msg || this.$t("modelConfig.operationFailed"));
         }
@@ -935,10 +935,10 @@ export default {
   display: block;
   text-align: center;
   line-height: 32px;
-  /* 设置合适的行高，确保文本完整显示 */
+  /* Đặt chiều cao dòng phù hợp, đảm bảo văn bản hiển thị đầy đủ */
   color: black;
   margin-top: 0;
-  /* 移除可能导致偏移的上边距 */
+  /* Loại bỏ lề trên có thể gây lệch */
   height: 32px;
   position: absolute;
   top: 50%;
@@ -951,7 +951,7 @@ export default {
   position: relative;
 }
 
-/* 已移除可能影响文本显示的空伪元素 */
+/* Đã loại bỏ phần tử giả trống có thể ảnh hưởng đến hiển thị văn bản */
 
 ::v-deep .el-table__body .el-checkbox__inner {
   display: inline-block !important;
@@ -1011,7 +1011,7 @@ export default {
 
 .voice-management-btn:hover {
   background: #8aa2e0;
-  /* 悬停时颜色加深 */
+  /* Màu đậm hơn khi di chuột */
   transform: scale(1.05);
 }
 
@@ -1034,13 +1034,13 @@ export default {
   padding-right: 10px;
 }
 
-/* 分页器 */
+/* Phân trang */
 .custom-pagination {
   display: flex;
   align-items: center;
   gap: 8px;
 
-  /* 导航按钮样式 (首页、上一页、下一页) */
+  /* Kiểu nút điều hướng (Trang đầu, Trang trước, Trang sau) */
   .pagination-btn:first-child,
   .pagination-btn:nth-child(2),
   .pagination-btn:nth-child(3),
@@ -1066,7 +1066,7 @@ export default {
     }
   }
 
-  /* 数字按钮样式 */
+  /* Kiểu nút số */
   .pagination-btn:not(:first-child):not(:nth-child(2)):not(:nth-child(3)):not(:nth-last-child(2)) {
     min-width: 28px;
     height: 32px;

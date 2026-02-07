@@ -28,9 +28,9 @@
             </div>
             <div class="divider"></div>
             
-            <!-- 功能分组容器 - 左右布局 -->
+            <!-- Vùng chứa nhóm chức năng - bố cục trái phải -->
             <div class="feature-groups-container">
-              <!-- 功能管理分组 -->
+              <!-- Nhóm quản lý chức năng -->
               <div v-if="featureManagementFeatures.length > 0" class="feature-group">
                 <h3 class="group-title">{{ $t('featureManagement.group.featureManagement') }}</h3>
                 <div class="features-grid">
@@ -55,7 +55,7 @@
                 </div>
               </div>
               
-              <!-- 语音管理分组 -->
+              <!-- Nhóm quản lý giọng nói -->
               <div v-if="voiceManagementFeatures.length > 0" class="feature-group">
                 <h3 class="group-title">{{ $t('featureManagement.group.voiceManagement') }}</h3>
                 <div class="features-grid">
@@ -122,7 +122,7 @@ export default {
       return [...this.featureManagementFeatures, ...this.voiceManagementFeatures]
     },
     
-    // 判断是否所有功能都已选中
+    // Xác định xem tất cả các chức năng đã được chọn chưa
     isAllSelected() {
       const allFeatures = [...this.featureManagementFeatures, ...this.voiceManagementFeatures]
       return allFeatures.length > 0 && allFeatures.every(feature => feature.enabled)
@@ -137,7 +137,7 @@ export default {
       await this.loadFeatures()
       this.setupConfigChangeListener()
     } catch (error) {
-      console.error('功能配置管理器初始化等待失败:', error)
+      console.error('Đợi khởi tạo trình quản lý cấu hình chức năng thất bại:', error)
       await this.loadFeatures()
       this.setupConfigChangeListener()
     }
@@ -157,7 +157,7 @@ export default {
         
         const result = featureIds.map(id => {
           const feature = featureConfig[id]
-          console.log(`功能 ${id} 的配置:`, feature)
+          console.log(`Cấu hình chức năng ${id}:`, feature)
           console.log(`功能 ${id} 的启用状态:`, feature?.enabled)
           
           return {

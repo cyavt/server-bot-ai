@@ -32,7 +32,7 @@
               {{ $t("login.welcome") }}
             </div>
 
-            <!-- 语言切换下拉菜单 -->
+            <!-- Menu thả xuống chuyển đổi ngôn ngữ -->
             <el-dropdown trigger="click" class="title-language-dropdown"
               @visible-change="handleLanguageDropdownVisibleChange">
               <span class="el-dropdown-link">
@@ -59,7 +59,7 @@
             </el-dropdown>
           </div>
           <div style="padding: 0 30px">
-            <!-- 用户名登录 -->
+            <!-- Đăng nhập bằng tên người dùng -->
             <template v-if="!isMobileLogin">
               <div class="input-box">
                 <img loading="lazy" alt="" class="input-icon" src="@/assets/login/username.png" />
@@ -67,7 +67,7 @@
               </div>
             </template>
 
-            <!-- 手机号登录 -->
+            <!-- Đăng nhập bằng số điện thoại -->
             <template v-else>
               <div class="input-box">
                 <div style="display: flex; align-items: center; width: 100%">
@@ -96,7 +96,7 @@
                 <img loading="lazy" alt="" class="input-icon" src="@/assets/login/shield.png" />
                 <el-input v-model="form.captcha" :placeholder="$t('login.captchaPlaceholder')" style="flex: 1" />
               </div>
-              <img loading="lazy" v-if="captchaUrl" :src="captchaUrl" alt="验证码"
+              <img loading="lazy" v-if="captchaUrl" :src="captchaUrl" alt="Mã xác minh"
                 style="width: 150px; height: 40px; cursor: pointer" @click="fetchCaptcha" />
             </div>
             <div style="
@@ -118,7 +118,7 @@
           </div>
           <div class="login-btn" @click="login">{{ $t("login.login") }}</div>
 
-          <!-- 登录方式切换按钮 -->
+          <!-- Nút chuyển đổi phương thức đăng nhập -->
           <div class="login-type-container" v-if="enableMobileRegister">
             <div style="display: flex; gap: 10px">
               <el-tooltip :content="$t('login.mobileLogin')" placement="bottom">
@@ -170,11 +170,11 @@ export default {
       mobileAreaList: (state) => state.pubConfig.mobileAreaList,
       sm2PublicKey: (state) => state.pubConfig.sm2PublicKey,
     }),
-    // 获取当前语言
+    // Lấy ngôn ngữ hiện tại
     currentLanguage() {
       return i18n.locale || "zh_CN";
     },
-    // 获取当前语言显示文本
+    // Lấy văn bản hiển thị ngôn ngữ hiện tại
     currentLanguageText() {
       const currentLang = this.currentLanguage;
       switch (currentLang) {
@@ -192,7 +192,7 @@ export default {
           return this.$t("language.zhCN");
       }
     },
-    // 根据当前语言获取对应的xiaozhi-ai图标
+    // Lấy biểu tượng xiaozhi-ai tương ứng theo ngôn ngữ hiện tại
     xiaozhiAiIcon() {
       const currentLang = this.currentLanguage;
       switch (currentLang) {
@@ -231,14 +231,14 @@ export default {
   mounted() {
     this.fetchCaptcha();
     this.$store.dispatch("fetchPubConfig").then(() => {
-      // 根据配置决定默认登录方式
+      // Quyết định phương thức đăng nhập mặc định theo cấu hình
       this.isMobileLogin = this.enableMobileRegister;
       
-      // pub-config接口调用完成后，重新初始化featureManager以确保使用最新的配置
+      // Sau khi gọi API pub-config hoàn tất, khởi tạo lại featureManager để đảm bảo sử dụng cấu hình mới nhất
       featureManager.waitForInitialization().then(() => {
-        console.log('featureManager重新初始化完成，使用pub-config配置');
+        console.log('Khởi tạo lại featureManager hoàn tất, sử dụng cấu hình pub-config');
       }).catch(error => {
-        console.warn('featureManager重新初始化失败:', error);
+        console.warn('Khởi tạo lại featureManager thất bại:', error);
       });
     });
   },
@@ -256,18 +256,18 @@ export default {
             const blob = new Blob([res.data], { type: res.data.type });
             this.captchaUrl = URL.createObjectURL(blob);
           } else {
-            showDanger("验证码加载失败，点击刷新");
+            showDanger("Tải mã xác minh thất bại, nhấp để làm mới");
           }
         });
       }
     },
 
-    // 切换语言下拉菜单的可见状态变化
+    // Thay đổi trạng thái hiển thị của menu thả xuống chuyển đổi ngôn ngữ
     handleLanguageDropdownVisibleChange(visible) {
       this.languageDropdownVisible = visible;
     },
 
-    // 切换语言
+    // Chuyển đổi ngôn ngữ
     changeLanguage(lang) {
       changeLanguage(lang);
       this.languageDropdownVisible = false;
@@ -277,10 +277,10 @@ export default {
       });
     },
 
-    // 切换登录方式
+    // Chuyển đổi phương thức đăng nhập
     switchLoginType(type) {
       this.isMobileLogin = type === "mobile";
-      // 清空表单
+      // Xóa trống biểu mẫu
       this.form.username = "";
       this.form.mobile = "";
       this.form.password = "";
@@ -288,7 +288,7 @@ export default {
       this.fetchCaptcha();
     },
 
-    // 封装输入验证逻辑
+    // Đóng gói logic xác thực đầu vào
     validateInput(input, messageKey) {
       if (!input.trim()) {
         showDanger(this.$t(messageKey));
@@ -299,36 +299,36 @@ export default {
 
     async login() {
       if (this.isMobileLogin) {
-        // 手机号登录验证
+        // Xác thực đăng nhập bằng số điện thoại
         if (!validateMobile(this.form.mobile, this.form.areaCode)) {
           showDanger(this.$t('login.requiredMobile'));
           return;
         }
-        // 拼接手机号作为用户名
+        // Nối số điện thoại làm tên người dùng
         this.form.username = this.form.areaCode + this.form.mobile;
       } else {
-        // 用户名登录验证
+        // Xác thực đăng nhập bằng tên người dùng
         if (!this.validateInput(this.form.username, 'login.requiredUsername')) {
           return;
         }
       }
 
-      // 验证密码
+      // Xác thực mật khẩu
       if (!this.validateInput(this.form.password, 'login.requiredPassword')) {
         return;
       }
-      // 验证验证码
+      // Xác thực mã xác minh
       if (!this.validateInput(this.form.captcha, 'login.requiredCaptcha')) {
         return;
       }
-      // 加密密码
+      // Mã hóa mật khẩu
       let encryptedPassword;
       try {
-        // 拼接验证码和密码
+        // Nối mã xác minh và mật khẩu
         const captchaAndPassword = this.form.captcha + this.form.password;
         encryptedPassword = sm2Encrypt(this.sm2PublicKey, captchaAndPassword);
       } catch (error) {
-        console.error("密码加密失败:", error);
+        console.error("Mã hóa mật khẩu thất bại:", error);
         showDanger(this.$t('sm2.encryptionFailed'));
         return;
       }
@@ -337,7 +337,7 @@ export default {
 
       this.form.captchaId = this.captchaUuid;
 
-      // 加密
+      // Mã hóa
       const loginData = {
         username: plainUsername,
         password: encryptedPassword,
@@ -352,8 +352,8 @@ export default {
           goToPage("/home");
         },
         (err) => {
-          // 直接使用后端返回的国际化消息
-          let errorMessage = err.data.msg || "登录失败";
+          // Sử dụng trực tiếp thông báo quốc tế hóa mà backend trả về
+          let errorMessage = err.data.msg || "Đăng nhập thất bại";
 
           showDanger(errorMessage);
           if (
@@ -366,7 +366,7 @@ export default {
         }
       );
 
-      // 重新获取验证码
+      // Lấy lại mã xác minh
       setTimeout(() => {
         this.fetchCaptcha();
       }, 1000);

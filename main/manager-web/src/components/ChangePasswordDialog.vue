@@ -76,7 +76,7 @@ export default {
     }
   },
   methods: {
-    ...mapActions(['logout']), // 引入Vuex的logout action
+    ...mapActions(['logout']), // Nhập action logout của Vuex
     confirm() {
       if (!this.oldPassword.trim() || !this.newPassword.trim() || !this.confirmNewPassword.trim()) {
         this.$message.error(this.$t('changePassword.allFieldsRequired'));
@@ -91,7 +91,7 @@ export default {
         return;
       }
 
-      // 修改后的接口调用
+      // Gọi giao diện sau khi sửa đổi
       userApi.changePassword(this.oldPassword, this.newPassword, (res) => {
         if (res.data.code === 0) {
           this.$message.success({

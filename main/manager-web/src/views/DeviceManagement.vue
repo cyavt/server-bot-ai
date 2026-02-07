@@ -150,7 +150,7 @@ export default {
       loading: false,
       userApi: null,
       firmwareTypes: [],
-      mqttServiceAvailable: false, // MQTT服务是否可用
+      mqttServiceAvailable: false, // Dịch vụ MQTT có khả dụng không
     };
   },
   computed: {
@@ -171,7 +171,7 @@ export default {
     pageCount() {
       return Math.ceil(this.filteredDeviceList.length / this.pageSize);
     },
-    // 计算当前页是否全选
+    // Tính toán xem trang hiện tại có được chọn tất cả không
     isCurrentPageAllSelected() {
       return this.paginatedDeviceList.length > 0 &&
         this.paginatedDeviceList.every(device => device.selected);
@@ -377,7 +377,7 @@ export default {
               otaSwitch: device.autoUpdate === 1,
               rawBindTime: new Date(device.createDate).getTime(),
               selected: false,
-              // 初始设置为离线状态
+              // Ban đầu đặt trạng thái ngoại tuyến
               deviceStatus: 'offline'
             };
           })
@@ -385,7 +385,7 @@ export default {
           this.activeSearchKeyword = "";
           this.searchKeyword = "";
 
-          // 获取设备列表后，立即获取设备状态
+          // Sau khi lấy danh sách thiết bị, lập tức lấy trạng thái thiết bị
           this.fetchDeviceStatus(agentId);
         } else {
           this.$message.error(data.msg || this.$t('device.getListFailed'));

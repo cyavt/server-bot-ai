@@ -139,12 +139,12 @@ export default {
       if (actionItem === undefined || rowItem.address === undefined) {
         return;
       }
-      // 弹开询问框
+      // Mở hộp thoại xác nhận
       this.$confirm(actionItem.message, actionItem.title, {
-        confirmButtonText: actionItem.confirmText, // 确认按钮文本
-        cancelButtonText: this.$t('common.cancel') // 取消按钮文本
+        confirmButtonText: actionItem.confirmText, // Văn bản nút xác nhận
+        cancelButtonText: this.$t('common.cancel') // Văn bản nút hủy
       }).then(() => {
-        // 用户点击了确认按钮
+        // Người dùng đã nhấp vào nút xác nhận
         Api.admin.sendWsServerAction({
           targetWs: rowItem.address,
           action: actionItem.value

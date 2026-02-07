@@ -53,7 +53,7 @@ export default {
   props: {
     title: {
       type: String,
-      default: '新增参数'
+      default: 'Thêm tham số'
     },
     visible: {
       type: Boolean,
@@ -98,17 +98,17 @@ export default {
     submit() {
       this.$refs.form.validate((valid) => {
         if (valid) {
-          this.saving = true; // 开始加载
+          this.saving = true; // Bắt đầu tải
           this.$emit('submit', this.form);
         }
       });
     },
     cancel() {
-      this.saving = false; // 取消时重置状态
+      this.saving = false; // Đặt lại trạng thái khi hủy
       this.$emit('cancel');
     },
 
-    // 提供给父组件调用以重置saving状态
+    // Cung cấp cho component cha gọi để đặt lại trạng thái saving
     resetSaving() {
       this.saving = false;
     }
@@ -118,7 +118,7 @@ export default {
       if (newVal) {
         this.dialogKey = Date.now();
       } else {
-        // 当对话框关闭时，重置saving状态
+        // Khi hộp thoại đóng, đặt lại trạng thái saving
         this.saving = false;
       }
     }

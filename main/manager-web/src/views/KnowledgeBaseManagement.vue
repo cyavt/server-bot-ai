@@ -108,7 +108,7 @@
       </div>
     </div>
 
-    <!-- 新增/编辑知识库对话框 -->
+    <!-- Hộp thoại thêm/chỉnh sửa cơ sở tri thức -->
     <knowledge-base-dialog ref="knowledgeBaseDialog" :title="dialogTitle" :visible.sync="dialogVisible" :form="knowledgeBaseForm"
       @submit="handleSubmit" @cancel="dialogVisible = false" />
 
@@ -187,10 +187,10 @@ export default {
         },
         (res) => {
           this.loading = false;
-          console.log('getKnowledgeBaseList response:', res); // 添加调试日志
+          console.log('getKnowledgeBaseList response:', res); // Thêm nhật ký gỡ lỗi
           
-          // 修复：从 res.data 获取分页数据，而不是 res.data.data
-          // 因为 knowledgeBase.js 直接传递了整个响应对象
+          // Sửa: Lấy dữ liệu phân trang từ res.data, không phải res.data.data
+          // Vì knowledgeBase.js truyền trực tiếp toàn bộ đối tượng phản hồi
           if (res.data && res.data.code === 0) {
             const pageData = res.data.data || {};
             this.knowledgeBaseList = pageData.list || [];

@@ -1,10 +1,10 @@
 <template>
   <div class="welcome">
-    <!-- 公共头部 -->
+    <!-- Đầu trang chung -->
     <HeaderBar :devices="devices" @search="handleSearch" @search-reset="handleSearchReset" />
     <el-main style="padding: 20px;display: flex;flex-direction: column;">
       <div>
-        <!-- 首页内容 -->
+        <!-- Nội dung trang chủ -->
         <div class="add-device">
           <div class="add-device-bg">
             <div class="hellow-text" style="margin-top: 30px;">
@@ -14,7 +14,7 @@
               {{ $t('home.wish') }}
             </div>
             <div class="hi-hint">
-              let's have a wonderful day!
+              {{ $t('home.wish') }}
             </div>
             <div class="add-device-btn">
               <div class="left-add" @click="showAddDialog">
@@ -79,7 +79,7 @@ export default {
       showChatHistory: false,
       currentAgentId: '',
       currentAgentName: '',
-      // 功能状态
+      // Trạng thái chức năng
       featureStatus: {
         voiceprintRecognition: false,
         voiceClone: false,
@@ -94,7 +94,7 @@ export default {
   },
 
   methods: {
-    // 加载功能状态
+    // Tải trạng thái chức năng
     async loadFeatureStatus() {
       await featureManager.waitForInitialization();
       const config = featureManager.getConfig();
@@ -109,7 +109,7 @@ export default {
       this.addDeviceDialogVisible = true
     },
     goToRoleConfig() {
-      // 点击配置角色后跳转到角色配置页
+      // Sau khi nhấp vào cấu hình vai trò, chuyển đến trang cấu hình vai trò
       this.$router.push('/role-config')
     },
     handleWisdomBodyAdded(res) {
@@ -122,7 +122,7 @@ export default {
     handleSearch(keyword) {
       this.isSearching = true;
       this.isLoading = true;
-      // 检测MAC地址格式：包含4个冒号
+      // Phát hiện định dạng địa chỉ MAC: chứa 5 dấu hai chấm
       const isMac = /^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$/.test(keyword)
       const searchType = isMac ? 'mac' : 'name';
       Api.agent.searchAgent(keyword, searchType, ({ data }) => {
@@ -134,22 +134,22 @@ export default {
         }
         this.isLoading = false;
       }, (error) => {
-        console.error('搜索智能体失败:', error);
+        console.error('Tìm kiếm tác nhân thất bại:', error);
         this.isLoading = false;
         this.$message.error(this.$t('message.searchFailed'));
       });
     },
     handleSearchReset() {
       this.isSearching = false;
-      // 直接将原始设备列表赋值给显示设备列表，避免重新加载数据
+      // Gán trực tiếp danh sách thiết bị gốc cho danh sách thiết bị hiển thị, tránh tải lại dữ liệu
       this.devices = [...this.originalDevices];
     },
 
-    // 搜索更新智能体列表
+    // Cập nhật danh sách tác nhân tìm kiếm
     handleSearchResult(filteredList) {
-      this.devices = filteredList; // 更新设备列表
+      this.devices = filteredList; // Cập nhật danh sách thiết bị
     },
-    // 获取智能体列表
+    // Lấy danh sách tác nhân
     fetchAgentList() {
       this.isLoading = true;
       Api.agent.getAgentList(({ data }) => {
@@ -159,10 +159,10 @@ export default {
             agentId: item.id
           }));
 
-          // 动态设置骨架屏数量（可选）
+          // Đặt động số lượng khung xương (tùy chọn)
           this.skeletonCount = Math.min(
-            Math.max(this.originalDevices.length, 3), // 最少3个
-            10 // 最多10个
+            Math.max(this.originalDevices.length, 3), // Tối thiểu 3
+            10 // Tối đa 10
           );
 
           this.handleSearchReset();
@@ -173,9 +173,9 @@ export default {
         this.isLoading = false;
       });
     },
-    // 删除智能体
+    // Xóa tác nhân
     handleDeleteAgent(agentId) {
-      this.$confirm(this.$t('home.confirmDeleteAgent'), '提示', {
+      this.$confirm(this.$t('home.confirmDeleteAgent'), 'Thông báo', {
         confirmButtonText: this.$t('button.ok'),
         cancelButtonText: this.$t('button.cancel'),
         type: 'warning'
@@ -186,7 +186,7 @@ export default {
               message: this.$t('home.deleteSuccess'),
               showClose: true
             });
-            this.fetchAgentList(); // 刷新列表
+            this.fetchAgentList(); // Làm mới danh sách
           } else {
             this.$message.error({
               message: res.data.msg || this.$t('home.deleteFailed'),
@@ -306,10 +306,10 @@ export default {
   padding: 30px 0;
 }
 
-/* 在 DeviceItem.vue 的样式中 */
+/* Trong style của DeviceItem.vue */
 .device-item {
   margin: 0 !important;
-  /* 避免冲突 */
+  /* Tránh xung đột */
   width: auto !important;
 }
 
@@ -320,10 +320,10 @@ export default {
   padding-top: 30px;
   color: #979db1;
   text-align: center;
-  /* 居中显示 */
+  /* Hiển thị ở giữa */
 }
 
-/* 骨架屏动画 */
+/* Hoạt ảnh khung xương */
 @keyframes shimmer {
   100% {
     transform: translateX(100%);

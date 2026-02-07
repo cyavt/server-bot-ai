@@ -2,6 +2,10 @@
 update `sys_params` set param_value = '.mp3;.wav;.p3' where  param_code = 'plugins.play_music.music_ext';
 update `ai_model_config` set config_json =  '{\"type\": \"intent_llm\", \"llm\": \"LLM_ChatGLMLLM\"}' where  id = 'Intent_intent_llm';
 
+-- Đảm bảo cột name đủ lớn trước khi insert dữ liệu
+-- Sửa đổi cột name từ VARCHAR(20) lên VARCHAR(255) để chứa tên giọng dài
+ALTER TABLE `ai_tts_voice` MODIFY COLUMN `name` VARCHAR(255) COMMENT 'Tên giọng';
+
 -- Thêm giọng edge
 delete from `ai_tts_voice` where tts_model_id = 'TTS_EdgeTTS';
 INSERT INTO `ai_tts_voice` VALUES 
