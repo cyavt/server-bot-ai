@@ -17,10 +17,10 @@ TAG = __name__
 logger = setup_logging()
 
 MAX_RETRIES = 2
-RETRY_DELAY = 1  # 重试延迟（秒）
+RETRY_DELAY = 1  # Độ trễ thử lại (giây)
 
 
-# 捕获标准输出
+# Bắt đầu đầu ra chuẩn
 class CaptureOutput:
     def __enter__(self):
         self._output = io.StringIO()
@@ -32,7 +32,7 @@ class CaptureOutput:
         self.output = self._output.getvalue()
         self._output.close()
 
-        # 将捕获到的内容通过 logger 输出
+        # Xuất nội dung đã bắt được qua logger
         if self.output:
             logger.bind(tag=TAG).info(self.output.strip())
 
@@ -41,18 +41,18 @@ class ASRProvider(ASRProviderBase):
     def __init__(self, config: dict, delete_audio_file: bool):
         super().__init__()
         
-        # 内存检测，要求大于2G
+        # Kiểm tra bộ nhớ, yêu cầu lớn hơn 2G
         min_mem_bytes = 2 * 1024 * 1024 * 1024
         total_mem = psutil.virtual_memory().total
         if total_mem < min_mem_bytes:
-            logger.bind(tag=TAG).error(f"可用内存不足2G，当前仅有 {total_mem / (1024*1024):.2f} MB，可能无法启动FunASR")
+            logger.bind(tag=TAG).error(f"Bộ nhớ khả dụng không đủ 2G, hiện tại chỉ có {total_mem / (1024*1024):.2f} MB, có thể không khởi động được FunASR")
         
         self.interface_type = InterfaceType.LOCAL
         self.model_dir = config.get("model_dir")
-        self.output_dir = config.get("output_dir")  # 修正配置键名
+        self.output_dir = config.get("output_dir")  # Sửa tên khóa cấu hình
         self.delete_audio_file = delete_audio_file
 
-        # 确保输出目录存在
+        # Đảm bảo thư mục đầu ra tồn tại
         os.makedirs(self.output_dir, exist_ok=True)
         with CaptureOutput():
             self.model = AutoModel(
@@ -60,13 +60,13 @@ class ASRProvider(ASRProviderBase):
                 vad_kwargs={"max_single_segment_time": 30000},
                 disable_update=True,
                 hub="hf",
-                # device="cuda:0",  # 启用GPU加速
+                # device="cuda:0",  # Bật tăng tốc GPU
             )
 
     async def speech_to_text(
         self, opus_data: List[bytes], session_id: str, audio_format="opus", artifacts=None
     ) -> Tuple[Optional[str], Optional[str]]:
-        """语音转文本主处理逻辑"""
+        """Logic xử lý chính chuyển giọng nói thành văn bản"""
         retry_count = 0
         
         while retry_count < MAX_RETRIES:
@@ -74,7 +74,7 @@ class ASRProvider(ASRProviderBase):
                 if artifacts is None:
                     return "", None
 
-                # 语音识别 - 使用线程池避免阻塞事件循环
+                # Nhận dạng giọng nói - sử dụng thread pool để tránh chặn event loop
                 start_time = time.time()
                 result = await asyncio.to_thread(
                     self.model.generate,
@@ -86,7 +86,7 @@ class ASRProvider(ASRProviderBase):
                 )
                 text = lang_tag_filter(result[0]["text"])
                 logger.bind(tag=TAG).debug(
-                    f"语音识别耗时: {time.time() - start_time:.3f}s | 结果: {text['content']}"
+                    f"Thời gian nhận dạng giọng nói: {time.time() - start_time:.3f}s | Kết quả: {text['content']}"
                 )
 
                 return text, artifacts.file_path
@@ -95,14 +95,14 @@ class ASRProvider(ASRProviderBase):
                 retry_count += 1
                 if retry_count >= MAX_RETRIES:
                     logger.bind(tag=TAG).error(
-                        f"语音识别失败（已重试{retry_count}次）: {e}", exc_info=True
+                        f"Nhận dạng giọng nói thất bại (đã thử lại {retry_count} lần): {e}", exc_info=True
                     )
                     return "", None
                 logger.bind(tag=TAG).warning(
-                    f"语音识别失败，正在重试（{retry_count}/{MAX_RETRIES}）: {e}"
+                    f"Nhận dạng giọng nói thất bại, đang thử lại ({retry_count}/{MAX_RETRIES}): {e}"
                 )
                 time.sleep(RETRY_DELAY)
 
             except Exception as e:
-                logger.bind(tag=TAG).error(f"语音识别失败: {e}", exc_info=True)
+                logger.bind(tag=TAG).error(f"Nhận dạng giọng nói thất bại: {e}", exc_info=True)
                 return "", None

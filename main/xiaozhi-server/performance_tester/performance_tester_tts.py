@@ -1,19 +1,25 @@
 import asyncio
 import logging
 import os
+import sys
 import time
 from typing import Dict
 import yaml
 from tabulate import tabulate
 
-# 确保从 core.utils.tts 导入 create_tts_instance
+# Thêm thư mục gốc dự án vào đường dẫn Python
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(current_dir, ".."))
+sys.path.insert(0, project_root)
+
+# Đảm bảo import create_tts_instance từ core.utils.tts
 from core.utils.tts import create_instance as create_tts_instance
 from config.settings import load_config
 
-# 设置全局日志级别为 WARNING
+# Thiết lập mức log toàn cục là WARNING
 logging.basicConfig(level=logging.WARNING)
 
-description = "非流式语音合成性能测试"
+description = "Kiểm tra hiệu suất tổng hợp giọng nói không streaming"
 
 
 class TTSPerformanceTester:
@@ -22,15 +28,15 @@ class TTSPerformanceTester:
         self.test_sentences = self.config.get("module_test", {}).get(
             "test_sentences",
             [
-                "永和九年，岁在癸丑，暮春之初；",
-                "夫人之相与，俯仰一世，或取诸怀抱，悟言一室之内；或因寄所托，放浪形骸之外。虽趣舍万殊，静躁不同，",
-                "每览昔人兴感之由，若合一契，未尝不临文嗟悼，不能喻之于怀。固知一死生为虚诞，齐彭殇为妄作。",
+                "Năm Vĩnh Hòa thứ chín, năm Quý Sửu, đầu mùa xuân muộn;",
+                "Người ta cùng nhau, cúi ngẩng một đời, hoặc lấy từ trong lòng, ngộ ngôn trong một căn phòng; hoặc nhờ gửi gắm, phóng túng hình hài bên ngoài. Dù thú vui muôn vẻ khác nhau, tĩnh động khác nhau,",
+                "Mỗi khi xem lý do cảm xúc của người xưa, như hợp một khế, chưa từng không đối mặt với văn than thở, không thể hiểu được trong lòng. Vốn biết một cái chết sinh là hư dối, Tề Bành Thương là vọng tác.",
             ],
         )
         self.results = {}
 
     async def _test_tts(self, tts_name: str, config: Dict) -> Dict:
-        """测试单个TTS模块的性能"""
+        """Kiểm tra hiệu suất một module TTS đơn lẻ"""
         try:
             token_fields = ["access_token", "api_key", "token"]
             if any(
@@ -38,20 +44,20 @@ class TTSPerformanceTester:
                 and any(x in config[field] for x in ["你的", "placeholder"])
                 for field in token_fields
             ):
-                print(f"TTS {tts_name} 未配置access_token/api_key，已跳过")
+                print(f"TTS {tts_name} chưa cấu hình access_token/api_key, đã bỏ qua")
                 return {"name": tts_name, "errors": 1}
 
             module_type = config.get("type", tts_name)
             tts = create_tts_instance(module_type, config, delete_audio_file=True)
 
-            print(f"测试 TTS: {tts_name}")
+            print(f"Kiểm tra TTS: {tts_name}")
 
-            # 连接测试
+            # Kiểm tra kết nối
             tmp_file = tts.generate_filename()
-            await tts.text_to_speak("连接测试", tmp_file)
+            await tts.text_to_speak("Kiểm tra kết nối", tmp_file)
 
             if not tmp_file or not os.path.exists(tmp_file):
-                print(f"{tts_name} 连接失败")
+                print(f"{tts_name} kết nối thất bại")
                 return {"name": tts_name, "errors": 1}
 
             total_time = 0
@@ -65,9 +71,9 @@ class TTSPerformanceTester:
                 total_time += duration
 
                 if tmp_file and os.path.exists(tmp_file):
-                    print(f"{tts_name} [{i}/{test_count}] 测试成功")
+                    print(f"{tts_name} [{i}/{test_count}] kiểm tra thành công")
                 else:
-                    print(f"{tts_name} [{i}/{test_count}] 测试失败")
+                    print(f"{tts_name} [{i}/{test_count}] kiểm tra thất bại")
                     return {"name": tts_name, "errors": 1}
 
             return {
@@ -77,30 +83,30 @@ class TTSPerformanceTester:
             }
 
         except Exception as e:
-            print(f"{tts_name} 测试失败: {str(e)}")
+            print(f"{tts_name} kiểm tra thất bại: {str(e)}")
             return {"name": tts_name, "errors": 1}
 
     def _print_results(self):
-        """打印测试结果"""
+        """In kết quả kiểm tra"""
         if not self.results:
-            print("没有有效的TTS测试结果")
+            print("Không có kết quả kiểm tra TTS hợp lệ")
             return
 
-        headers = ["TTS模块", "平均耗时(秒)", "测试句子数", "状态"]
+        headers = ["Module TTS", "Thời gian trung bình (giây)", "Số câu kiểm tra", "Trạng thái"]
         table_data = []
 
-        # 收集所有数据并分类
+        # Thu thập và phân loại tất cả dữ liệu
         valid_results = []
         error_results = []
 
         for name, data in self.results.items():
             if data["errors"] == 0:
-                # 正常结果
+                # Kết quả bình thường
                 avg_time = f"{data['avg_time']:.3f}"
                 test_count = len(self.test_sentences[:3])
-                status = "✅ 正常"
+                status = "✅ Bình thường"
                 
-                # 保存用于排序的值
+                # Lưu giá trị dùng để sắp xếp
                 valid_results.append({
                     "name": name,
                     "avg_time": avg_time,
@@ -109,20 +115,20 @@ class TTSPerformanceTester:
                     "sort_key": data['avg_time']
                 })
             else:
-                # 错误结果
+                # Kết quả lỗi
                 avg_time = "-"
                 test_count = "0/3"
                 
-                # 默认错误类型为网络错误
-                error_type = "网络错误"
+                # Loại lỗi mặc định là lỗi mạng
+                error_type = "Lỗi mạng"
                 status = f"❌ {error_type}"
                 
                 error_results.append([name, avg_time, test_count, status])
 
-        # 按平均耗时升序排序
+        # Sắp xếp theo thời gian trung bình tăng dần
         valid_results.sort(key=lambda x: x["sort_key"])
 
-        # 将排序后的有效结果转换为表格数据
+        # Chuyển đổi kết quả hợp lệ đã sắp xếp thành dữ liệu bảng
         for result in valid_results:
             table_data.append([
                 result["name"],
@@ -131,10 +137,10 @@ class TTSPerformanceTester:
                 result["status"]
             ])
 
-        # 将错误结果添加到表格数据末尾
+        # Thêm kết quả lỗi vào cuối dữ liệu bảng
         table_data.extend(error_results)
 
-        print("\nTTS性能测试结果:")
+        print("\nKết quả kiểm tra hiệu suất TTS:")
         print(
             tabulate(
                 table_data,
@@ -143,36 +149,36 @@ class TTSPerformanceTester:
                 colalign=("left", "right", "right", "left"),
             )
         )
-        print("\n测试说明:")
-        print("- 超时控制: 单个请求最大等待时间为10秒")
-        print("- 错误处理: 无法连接和超时的列为网络错误")
-        print("- 排序规则: 按平均耗时从快到慢排序")
+        print("\nHướng dẫn kiểm tra:")
+        print("- Kiểm soát timeout: Thời gian chờ tối đa cho một yêu cầu là 10 giây")
+        print("- Xử lý lỗi: Không thể kết nối và timeout được liệt kê là lỗi mạng")
+        print("- Quy tắc sắp xếp: Sắp xếp theo thời gian trung bình từ nhanh đến chậm")
 
     async def run(self):
-        """执行测试"""
-        print("开始TTS性能测试...")
+        """Thực thi kiểm tra"""
+        print("Bắt đầu kiểm tra hiệu suất TTS...")
 
         if not self.config.get("TTS"):
-            print("配置文件中未找到TTS配置")
+            print("Không tìm thấy cấu hình TTS trong file cấu hình")
             return
 
-        # 遍历所有TTS配置
+        # Duyệt qua tất cả cấu hình TTS
         tasks = []
         for tts_name, config in self.config.get("TTS", {}).items():
             tasks.append(self._test_tts(tts_name, config))
 
-        # 并发执行测试
+        # Thực thi kiểm tra đồng thời
         results = await asyncio.gather(*tasks)
 
-        # 保存所有结果，包括错误
+        # Lưu tất cả kết quả, bao gồm lỗi
         for result in results:
             self.results[result["name"]] = result
 
-        # 打印结果
+        # In kết quả
         self._print_results()
 
 
-# 为了performance_tester.py的调用需求
+# Để đáp ứng nhu cầu gọi từ performance_tester.py
 async def main():
     tester = TTSPerformanceTester()
     await tester.run()

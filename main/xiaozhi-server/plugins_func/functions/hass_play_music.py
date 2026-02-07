@@ -15,17 +15,17 @@ hass_play_music_function_desc = {
     "type": "function",
     "function": {
         "name": "hass_play_music",
-        "description": "用户想听音乐、有声书的时候使用，在房间的媒体播放器（media_player）里播放对应音频",
+        "description": "Sử dụng khi người dùng muốn nghe nhạc, sách nói, phát audio tương ứng trong trình phát media (media_player) trong phòng",
         "parameters": {
             "type": "object",
             "properties": {
                 "media_content_id": {
                     "type": "string",
-                    "description": "可以是音乐或有声书的专辑名称、歌曲名、演唱者,如果未指定就填random",
+                    "description": "Có thể là tên album, tên bài hát, ca sĩ của nhạc hoặc sách nói, nếu không chỉ định thì điền random",
                 },
                 "entity_id": {
                     "type": "string",
-                    "description": "需要操作的音箱的设备id,homeassistant里的entity_id,media_player开头",
+                    "description": "ID thiết bị của loa cần thao tác, entity_id trong homeassistant, bắt đầu bằng media_player",
                 },
             },
             "required": ["media_content_id", "entity_id"],
@@ -39,16 +39,16 @@ hass_play_music_function_desc = {
 )
 def hass_play_music(conn: "ConnectionHandler", entity_id="", media_content_id="random"):
     try:
-        # 执行音乐播放命令
+        # Thực thi lệnh phát nhạc
         future = asyncio.run_coroutine_threadsafe(
             handle_hass_play_music(conn, entity_id, media_content_id), conn.loop
         )
         ha_response = future.result()
         return ActionResponse(
-            action=Action.RESPONSE, result="退出意图已处理", response=ha_response
+            action=Action.RESPONSE, result="Ý định thoát đã được xử lý", response=ha_response
         )
     except Exception as e:
-        logger.bind(tag=TAG).error(f"处理音乐意图错误: {e}")
+        logger.bind(tag=TAG).error(f"Lỗi xử lý ý định phát nhạc: {e}")
 
 
 async def handle_hass_play_music(
@@ -62,6 +62,6 @@ async def handle_hass_play_music(
     data = {"entity_id": entity_id, "media_id": media_content_id}
     response = requests.post(url, headers=headers, json=data)
     if response.status_code == 200:
-        return f"正在播放{media_content_id}的音乐"
+        return f"Đang phát nhạc {media_content_id}"
     else:
-        return f"音乐播放失败，错误码: {response.status_code}"
+        return f"Phát nhạc thất bại, mã lỗi: {response.status_code}"

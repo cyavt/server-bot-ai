@@ -102,6 +102,6 @@ echo.
 echo Bạn có thể khởi động lại containers bằng:
 echo   docker-compose up -d
 echo hoặc
-echo   docker-compose -f docker-compose_all.yml up -d
+echo   docker compose -f docker-compose_hotreload.yml up -d
 echo.
 pause

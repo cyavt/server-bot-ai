@@ -10,8 +10,8 @@ _logger_initialized = False
 
 
 def get_module_abbreviation(module_name, module_dict):
-    """获取模块名称的缩写，如果为空则返回00
-    如果名称中包含下划线，则返回下划线后面的前两个字符
+    """Lấy chữ viết tắt của tên module, nếu rỗng thì trả về 00
+    Nếu tên chứa dấu gạch dưới, trả về hai ký tự đầu sau dấu gạch dưới
     """
     module_value = module_dict.get(module_name, "")
     if not module_value:
@@ -23,7 +23,7 @@ def get_module_abbreviation(module_name, module_dict):
 
 
 def build_module_string(selected_module):
-    """构建模块字符串"""
+    """Xây dựng chuỗi module"""
     return (
         get_module_abbreviation("VAD", selected_module)
         + get_module_abbreviation("ASR", selected_module)
@@ -36,25 +36,25 @@ def build_module_string(selected_module):
 
 
 def formatter(record):
-    """为没有 tag 的日志添加默认值，并处理动态模块字符串"""
+    """Thêm giá trị mặc định cho log không có tag, và xử lý chuỗi module động"""
     record["extra"].setdefault("tag", record["name"])
-    # 如果没有设置 selected_module，使用默认值
+    # Nếu không thiết lập selected_module, sử dụng giá trị mặc định
     record["extra"].setdefault("selected_module", "00000000000000")
-    # 将 selected_module 从 extra 提取到顶级，以支持 {selected_module} 格式
+    # Trích xuất selected_module từ extra lên cấp cao nhất, để hỗ trợ định dạng {selected_module}
     record["selected_module"] = record["extra"]["selected_module"]
     return record["message"]
 
 
 def setup_logging():
     check_config_file()
-    """从配置文件中读取日志配置，并设置日志输出格式和级别"""
+    """Đọc cấu hình log từ file cấu hình, và thiết lập định dạng và mức độ xuất log"""
     config = load_config()
     log_config = config["log"]
     global _logger_initialized
 
-    # 第一次初始化时配置日志
+    # Cấu hình log khi khởi tạo lần đầu
     if not _logger_initialized:
-        # 使用默认的模块字符串进行初始化
+        # Sử dụng chuỗi module mặc định để khởi tạo
         logger.configure(
             extra={
                 "selected_module": log_config.get("selected_module", "00000000000000"),
@@ -80,35 +80,35 @@ def setup_logging():
         os.makedirs(log_dir, exist_ok=True)
         os.makedirs(data_dir, exist_ok=True)
 
-        # 配置日志输出
+        # Cấu hình xuất log
         logger.remove()
 
-        # 输出到控制台
+        # Xuất ra console
         logger.add(sys.stdout, format=log_format, level=log_level, filter=formatter)
 
-        # 输出到文件 - 统一目录，按大小轮转
-        # 日志文件完整路径
+        # Xuất ra file - thư mục thống nhất, xoay vòng theo kích thước
+        # Đường dẫn đầy đủ của file log
         log_file_path = os.path.join(log_dir, log_file)
 
-        # 添加日志处理器
+        # Thêm trình xử lý log
         logger.add(
             log_file_path,
             format=log_format_file,
             level=log_level,
             filter=formatter,
-            rotation="10 MB",  # 每个文件最大10MB
-            retention="30 days",  # 保留30天
+            rotation="10 MB",  # Mỗi file tối đa 10MB
+            retention="30 days",  # Giữ lại 30 ngày
             compression=None,
             encoding="utf-8",
-            enqueue=True,  # 异步安全
+            enqueue=True,  # An toàn async
             backtrace=True,
             diagnose=True,
         )
-        _logger_initialized = True  # 标记为已初始化
+        _logger_initialized = True  # Đánh dấu đã khởi tạo
 
     return logger
 
 
 def create_connection_logger(selected_module_str):
-    """为连接创建独立的日志器，绑定特定的模块字符串"""
+    """Tạo logger độc lập cho kết nối, gắn chuỗi module cụ thể"""
     return logger.bind(selected_module=selected_module_str)

@@ -2,27 +2,34 @@ import asyncio
 import time
 import json
 import uuid
+import os
+import sys
 import aiohttp
 import websockets
 import hmac
 import base64
 import hashlib
-import asyncio
 from urllib.parse import urlparse, urlencode
 from tabulate import tabulate
+
+# Thêm thư mục gốc dự án vào đường dẫn Python
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(current_dir, ".."))
+sys.path.insert(0, project_root)
+
 from config.settings import load_config
 
-description = "流式TTS语音合成首词耗时测试"
+description = "Kiểm tra thời gian trễ từ đầu của TTS streaming tổng hợp giọng nói"
 class StreamTTSPerformanceTester:
     def __init__(self):
         self.config = load_config()
         self.test_texts = [
-            "你好，这是一句话。"
+            "Xin chào, đây là một câu."
         ]
         self.results = []
     
     async def test_aliyun_tts(self, text=None, test_count=5):
-        """测试阿里云流式TTS首词延迟（测试多次取平均）"""
+        """Kiểm tra độ trễ từ đầu của TTS streaming Aliyun (kiểm tra nhiều lần lấy trung bình)"""
         text = text or self.test_texts[0]
         latencies = []
         
@@ -35,7 +42,7 @@ class StreamTTSPerformanceTester:
                 host = tts_config["host"]
                 ws_url = f"wss://{host}/ws/v1"
 
-                # 统一计时起点：在建立连接前开始计时
+                # Điểm bắt đầu tính thời gian thống nhất: Bắt đầu tính trước khi thiết lập kết nối
                 start_time = time.time()
                 async with websockets.connect(ws_url, extra_headers={"X-NLS-Token": token}) as ws:
                     task_id = str(uuid.uuid4())
@@ -63,7 +70,7 @@ class StreamTTSPerformanceTester:
 
                     start_response = json.loads(await ws.recv())
                     if start_response["header"]["name"] != "SynthesisStarted":
-                        raise Exception("启动合成失败")
+                        raise Exception("Khởi động tổng hợp thất bại")
 
                     run_request = {
                         "header": {
@@ -82,21 +89,21 @@ class StreamTTSPerformanceTester:
                         if isinstance(response, bytes):
                             latency = time.time() - start_time
                             latencies.append(latency)
-                            print(f"[阿里云TTS] 第{i+1}次 首词延迟: {latency:.3f}s")
+                            print(f"[Aliyun TTS] Lần {i+1} độ trễ từ đầu: {latency:.3f}s")
                             break
                         elif isinstance(response, str):
                             data = json.loads(response)
                             if data["header"]["name"] == "TaskFailed":
-                                raise Exception(f"合成失败: {data['payload']['error_info']}")
+                                raise Exception(f"Tổng hợp thất bại: {data['payload']['error_info']}")
 
             except Exception as e:
-                print(f"[阿里云TTS] 第{i+1}次测试失败: {str(e)}")
+                print(f"[Aliyun TTS] Lần {i+1} kiểm tra thất bại: {str(e)}")
                 latencies.append(None)
         
-        return self._calculate_result("阿里云TTS", latencies, test_count)
+        return self._calculate_result("Aliyun TTS", latencies, test_count)
 
     async def test_alibl_tts(self, text=None, test_count=5):
-        """测试阿里云百炼CosyVoice流式TTS首词延迟"""
+        """Kiểm tra độ trễ từ đầu của TTS streaming Aliyun BaiLian CosyVoice"""
         text = text or self.test_texts[0]
         latencies = []
 
@@ -127,7 +134,7 @@ class StreamTTSPerformanceTester:
                 ) as ws:
                     session_id = uuid.uuid4().hex
 
-                    # 1. 发送 run-task（启动任务）
+                    # 1. Gửi run-task (khởi động task)
                     run_task_message = {
                         "header": {
                             "action": "run-task",
@@ -153,7 +160,7 @@ class StreamTTSPerformanceTester:
                     }
                     await ws.send(json.dumps(run_task_message))
 
-                    # 2. 等待 task-started 事件（关键！必须等这个再发文本）
+                    # 2. Chờ sự kiện task-started (Quan trọng! Phải đợi cái này rồi mới gửi text)
                     task_started = False
                     while not task_started:
                         msg = await ws.recv()
@@ -163,14 +170,14 @@ class StreamTTSPerformanceTester:
                             event = header.get("event")
                             if event == "task-started":
                                 task_started = True
-                                print(f"[阿里云百炼TTS] 第{i+1}次 任务启动成功")
+                                print(f"[Aliyun BaiLian TTS] Lần {i+1} task khởi động thành công")
                             elif event == "task-failed":
-                                raise Exception(f"启动失败: {header.get('error_message', '未知错误')}")
+                                raise Exception(f"Khởi động thất bại: {header.get('error_message', 'Lỗi không xác định')}")
 
-                    # 3. 发送 continue-task（发送文本！这是正确动作）
+                    # 3. Gửi continue-task (Gửi text! Đây là hành động đúng)
                     continue_task_message = {
                         "header": {
-                            "action": "continue-task",  # 改回 continue-task
+                            "action": "continue-task",  # Đổi lại continue-task
                             "task_id": session_id,
                             "streaming": "duplex",
                         },
@@ -178,7 +185,7 @@ class StreamTTSPerformanceTester:
                     }
                     await ws.send(json.dumps(continue_task_message))
 
-                    # 4. 发送 finish-task（结束任务）
+                    # 4. Gửi finish-task (Kết thúc task)
                     finish_task_message = {
                         "header": {
                             "action": "finish-task",
@@ -189,31 +196,31 @@ class StreamTTSPerformanceTester:
                     }
                     await ws.send(json.dumps(finish_task_message))
 
-                    # 5. 等待第一个音频数据块
+                    # 5. Chờ khối dữ liệu audio đầu tiên
                     while True:
                         msg = await asyncio.wait_for(ws.recv(), timeout=15.0)
                         if isinstance(msg, (bytes, bytearray)) and len(msg) > 0:
                             latency = time.time() - start_time
-                            print(f"[阿里云百炼TTS] 第{i+1}次 首词延迟: {latency:.3f}s")
+                            print(f"[Aliyun BaiLian TTS] Lần {i+1} độ trễ từ đầu: {latency:.3f}s")
                             latencies.append(latency)
                             break
                         elif isinstance(msg, str):
                             data = json.loads(msg)
                             event = data.get("header", {}).get("event")
                             if event == "task-failed":
-                                raise Exception(f"合成失败: {data}")
+                                raise Exception(f"Tổng hợp thất bại: {data}")
                             elif event == "task-finished":
                                 if not latencies or latencies[-1] is None:
-                                    raise Exception("任务结束但未收到音频")
+                                    raise Exception("Task kết thúc nhưng chưa nhận được audio")
 
             except Exception as e:
-                print(f"[阿里云百炼TTS] 第{i+1}次失败: {str(e)}")
+                print(f"[Aliyun BaiLian TTS] Lần {i+1} thất bại: {str(e)}")
                 latencies.append(None)
 
-        return self._calculate_result("阿里云百炼TTS", latencies, test_count)
+        return self._calculate_result("Aliyun BaiLian TTS", latencies, test_count)
 
     async def test_doubao_tts(self, text=None, test_count=5):
-        """测试火山引擎流式TTS首词延迟（测试多次取平均）"""
+        """Kiểm tra độ trễ từ đầu của TTS streaming Huoshan Engine (kiểm tra nhiều lần lấy trung bình)"""
         text = text or self.test_texts[0]
         latencies = []
         
@@ -236,7 +243,7 @@ class StreamTTSPerformanceTester:
                 async with websockets.connect(ws_url, additional_headers=ws_header, max_size=1000000000) as ws:
                     session_id = uuid.uuid4().hex
 
-                    # 发送会话启动请求
+                    # Gửi yêu cầu khởi động phiên
                     header = bytes([
                         (0b0001 << 4) | 0b0001,  
                         0b0001 << 4 | 0b1011,     
@@ -250,7 +257,7 @@ class StreamTTSPerformanceTester:
                     payload = json.dumps({"speaker": speaker}).encode()
                     await ws.send(header + optional + len(payload).to_bytes(4, "big", signed=True) + payload)
 
-                    # 发送文本
+                    # Gửi text
                     header = bytes([
                         (0b0001 << 4) | 0b0001,  
                         0b0001 << 4 | 0b1011,    
@@ -268,16 +275,16 @@ class StreamTTSPerformanceTester:
                     first_chunk = await ws.recv()
                     latency = time.time() - start_time
                     latencies.append(latency)
-                    print(f"[火山引擎TTS] 第{i+1}次 首词延迟: {latency:.3f}s")
+                    print(f"[Huoshan Engine TTS] Lần {i+1} độ trễ từ đầu: {latency:.3f}s")
 
             except Exception as e:
-                print(f"[火山引擎TTS] 第{i+1}次测试失败: {str(e)}")
+                print(f"[Huoshan Engine TTS] Lần {i+1} kiểm tra thất bại: {str(e)}")
                 latencies.append(None)
         
-        return self._calculate_result("火山引擎TTS", latencies, test_count)
+        return self._calculate_result("Huoshan Engine TTS", latencies, test_count)
 
     async def test_paddlespeech_tts(self, text=None, test_count=5):
-        """测试PaddleSpeech流式TTS首词延迟（测试多次取平均）"""
+        """Kiểm tra độ trễ từ đầu của TTS streaming PaddleSpeech (kiểm tra nhiều lần lấy trung bình)"""
         text = text or self.test_texts[0]
         latencies = []
         
@@ -291,7 +298,7 @@ class StreamTTSPerformanceTester:
 
                 start_time = time.time()
                 async with websockets.connect(tts_url) as ws:
-                    # 发送开始请求
+                    # Gửi yêu cầu bắt đầu
                     await ws.send(json.dumps({
                         "task": "tts",
                         "signal": "start"
@@ -299,9 +306,9 @@ class StreamTTSPerformanceTester:
                     
                     start_response = json.loads(await ws.recv())
                     if start_response.get("status") != 0:
-                        raise Exception("连接失败")
+                        raise Exception("Kết nối thất bại")
                     
-                    # 发送文本数据
+                    # Gửi dữ liệu text
                     await ws.send(json.dumps({
                         "text": text,
                         "spk_id": spk_id,
@@ -309,33 +316,33 @@ class StreamTTSPerformanceTester:
                         "volume": volume
                     }))
                     
-                    # 接收第一个数据块
+                    # Nhận khối dữ liệu đầu tiên
                     first_chunk = await ws.recv()
                     latency = time.time() - start_time
                     latencies.append(latency)
-                    print(f"[PaddleSpeechTTS] 第{i+1}次 首词延迟: {latency:.3f}s")
+                    print(f"[PaddleSpeechTTS] Lần {i+1} độ trễ từ đầu: {latency:.3f}s")
 
-                    # 发送结束请求
+                    # Gửi yêu cầu kết thúc
                     end_request = {
                         "task": "tts",
                         "signal": "end"
                     }
                     await ws.send(json.dumps(end_request))
 
-                    # 确保连接正常关闭
+                    # Đảm bảo kết nối đóng bình thường
                     try:
                         await ws.recv()
                     except websockets.exceptions.ConnectionClosedOK:
                         pass
 
             except Exception as e:
-                print(f"[PaddleSpeechTTS] 第{i+1}次测试失败: {str(e)}")
+                print(f"[PaddleSpeechTTS] Lần {i+1} kiểm tra thất bại: {str(e)}")
                 latencies.append(None)
         
         return self._calculate_result("PaddleSpeechTTS", latencies, test_count)
             
     async def test_indexstream_tts(self, text=None, test_count=5):
-        """测试IndexStream流式TTS首词延迟（测试多次取平均）"""
+        """Kiểm tra độ trễ từ đầu của TTS streaming IndexStream (kiểm tra nhiều lần lấy trung bình)"""
         text = text or self.test_texts[0]
         latencies = []
         
@@ -345,14 +352,14 @@ class StreamTTSPerformanceTester:
                 api_url = tts_config.get("api_url")
                 voice = tts_config.get("voice")
 
-                # 统一计时起点：在建立连接前开始计时
+                # Điểm bắt đầu tính thời gian thống nhất: Bắt đầu tính trước khi thiết lập kết nối
                 start_time = time.time()
 
                 async with aiohttp.ClientSession() as session:
                     payload = {"text": text, "character": voice}
                     async with session.post(api_url, json=payload, timeout=10) as resp:
                         if resp.status != 200:
-                            raise Exception(f"请求失败: {resp.status}, {await resp.text()}")
+                            raise Exception(f"Yêu cầu thất bại: {resp.status}, {await resp.text()}")
 
                         async for chunk in resp.content.iter_any():
                             data = chunk[0] if isinstance(chunk, (list, tuple)) else chunk
@@ -361,20 +368,20 @@ class StreamTTSPerformanceTester:
 
                             latency = time.time() - start_time
                             latencies.append(latency)
-                            print(f"[IndexStreamTTS] 第{i+1}次 首词延迟: {latency:.3f}s")
+                            print(f"[IndexStreamTTS] Lần {i+1} độ trễ từ đầu: {latency:.3f}s")
                             resp.close()
                             break
                         else:
                             latencies.append(None)
 
             except Exception as e:
-                print(f"[IndexStreamTTS] 第{i+1}次测试失败: {str(e)}")
+                print(f"[IndexStreamTTS] Lần {i+1} kiểm tra thất bại: {str(e)}")
                 latencies.append(None)
         
         return self._calculate_result("IndexStreamTTS", latencies, test_count)
 
     async def test_linkerai_tts(self, text=None, test_count=5):
-        """测试Linkerai流式TTS首词延迟（测试多次取平均）"""
+        """Kiểm tra độ trễ từ đầu của TTS streaming Linkerai (kiểm tra nhiều lần lấy trung bình)"""
         text = text or self.test_texts[0]
         latencies = []
         
@@ -385,7 +392,7 @@ class StreamTTSPerformanceTester:
                 access_token = tts_config["access_token"]
                 voice = tts_config["voice"]
 
-                # 统一计时起点：在建立连接前开始计时
+                # Điểm bắt đầu tính thời gian thống nhất: Bắt đầu tính trước khi thiết lập kết nối
                 start_time = time.time()
                 async with aiohttp.ClientSession() as session:
                     params = {
@@ -395,7 +402,7 @@ class StreamTTSPerformanceTester:
                         "stream": "true",
                         "target_sr": 16000,
                         "audio_format": "pcm",
-                        "instruct_text": "请生成一段自然流畅的语音",
+                        "instruct_text": "Vui lòng tạo một đoạn giọng nói tự nhiên và mượt mà",
                     }
                     headers = {
                         "Authorization": f"Bearer {access_token}",
@@ -404,38 +411,38 @@ class StreamTTSPerformanceTester:
 
                     async with session.get(api_url, params=params, headers=headers, timeout=10) as resp:
                         if resp.status != 200:
-                            raise Exception(f"请求失败: {resp.status}, {await resp.text()}")
+                            raise Exception(f"Yêu cầu thất bại: {resp.status}, {await resp.text()}")
 
-                        # 接收第一个数据块
+                        # Nhận khối dữ liệu đầu tiên
                         async for _ in resp.content.iter_any():
                             latency = time.time() - start_time
                             latencies.append(latency)
-                            print(f"[LinkeraiTTS] 第{i+1}次 首词延迟: {latency:.3f}s")
+                            print(f"[LinkeraiTTS] Lần {i+1} độ trễ từ đầu: {latency:.3f}s")
                             break
                         else:
                             latencies.append(None)
 
             except Exception as e:
-                print(f"[LinkeraiTTS] 第{i+1}次测试失败: {str(e)}")
+                print(f"[LinkeraiTTS] Lần {i+1} kiểm tra thất bại: {str(e)}")
                 latencies.append(None)
         
         return self._calculate_result("LinkeraiTTS", latencies, test_count)
     
     async def test_xunfei_tts(self, text=None, test_count=5):
-        """测试讯飞流式TTS首词延迟（测试多次取平均）"""
+        """Kiểm tra độ trễ từ đầu của TTS streaming XunFei (kiểm tra nhiều lần lấy trung bình)"""
         text = text or self.test_texts[0]
         latencies = []
         
         for i in range(test_count):
             try:
-                # 修正配置节点名称，与配置文件中的XunFeiTTS匹配
+                # Sửa tên node cấu hình, khớp với XunFeiTTS trong file cấu hình
                 tts_config = self.config["TTS"]["XunFeiTTS"]
                 app_id = tts_config["app_id"]
                 api_key = tts_config["api_key"]
                 api_secret = tts_config["api_secret"]
                 api_url = tts_config.get("api_url", "wss://cbm01.cn-huabei-1.xf-yun.com/v1/private/mcd9m97e6")
                 voice = tts_config.get("voice", "x5_lingxiaoxuan_flow")
-                # 生成认证URL
+                # Tạo URL xác thực
                 auth_url = self._create_xunfei_auth_url(api_key, api_secret, api_url)
                 start_time = time.time()
                 async with websockets.connect(
@@ -445,10 +452,10 @@ class StreamTTSPerformanceTester:
                     close_timeout=10,
                     max_size=1000000000
                 ) as ws:
-                    # 构造请求
+                    # Tạo yêu cầu
                     request = self._build_xunfei_request(app_id, text, voice)
                     await ws.send(json.dumps(request))
-                    # 等待第一个音频数据块
+                    # Chờ khối dữ liệu audio đầu tiên
                     first_audio_received = False
                     while not first_audio_received:
                         msg = await asyncio.wait_for(ws.recv(), timeout=10)
@@ -457,8 +464,8 @@ class StreamTTSPerformanceTester:
                         code = header.get("code")
 
                         if code != 0:
-                            message = header.get("message", "未知错误")
-                            raise Exception(f"合成失败: {code} - {message}")
+                            message = header.get("message", "Lỗi không xác định")
+                            raise Exception(f"Tổng hợp thất bại: {code} - {message}")
 
                         payload = data.get("payload", {})
                         audio_payload = payload.get("audio", {})
@@ -467,32 +474,32 @@ class StreamTTSPerformanceTester:
                             status = audio_payload.get("status", 0)
                             audio_data = audio_payload.get("audio", "")
                             if status == 1 and audio_data:
-                                # 收到第一个音频数据块
+                                # Nhận khối dữ liệu audio đầu tiên
                                 latency = time.time() - start_time
                                 latencies.append(latency)
-                                print(f"[讯飞TTS] 第{i+1}次 首词延迟: {latency:.3f}s")
+                                print(f"[XunFei TTS] Lần {i+1} độ trễ từ đầu: {latency:.3f}s")
                                 first_audio_received = True
                                 break
             except Exception as e:
-                print(f"[讯飞TTS] 第{i+1}次测试失败: {str(e)}")
+                print(f"[XunFei TTS] Lần {i+1} kiểm tra thất bại: {str(e)}")
                 latencies.append(None)
         
-        return self._calculate_result("讯飞TTS", latencies, test_count)
+        return self._calculate_result("XunFei TTS", latencies, test_count)
     
     def _create_xunfei_auth_url(self, api_key, api_secret, api_url):
-        """生成讯飞WebSocket认证URL"""
+        """Tạo URL xác thực WebSocket XunFei"""
         parsed_url = urlparse(api_url)
         host = parsed_url.netloc
         path = parsed_url.path
         
-        # 获取UTC时间，讯飞要求使用RFC1123格式
+        # Lấy thời gian UTC, XunFei yêu cầu sử dụng định dạng RFC1123
         now = time.gmtime()
         date = time.strftime('%a, %d %b %Y %H:%M:%S GMT', now)
         
-        # 构造签名字符串
+        # Tạo chuỗi chữ ký
         signature_origin = f"host: {host}\ndate: {date}\nGET {path} HTTP/1.1"
         
-        # 计算签名
+        # Tính toán chữ ký
         signature_sha = hmac.new(
             api_secret.encode('utf-8'),
             signature_origin.encode('utf-8'),
@@ -500,11 +507,11 @@ class StreamTTSPerformanceTester:
         ).digest()
         signature_sha_base64 = base64.b64encode(signature_sha).decode(encoding='utf-8')
         
-        # 构造authorization
+        # Tạo authorization
         authorization_origin = f'api_key="{api_key}", algorithm="hmac-sha256", headers="host date request-line", signature="{signature_sha_base64}"'
         authorization = base64.b64encode(authorization_origin.encode('utf-8')).decode(encoding='utf-8')
         
-        # 构造最终的WebSocket URL
+        # Tạo WebSocket URL cuối cùng
         v = {
             "authorization": authorization,
             "date": date,
@@ -514,7 +521,7 @@ class StreamTTSPerformanceTester:
         return url
     
     def _build_xunfei_request(self, app_id, text, voice):
-        """构建讯飞TTS请求结构"""
+        """Tạo cấu trúc yêu cầu TTS XunFei"""
         return {
             "header": {
                 "app_id": app_id,
@@ -559,108 +566,108 @@ class StreamTTSPerformanceTester:
 
 
     def _calculate_result(self, service_name, latencies, test_count):
-        """计算测试结果（正确处理None值，剔除失败测试）"""
-        # 剔除失败的测试（None值和<=0延迟），只统计有效延迟
+        """Tính toán kết quả kiểm tra (xử lý đúng giá trị None, loại bỏ các test thất bại)"""
+        # Loại bỏ các test thất bại (giá trị None và độ trễ <=0), chỉ thống kê độ trễ hợp lệ
         valid_latencies = [l for l in latencies if l is not None and l > 0]
         if valid_latencies:
             avg_latency = sum(valid_latencies) / len(valid_latencies)
-            status = f"成功（{len(valid_latencies)}/{test_count}次有效）"
+            status = f"Thành công ({len(valid_latencies)}/{test_count} lần hợp lệ)"
         else:
             avg_latency = 0
-            status = "失败: 所有测试均失败"
+            status = "Thất bại: Tất cả các test đều thất bại"
         return {"name": service_name, "latency": avg_latency, "status": status}
 
     def _print_results(self, test_text, test_count):
-        """打印测试结果"""
+        """In kết quả kiểm tra"""
         if not self.results:
-            print("没有有效的TTS测试结果")
+            print("Không có kết quả kiểm tra TTS hợp lệ")
             return
 
         print(f"\n{'='*60}")
-        print("流式TTS首词延迟测试结果")
+        print("Kết quả kiểm tra độ trễ từ đầu TTS streaming")
         print(f"{'='*60}")
-        print(f"测试文本: {test_text}")
-        print(f"测试次数: 每个TTS服务测试 {test_count} 次")
+        print(f"Text kiểm tra: {test_text}")
+        print(f"Số lần kiểm tra: Mỗi dịch vụ TTS kiểm tra {test_count} lần")
 
-        # 排序结果：成功优先，按延迟升序
+        # Sắp xếp kết quả: Ưu tiên thành công, sắp xếp theo độ trễ tăng dần
         success_results = sorted(
-            [r for r in self.results if "成功" in r["status"]],
+            [r for r in self.results if "Thành công" in r["status"]],
             key=lambda x: x["latency"]
         )
-        failed_results = [r for r in self.results if "成功" not in r["status"]]
+        failed_results = [r for r in self.results if "Thành công" not in r["status"]]
 
         table_data = [
             [r["name"], f"{r['latency']:.3f}", r["status"]]
             for r in success_results + failed_results
         ]
 
-        print(tabulate(table_data, headers=["TTS服务", "首词延迟(秒)", "状态"], tablefmt="grid"))
-        print("\n测试说明：测量从建立连接到接收第一个音频数据块的时间（包含握手、鉴权、发送文本），取多次测试平均值")
-        print("- 计时起点: 建立WebSocket/HTTP连接前（统一包含网络建连、握手、发送文本全流程）")
-        print("- 超时控制: 单个请求最大等待时间为10秒")
-        print("- 错误处理: 失败的测试不计入平均值，只统计成功测试的延迟")
-        print("- 排序规则: 按平均耗时从快到慢排序")
+        print(tabulate(table_data, headers=["Dịch vụ TTS", "Độ trễ từ đầu (giây)", "Trạng thái"], tablefmt="grid"))
+        print("\nHướng dẫn kiểm tra: Đo thời gian từ khi thiết lập kết nối đến khi nhận khối dữ liệu audio đầu tiên (bao gồm bắt tay, xác thực, gửi text), lấy trung bình nhiều lần kiểm tra")
+        print("- Điểm bắt đầu tính thời gian: Trước khi thiết lập kết nối WebSocket/HTTP (thống nhất bao gồm toàn bộ quy trình kết nối mạng, bắt tay, gửi text)")
+        print("- Kiểm soát timeout: Thời gian chờ tối đa cho một yêu cầu là 10 giây")
+        print("- Xử lý lỗi: Các test thất bại không tính vào trung bình, chỉ thống kê độ trễ của các test thành công")
+        print("- Quy tắc sắp xếp: Sắp xếp theo thời gian trung bình từ nhanh đến chậm")
 
 
     async def run(self, test_text=None, test_count=5):
-        """执行测试
+        """Thực thi kiểm tra
         
         Args:
-            test_text: 要测试的文本，如果为None则使用默认文本
-            test_count: 每个TTS服务的测试次数
+            test_text: Text cần kiểm tra, nếu là None thì sử dụng text mặc định
+            test_count: Số lần kiểm tra cho mỗi dịch vụ TTS
         """
         test_text = test_text or self.test_texts[0]
-        print(f"开始流式TTS首词延迟测试...")
-        print(f"测试文本: {test_text}")
-        print(f"每个TTS服务测试次数: {test_count}次")
+        print(f"Bắt đầu kiểm tra độ trễ từ đầu TTS streaming...")
+        print(f"Text kiểm tra: {test_text}")
+        print(f"Số lần kiểm tra mỗi dịch vụ TTS: {test_count} lần")
         
         if not self.config.get("TTS"):
-            print("配置文件中未找到TTS配置")
+            print("Không tìm thấy cấu hình TTS trong file cấu hình")
             return
         
-        # 测试每种TTS服务
+        # Kiểm tra từng loại dịch vụ TTS
         self.results = []
         
-        # 测试阿里云TTS
+        # Kiểm tra Aliyun TTS
         result = await self.test_aliyun_tts(test_text, test_count)
         self.results.append(result)
 
-        # 测试阿里云百炼TTS
+        # Kiểm tra Aliyun BaiLian TTS
         if self.config.get("TTS", {}).get("AliBLTTS"):
             result = await self.test_alibl_tts(test_text, test_count)
             self.results.append(result)
 
-        # 测试火山引擎TTS
+        # Kiểm tra Huoshan Engine TTS
         result = await self.test_doubao_tts(test_text, test_count)
         self.results.append(result)
         
-        # 测试PaddleSpeech TTS
+        # Kiểm tra PaddleSpeech TTS
         result = await self.test_paddlespeech_tts(test_text, test_count)
         self.results.append(result)
         
-        # 测试Linkerai TTS
+        # Kiểm tra Linkerai TTS
         result = await self.test_linkerai_tts(test_text, test_count)
         self.results.append(result)
         
-        # 测试IndexStreamTTS
+        # Kiểm tra IndexStreamTTS
         result = await self.test_indexstream_tts(test_text, test_count)
         self.results.append(result)
         
-        # 测试讯飞TTS
+        # Kiểm tra XunFei TTS
         if self.config.get("TTS", {}).get("XunFeiTTS"):
             result = await self.test_xunfei_tts(test_text, test_count)
             self.results.append(result)
         
-        # 打印结果
+        # In kết quả
         self._print_results(test_text, test_count)
 
 
 async def main():
     import argparse
     
-    parser = argparse.ArgumentParser(description="流式TTS首词延迟测试工具")
-    parser.add_argument("--text", help="要测试的文本内容")
-    parser.add_argument("--count", type=int, default=5, help="每个TTS服务的测试次数")
+    parser = argparse.ArgumentParser(description="Công cụ kiểm tra độ trễ từ đầu TTS streaming")
+    parser.add_argument("--text", help="Nội dung text cần kiểm tra")
+    parser.add_argument("--count", type=int, default=5, help="Số lần kiểm tra cho mỗi dịch vụ TTS")
     
     args = parser.parse_args()
     await StreamTTSPerformanceTester().run(args.text, args.count)

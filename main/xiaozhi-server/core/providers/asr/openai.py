@@ -31,18 +31,18 @@ class ASRProvider(ASRProviderBase):
                 return "", None
             file_path = artifacts.file_path
                 
-            logger.bind(tag=TAG).info(f"file path: {file_path}")
+            logger.bind(tag=TAG).info(f"Đường dẫn file: {file_path}")
             headers = {
                 "Authorization": f"Bearer {self.api_key}",
             }
             
-            # 使用data参数传递模型名称
+            # Sử dụng tham số data để truyền tên model
             data = {
                 "model": self.model
             }
 
 
-            with open(file_path, "rb") as audio_file:  # 使用with语句确保文件关闭
+            with open(file_path, "rb") as audio_file:  # Sử dụng with để đảm bảo file được đóng
                 files = {
                     "file": audio_file
                 }
@@ -55,16 +55,16 @@ class ASRProvider(ASRProviderBase):
                     headers=headers
                 )
                 logger.bind(tag=TAG).debug(
-                    f"语音识别耗时: {time.time() - start_time:.3f}s | 结果: {response.text}"
+                    f"Thời gian nhận dạng giọng nói: {time.time() - start_time:.3f}s | Kết quả: {response.text}"
                 )
 
             if response.status_code == 200:
                 text = response.json().get("text", "")
                 return text, file_path
             else:
-                raise Exception(f"API请求失败: {response.status_code} - {response.text}")
+                raise Exception(f"Yêu cầu API thất bại: {response.status_code} - {response.text}")
                 
         except Exception as e:
-            logger.bind(tag=TAG).error(f"语音识别失败: {e}")
+            logger.bind(tag=TAG).error(f"Nhận dạng giọng nói thất bại: {e}")
             return "", None
         

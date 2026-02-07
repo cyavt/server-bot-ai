@@ -17,14 +17,14 @@ server:
   # Khi bạn sử dụng triển khai docker hoặc triển khai mạng công cộng (sử dụng ssl, tên miền), có thể không chính xác
   # Vì vậy nếu sử dụng triển khai docker, hãy đặt websocket thành địa chỉ mạng nội bộ
   # Nếu sử dụng triển khai mạng công cộng, hãy đặt websocket thành địa chỉ mạng công cộng
-  websocket: ws://192.168.200.61:8000/xiaozhi/v1/
+  websocket: null
   # Địa chỉ giao diện phân tích thị giác
   # Địa chỉ giao diện phân tích thị giác gửi đến thiết bị
   # Nếu theo cách viết mặc định dưới đây, hệ thống sẽ tự động tạo địa chỉ nhận dạng thị giác và xuất ra trong log khởi động, bạn có thể truy cập trực tiếp bằng trình duyệt để xác nhận
   # Khi bạn sử dụng triển khai docker hoặc triển khai mạng công cộng (sử dụng ssl, tên miền), có thể không chính xác
   # Vì vậy nếu sử dụng triển khai docker, hãy đặt vision_explain thành địa chỉ mạng nội bộ
   # Nếu sử dụng triển khai mạng công cộng, hãy đặt vision_explain thành địa chỉ mạng công cộng
-  vision_explain: http://192.168.200.61:8003/mcp/vision/explain
+  vision_explain: null
   # Độ lệch múi giờ khi OTA trả về thông tin
   timezone_offset: +7
   # Cấu hình xác thực

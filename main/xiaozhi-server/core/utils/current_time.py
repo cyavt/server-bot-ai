@@ -1,39 +1,39 @@
 """
-时间工具模块
-提供统一的时间获取功能
+Mô-đun công cụ thời gian
+Cung cấp chức năng lấy thời gian thống nhất
 """
 
 import cnlunar
 from datetime import datetime
 
 WEEKDAY_MAP = {
-    "Monday": "星期一",
-    "Tuesday": "星期二", 
-    "Wednesday": "星期三",
-    "Thursday": "星期四",
-    "Friday": "星期五",
-    "Saturday": "星期六",
-    "Sunday": "星期日",
+    "Monday": "Thứ Hai",
+    "Tuesday": "Thứ Ba", 
+    "Wednesday": "Thứ Tư",
+    "Thursday": "Thứ Năm",
+    "Friday": "Thứ Sáu",
+    "Saturday": "Thứ Bảy",
+    "Sunday": "Chủ Nhật",
 }
 
 
 def get_current_time() -> str:
     """
-    获取当前时间字符串 (格式: HH:MM)
+    Lấy chuỗi thời gian hiện tại (định dạng: HH:MM)
     """
     return datetime.now().strftime("%H:%M")
 
 
 def get_current_date() -> str:
     """
-    获取今天日期字符串 (格式: YYYY-MM-DD)
+    Lấy chuỗi ngày hôm nay (định dạng: YYYY-MM-DD)
     """
     return datetime.now().strftime("%Y-%m-%d")
 
 
 def get_current_weekday() -> str:
     """
-    获取今天星期几
+    Lấy thứ trong tuần hôm nay
     """
     now = datetime.now()
     return WEEKDAY_MAP[now.strftime("%A")]
@@ -41,7 +41,7 @@ def get_current_weekday() -> str:
 
 def get_current_lunar_date() -> str:
     """
-    获取农历日期字符串
+    Lấy chuỗi ngày âm lịch
     """
     try:
         now = datetime.now()
@@ -52,13 +52,13 @@ def get_current_lunar_date() -> str:
             today_lunar.lunarDayCn,
         )
     except Exception:
-        return "农历获取失败"
+        return "Lấy ngày âm lịch thất bại"
 
 
 def get_current_time_info() -> tuple:
     """
-    获取当前时间信息
-    返回: (当前时间字符串, 今天日期, 今天星期, 农历日期)
+    Lấy thông tin thời gian hiện tại
+    Trả về: (chuỗi thời gian hiện tại, ngày hôm nay, thứ trong tuần, ngày âm lịch)
     """
     current_time = get_current_time()
     today_date = get_current_date()

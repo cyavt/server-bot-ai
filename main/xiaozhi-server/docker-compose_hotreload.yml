@@ -8,13 +8,16 @@
 version: '3'
 
 services:
-  # Server模块 (Python) - keep same as dev mode (mount local code)
   xiaozhi-esp32-server:
-    image: ghcr.nju.edu.cn/xinnan-tech/xiaozhi-esp32-server:server_latest
+    image: xiaozhi-server:local
+    build:
+      context: ../..
+      dockerfile: Dockerfile-server
     container_name: xiaozhi-esp32-server
     depends_on:
       - xiaozhi-esp32-server-db
       - xiaozhi-esp32-server-redis
+      - xiaozhi-esp32-server-web
     restart: always
     networks:
       - default
@@ -24,15 +27,18 @@ services:
     security_opt:
       - seccomp:unconfined
     environment:
-      - TZ=Asia/Shanghai
+      - TZ=Asia/Ho_Chi_Minh
     volumes:
       - ../../main/xiaozhi-server:/opt/xiaozhi-esp32-server
       - ./data:/opt/xiaozhi-esp32-server/data
       - ./models:/opt/xiaozhi-esp32-server/models
 
-  # Backend (manager-api + nginx) - stable docker runtime at :8002
+  # Backend (manager-api + nginx) - build locally from source code
   xiaozhi-esp32-server-web:
-    image: ghcr.nju.edu.cn/xinnan-tech/xiaozhi-esp32-server:web_latest
+    image: xiaozhi-web:local
+    build:
+      context: ../..
+      dockerfile: Dockerfile-web
     container_name: xiaozhi-esp32-server-web
     restart: always
     networks:
@@ -45,8 +51,8 @@ services:
     ports:
       - "8002:8002"
     environment:
-      - TZ=Asia/Shanghai
-      - SPRING_DATASOURCE_DRUID_URL=jdbc:mysql://xiaozhi-esp32-server-db:3306/xiaozhi_esp32_server?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&nullCatalogMeansCurrent=true&connectTimeout=30000&socketTimeout=30000&autoReconnect=true&failOverReadOnly=false&maxReconnects=10
+      - TZ=Asia/Ho_Chi_Minh
+      - SPRING_DATASOURCE_DRUID_URL=jdbc:mysql://xiaozhi-esp32-server-db:3306/xiaozhi_esp32_server?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Ho_Chi_Minh&nullCatalogMeansCurrent=true&connectTimeout=30000&socketTimeout=30000&autoReconnect=true&failOverReadOnly=false&maxReconnects=10
       - SPRING_DATASOURCE_DRUID_USERNAME=root
       - SPRING_DATASOURCE_DRUID_PASSWORD=123456
       - SPRING_DATA_REDIS_HOST=xiaozhi-esp32-server-redis
@@ -66,11 +72,9 @@ services:
     ports:
       - "8001:8001"
     environment:
-      - TZ=Asia/Shanghai
-      # Make file watching reliable on Windows bind mounts
+      - TZ=Asia/Ho_Chi_Minh
       - CHOKIDAR_USEPOLLING=true
       - CHOKIDAR_INTERVAL=1000
-      # Vue dev server settings (read by vue.config.js)
       - VUE_APP_DEV_HOST=0.0.0.0
       - VUE_APP_DEV_PORT=8001
       - VUE_APP_API_PROXY_TARGET=http://xiaozhi-esp32-server-web:8002
@@ -93,8 +97,7 @@ services:
     volumes:
       - ./test:/app
     environment:
-      - TZ=Asia/Shanghai
-      # Make file watching reliable on Windows bind mounts
+      - TZ=Asia/Ho_Chi_Minh
       - CHOKIDAR_USEPOLLING=true
       - CHOKIDAR_INTERVAL=1000
     command: sh -lc "npm install -g live-server && live-server --port=8006 --host=0.0.0.0 --open=/test_page.html --watch=/app --no-browser"
@@ -110,12 +113,12 @@ services:
     restart: always
     networks:
       - default
-    expose:
-      - 3306
+    ports:
+      - "3366:3306"
     volumes:
       - ./mysql/data:/var/lib/mysql
     environment:
-      - TZ=Asia/Shanghai
+      - TZ=Asia/Ho_Chi_Minh
       - MYSQL_ROOT_PASSWORD=123456
       - MYSQL_DATABASE=xiaozhi_esp32_server
       - MYSQL_INITDB_ARGS="--character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci"

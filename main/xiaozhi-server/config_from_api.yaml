@@ -22,7 +22,7 @@ server:
   # Khi bạn dùng Docker hoặc triển khai trên Internet (SSL, domain), địa chỉ này có thể không chính xác.
   # Vì vậy, nếu bạn dùng Docker, hãy đặt vision_explain thành địa chỉ IP nội bộ (LAN).
   # Nếu bạn dùng triển khai Internet, hãy đặt vision_explain thành địa chỉ công khai (public).
-  vision_explain: http://你的ip或者域名:端口号/mcp/vision/explain
+  vision_explain: http://ip:port/mcp/vision/explain
 manager-api:
   # Địa chỉ manager-api của bạn, tốt nhất là dùng IP trong mạng LAN.
   # Nếu dùng Docker, nên điền: http://xiaozhi-esp32-server-web:8002/xiaozhi

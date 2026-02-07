@@ -10,50 +10,50 @@ logger = setup_logging()
 
 punctuation_set = {
     "，",
-    ",",  # 中文逗号 + 英文逗号
+    ",",  # Dấu phẩy tiếng Trung + dấu phẩy tiếng Anh
     "。",
-    ".",  # 中文句号 + 英文句号
+    ".",  # Dấu chấm tiếng Trung + dấu chấm tiếng Anh
     "！",
-    "!",  # 中文感叹号 + 英文感叹号
-    "“",
-    "”",
-    '"',  # 中文双引号 + 英文引号
+    "!",  # Dấu chấm than tiếng Trung + dấu chấm than tiếng Anh
+    """,
+    """,
+    '"',  # Dấu ngoặc kép tiếng Trung + dấu ngoặc kép tiếng Anh
     "：",
-    ":",  # 中文冒号 + 英文冒号
+    ":",  # Dấu hai chấm tiếng Trung + dấu hai chấm tiếng Anh
     "-",
-    "－",  # 英文连字符 + 中文全角横线
-    "、",  # 中文顿号
+    "－",  # Dấu gạch ngang tiếng Anh + dấu gạch ngang toàn bộ tiếng Trung
+    "、",  # Dấu phẩy trên tiếng Trung
     "[",
-    "]",  # 方括号
+    "]",  # Dấu ngoặc vuông
     "【",
-    "】",  # 中文方括号
-    "~",  # 波浪号
+    "】",  # Dấu ngoặc vuông tiếng Trung
+    "~",  # Dấu sóng
 }
 
 def create_instance(class_name, *args, **kwargs):
-    # 创建TTS实例
+    # Tạo instance TTS
     if os.path.exists(os.path.join('core', 'providers', 'tts', f'{class_name}.py')):
         lib_name = f'core.providers.tts.{class_name}'
         if lib_name not in sys.modules:
             sys.modules[lib_name] = importlib.import_module(f'{lib_name}')
         return sys.modules[lib_name].TTSProvider(*args, **kwargs)
 
-    raise ValueError(f"不支持的TTS类型: {class_name}，请检查该配置的type是否设置正确")
+    raise ValueError(f"Loại TTS không được hỗ trợ: {class_name}，vui lòng kiểm tra xem type của cấu hình này có được thiết lập đúng không")
 
 
 class MarkdownCleaner:
     """
-    封装 Markdown 清理逻辑：直接用 MarkdownCleaner.clean_markdown(text) 即可
+    Đóng gói logic làm sạch Markdown: chỉ cần dùng MarkdownCleaner.clean_markdown(text) là được
     """
-    # 公式字符
+    # Ký tự công thức
     NORMAL_FORMULA_CHARS = re.compile(r'[a-zA-Z\\^_{}\+\-\(\)\[\]=]')
 
     @staticmethod
     def _replace_inline_dollar(m: re.Match) -> str:
         """
-        只要捕获到完整的 "$...$":
-          - 如果内部有典型公式字符 => 去掉两侧 $
-          - 否则 (纯数字/货币等) => 保留 "$...$"
+        Chỉ cần bắt được "$...$" hoàn chỉnh:
+          - Nếu bên trong có ký tự công thức điển hình => bỏ $ hai bên
+          - Ngược lại (số thuần/tiền tệ v.v.) => giữ "$...$"
         """
         content = m.group(1)
         if MarkdownCleaner.NORMAL_FORMULA_CHARS.search(content):
@@ -64,7 +64,7 @@ class MarkdownCleaner:
     @staticmethod
     def _replace_table_block(match: re.Match) -> str:
         """
-        当匹配到一个整段表格块时，回调该函数。
+        Khi khớp với một khối bảng hoàn chỉnh, gọi lại hàm này.
         """
         block_text = match.group('table_block')
         lines = block_text.strip('\n').split('\n')
@@ -86,11 +86,11 @@ class MarkdownCleaner:
 
         lines_for_tts = []
         if len(parsed_table) == 1:
-            # 只有一行
+            # Chỉ có một dòng
             only_line_str = ", ".join(parsed_table[0])
-            lines_for_tts.append(f"单行表格：{only_line_str}")
+            lines_for_tts.append(f"Bảng một dòng: {only_line_str}")
         else:
-            lines_for_tts.append(f"表头是：{', '.join(headers)}")
+            lines_for_tts.append(f"Tiêu đề là: {', '.join(headers)}")
             for i, row in enumerate(data_rows, start=1):
                 row_str_list = []
                 for col_index, cell_val in enumerate(row):
@@ -98,47 +98,47 @@ class MarkdownCleaner:
                         row_str_list.append(f"{headers[col_index]} = {cell_val}")
                     else:
                         row_str_list.append(cell_val)
-                lines_for_tts.append(f"第 {i} 行：{', '.join(row_str_list)}")
+                lines_for_tts.append(f"Dòng {i}: {', '.join(row_str_list)}")
 
         return "\n".join(lines_for_tts) + "\n"
 
-    # 预编译所有正则表达式（按执行频率排序）
-    # 这里要把 replace_xxx 的静态方法放在最前定义，以便在列表里能正确引用它们。
+    # Biên dịch trước tất cả biểu thức chính quy (sắp xếp theo tần suất thực thi)
+    # Ở đây cần đặt các phương thức tĩnh replace_xxx ở đầu để có thể tham chiếu đúng trong danh sách.
     REGEXES = [
-        (re.compile(r'```.*?```', re.DOTALL), ''),  # 代码块
-        (re.compile(r'^#+\s*', re.MULTILINE), ''),  # 标题
-        (re.compile(r'(\*\*|__)(.*?)\1'), r'\2'),  # 粗体
-        (re.compile(r'(\*|_)(?=\S)(.*?)(?<=\S)\1'), r'\2'),  # 斜体
-        (re.compile(r'!\[.*?\]\(.*?\)'), ''),  # 图片
-        (re.compile(r'\[(.*?)\]\(.*?\)'), r'\1'),  # 链接
-        (re.compile(r'^\s*>+\s*', re.MULTILINE), ''),  # 引用
+        (re.compile(r'```.*?```', re.DOTALL), ''),  # Khối mã
+        (re.compile(r'^#+\s*', re.MULTILINE), ''),  # Tiêu đề
+        (re.compile(r'(\*\*|__)(.*?)\1'), r'\2'),  # In đậm
+        (re.compile(r'(\*|_)(?=\S)(.*?)(?<=\S)\1'), r'\2'),  # In nghiêng
+        (re.compile(r'!\[.*?\]\(.*?\)'), ''),  # Hình ảnh
+        (re.compile(r'\[(.*?)\]\(.*?\)'), r'\1'),  # Liên kết
+        (re.compile(r'^\s*>+\s*', re.MULTILINE), ''),  # Trích dẫn
         (
             re.compile(r'(?P<table_block>(?:^[^\n]*\|[^\n]*\n)+)', re.MULTILINE),
             _replace_table_block
         ),
-        (re.compile(r'^\s*[*+-]\s*', re.MULTILINE), '- '),  # 列表
-        (re.compile(r'\$\$.*?\$\$', re.DOTALL), ''),  # 块级公式
+        (re.compile(r'^\s*[*+-]\s*', re.MULTILINE), '- '),  # Danh sách
+        (re.compile(r'\$\$.*?\$\$', re.DOTALL), ''),  # Công thức cấp khối
         (
             re.compile(r'(?<![A-Za-z0-9])\$([^\n$]+)\$(?![A-Za-z0-9])'),
             _replace_inline_dollar
         ),
-        (re.compile(r'\n{2,}'), '\n'),  # 多余空行
+        (re.compile(r'\n{2,}'), '\n'),  # Dòng trống thừa
     ]
 
     @staticmethod
     def clean_markdown(text: str) -> str:
         """
-        主入口方法：依序执行所有正则，移除或替换 Markdown 元素
+        Phương thức đầu vào chính: thực thi tất cả biểu thức chính quy theo thứ tự, loại bỏ hoặc thay thế các phần tử Markdown
         """
-        # 检查文本是否全为英文和基本标点符号
+        # Kiểm tra văn bản có toàn là tiếng Anh và dấu câu cơ bản không
         if text and all((c.isascii() or c.isspace() or c in punctuation_set) for c in text):
-            # 保留原始空格，直接返回
+            # Giữ khoảng trắng gốc, trả về trực tiếp
             return text
 
         for regex, replacement in MarkdownCleaner.REGEXES:
             text = regex.sub(replacement, text)
 
-        # 去除emoji表情
+        # Loại bỏ biểu tượng cảm xúc emoji
         text = check_emoji(text)
 
         return text.strip()
