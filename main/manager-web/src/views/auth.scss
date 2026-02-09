@@ -5,7 +5,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(145deg, #f5f8fd, #6baaff, #9ebbfc, #f5f8fd);
+  background: linear-gradient(145deg, var(--primary-blue-lightest) 0%, var(--primary-blue-lighter) 30%, var(--primary-orange-lighter) 70%, var(--primary-orange-lightest) 100%);
   background-size: cover;
   /* Đảm bảo hình nền phủ toàn bộ phần tử */
   background-position: center;
@@ -61,7 +61,7 @@
 
 .login-btn {
   height: 35px;
-  background: #5778ff;
+  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-orange) 100%);
   border-radius: 10px;
   font-weight: 400;
   font-size: 14px;
@@ -69,6 +69,18 @@
   color: #fff;
   line-height: 35px;
   margin: 15px 30px 15px 30px;
+  transition: all 0.3s ease;
+  border: none;
+  box-shadow: 0 2px 6px rgba(74, 144, 226, 0.3);
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(74, 144, 226, 0.4);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
 }
 
 .input-box {
@@ -107,7 +119,11 @@
   }
 
   .el-tabs__item.is-active {
-    color: #5778ff;
+    color: var(--primary-blue);
+  }
+  
+  .el-tabs__item:hover {
+    color: var(--primary-orange);
   }
 
   .el-tabs__nav-scroll {

@@ -108,10 +108,19 @@ export default {
 <style scoped>
 .device-item {
   width: 342px;
-  border-radius: 20px;
-  background: #fafcfe;
-  padding: 22px;
+  border-radius: var(--radius-md);
+  background: var(--bg-primary);
+  padding: var(--spacing-6);
   box-sizing: border-box;
+  border: 1px solid var(--border-color-light);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-base);
+  
+  &:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-4px);
+    border-color: var(--primary-blue-lighter);
+  }
 }
 
 .device-name {
@@ -123,16 +132,30 @@ export default {
 }
 
 .settings-btn {
-  font-weight: 500;
-  font-size: 12px;
-  color: #5778ff;
-  background: #e6ebff;
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
+  color: var(--primary-blue);
+  background: var(--primary-blue-lightest);
   width: auto;
-  padding: 0 12px;
-  height: 21px;
-  line-height: 21px;
+  padding: 0 var(--spacing-3);
+  height: 24px;
+  line-height: 24px;
   cursor: pointer;
-  border-radius: 14px;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-base);
+  border: 1px solid transparent;
+  
+  &:hover {
+    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-orange) 100%);
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-blue-sm);
+    border-color: transparent;
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
 }
 
 .version-info {

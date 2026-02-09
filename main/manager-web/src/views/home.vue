@@ -20,9 +20,9 @@
               <div class="left-add" @click="showAddDialog">
                 {{ $t('home.addAgent') }}
               </div>
-              <div style="width: 23px;height: 13px;background: #5778ff;margin-left: -10px;" />
-              <div class="right-add">
-                <i class="el-icon-right" @click="showAddDialog" style="font-size: 20px;color: #fff;" />
+              <div class="button-connector" />
+              <div class="right-add" @click="showAddDialog">
+                <i class="el-icon-right" />
               </div>
             </div>
           </div>
@@ -212,44 +212,47 @@ export default {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(145deg, #e6eeff, #eff0ff);
+  background: linear-gradient(135deg, 
+    var(--primary-blue-lightest) 0%, 
+    #ffffff 25%, 
+    #ffffff 75%, 
+    var(--primary-orange-lightest) 100%);
+  background-attachment: fixed;
   background-size: cover;
-  /* 确保背景图像覆盖整个元素 */
   background-position: center;
-  /* 从顶部中心对齐 */
   -webkit-background-size: cover;
-  /* 兼容老版本WebKit浏览器 */
   -o-background-size: cover;
-  /* 兼容老版本Opera浏览器 */
 }
 
 .add-device {
-  height: 195px;
-  border-radius: 15px;
+  padding-bottom: 10px;
+  border-radius: var(--radius-md);
   position: relative;
   overflow: hidden;
-  background: linear-gradient(269.62deg,
-      #e0e6fd 0%,
-      #cce7ff 49.69%,
-      #d3d3fe 100%);
+  background: linear-gradient(135deg,
+      var(--primary-blue-lightest) 0%,
+      var(--primary-blue-lighter) 50%,
+      var(--primary-orange-lighter) 100%);
+  box-shadow: var(--shadow-lg);
+  transition: all var(--transition-base);
+  
+  &:hover {
+    box-shadow: var(--shadow-xl);
+    transform: translateY(-2px);
+  }
 }
 
 .add-device-bg {
   width: 100%;
   height: 100%;
   text-align: left;
-  background-image: url("@/assets/home/main-top-bg.png");
   overflow: hidden;
   background-size: cover;
-  /* 确保背景图像覆盖整个元素 */
   background-position: center;
-  /* 从顶部中心对齐 */
   -webkit-background-size: cover;
-  /* 兼容老版本WebKit浏览器 */
   -o-background-size: cover;
   box-sizing: border-box;
 
-  /* 兼容老版本Opera浏览器 */
   .hellow-text {
     margin-left: 75px;
     color: #3d4566;
@@ -274,36 +277,93 @@ export default {
   margin-left: 75px;
   margin-top: 15px;
   cursor: pointer;
+  position: relative;
+  height: 34px;
+
+  /* Tạo background chung cho toàn bộ button để đảm bảo gradient liên tục */
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 162px; /* 105 + 23 + 34 */
+    height: 34px;
+    background: linear-gradient(135deg, #4A90E2 0%, #FF6B35 100%);
+    border-radius: 6px;
+    z-index: 0;
+    box-shadow: 0 4px 12px rgba(74, 144, 226, 0.2);
+    transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  &:hover::before {
+    box-shadow: 0 8px 24px rgba(74, 144, 226, 0.3);
+  }
 
   .left-add {
     width: 105px;
     height: 34px;
-    border-radius: 17px;
-    background: #5778ff;
+    border-radius: 6px 0 0 6px;
+    background: transparent;
     color: #fff;
-    font-size: 14px;
-    font-weight: 500;
+    font-size: 12px;
+    font-weight: 600;
     text-align: center;
     line-height: 34px;
+    transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    position: relative;
+    z-index: 1;
+    border: none;
+    
+    &:hover {
+      transform: translateX(2px);
+    }
+  }
+
+  .button-connector {
+    width: 23px;
+    height: 34px;
+    background: transparent;
+    margin-left: -10px;
+    z-index: 1;
+    position: relative;
+    flex-shrink: 0;
   }
 
   .right-add {
     width: 34px;
     height: 34px;
-    border-radius: 50%;
-    background: #5778ff;
+    border-radius: 0 6px 6px 0;
+    background: transparent;
     margin-left: -6px;
     display: flex;
     justify-content: center;
     align-items: center;
+    transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    z-index: 2;
+    position: relative;
+    flex-shrink: 0;
+    
+    i {
+      font-size: 20px;
+      color: #fff;
+      transition: transform 250ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    &:hover {
+      i {
+        transform: translateX(2px) rotate(5deg);
+      }
+    }
   }
 }
 
 .device-list-container {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-  gap: 30px;
-  padding: 30px 0;
+  gap: var(--spacing-6);
+  padding: var(--spacing-6) 0;
 }
 
 /* Trong style của DeviceItem.vue */

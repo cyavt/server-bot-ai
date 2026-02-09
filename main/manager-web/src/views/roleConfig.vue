@@ -76,7 +76,7 @@
                         resize="none"
                         :placeholder="$t('roleConfig.pleaseEnterContent')"
                         v-model="form.systemPrompt"
-                        maxlength="2000"
+                        maxlength="5000"
                         show-word-limit
                         class="form-textarea"
                       />
@@ -1053,7 +1053,7 @@ export default {
   display: flex;
   position: relative;
   flex-direction: column;
-  background: linear-gradient(to bottom right, #dce8ff, #e4eeff, #e6cbfd);
+  background: linear-gradient(to bottom right, var(--primary-blue-lightest), var(--primary-blue-lighter), var(--primary-orange-lighter));
   background-size: cover;
   -webkit-background-size: cover;
   -o-background-size: cover;
@@ -1079,7 +1079,7 @@ export default {
   height: calc(100vh - 24vh);
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
   position: relative;
-  background: rgba(237, 242, 255, 0.5);
+  background: rgba(227, 240, 255, 0.5);
   display: flex;
   flex-direction: column;
 }
@@ -1128,7 +1128,7 @@ export default {
 .header-icon {
   width: 37px;
   height: 37px;
-  background: #5778ff;
+  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-orange) 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -1142,7 +1142,7 @@ export default {
 
 .divider {
   height: 1px;
-  background: #e8f0ff;
+  background: var(--primary-blue-lightest);
 }
 
 .form-content {
@@ -1171,12 +1171,12 @@ export default {
 }
 
 .play-button {
-  color: #409eff;
+  color: var(--primary-blue);
   transition: color 0.3s;
 }
 
 .play-button:hover {
-  color: #66b1ff;
+  color: var(--primary-orange);
 }
 
 .play-button.is-loading {
@@ -1204,12 +1204,12 @@ export default {
   min-width: 60px;
   padding: 0 12px;
   border-radius: 8px;
-  background: #e6ebff;
+  background: var(--primary-blue-lighter);
   line-height: 4vh;
   font-weight: 400;
   font-size: 11px;
   text-align: center;
-  color: #5778ff;
+  color: var(--primary-blue);
   cursor: pointer;
   transition: background-color 0.3s ease;
   white-space: nowrap;
@@ -1258,7 +1258,7 @@ export default {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #5778ff;
+  color: var(--primary-blue);
   font-weight: bold;
   font-size: 12px;
   margin-right: 8px;
@@ -1305,13 +1305,13 @@ export default {
 }
 
 .custom-close-btn:hover {
-  color: #409eff;
-  border-color: #409eff;
+  color: var(--primary-blue);
+  border-color: var(--primary-blue);
 }
 
 .edit-function-btn {
-  background: #e6ebff;
-  color: #5778ff;
+  background: var(--primary-blue-lighter);
+  color: var(--primary-blue);
   border: 1px solid #adbdff;
   border-radius: 18px;
   padding: 10px 20px;
@@ -1319,7 +1319,7 @@ export default {
 }
 
 .edit-function-btn.active-btn {
-  background: #5778ff;
+  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-orange) 100%);
   color: white;
 }
 
@@ -1331,23 +1331,23 @@ export default {
 }
 
 .chat-history-options ::v-deep .el-radio-button {
-  border-color: #5778ff;
+  border-color: var(--primary-blue);
 }
 
 .chat-history-options ::v-deep .el-radio-button .el-radio-button__inner {
-  color: #5778ff;
-  border-color: #5778ff;
+  color: var(--primary-blue);
+  border-color: var(--primary-blue);
   background-color: transparent;
 }
 
 .chat-history-options ::v-deep .el-radio-button.is-active .el-radio-button__inner {
-  background-color: #5778ff;
-  border-color: #5778ff;
+  background-color: var(--primary-blue);
+  border-color: var(--primary-blue);
   color: white;
 }
 
 .chat-history-options ::v-deep .el-radio-button .el-radio-button__inner:hover {
-  color: #5778ff;
+  color: var(--primary-blue);
 }
 
 .header-actions {
@@ -1372,7 +1372,7 @@ export default {
 }
 
 .header-actions .save-btn {
-  background: #5778ff;
+  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-orange) 100%);
   color: white;
   border: none;
   border-radius: 18px;
@@ -1382,8 +1382,8 @@ export default {
 }
 
 .header-actions .reset-btn {
-  background: #e6ebff;
-  color: #5778ff;
+  background: var(--primary-blue-lighter);
+  color: var(--primary-blue);
   border: 1px solid #adbdff;
   border-radius: 18px;
   padding: 8px 16px;
@@ -1403,7 +1403,7 @@ export default {
 }
 
 .doc-link {
-  color: #5778ff;
+  color: var(--primary-blue);
   text-decoration: none;
   margin-left: 4px;
 

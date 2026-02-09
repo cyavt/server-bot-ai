@@ -45,7 +45,7 @@
                   :placeholder="$t('templateQuickConfig.agentSettings.systemPromptPlaceholder')"
                   :validate-event="false"
                   show-word-limit
-                  maxlength="2000"
+                  maxlength="5000"
                 />
               </el-form-item>
             </el-form>
@@ -265,7 +265,7 @@ export default {
   display: flex;
   position: relative;
   flex-direction: column;
-  background: linear-gradient(to bottom right, #dce8ff, #e4eeff, #e6cbfd);
+  background: linear-gradient(to bottom right, var(--primary-blue-lightest), var(--primary-blue-lighter), var(--primary-orange-lighter));
   background-size: cover;
   -webkit-background-size: cover;
   -o-background-size: cover;
@@ -438,8 +438,8 @@ export default {
 }
 
 .custom-close-btn:hover {
-  color: #409EFF;
-  border-color: #409EFF;
+  color: var(--primary-blue);
+  border-color: var(--primary-blue);
 }
 
 .header-actions {

@@ -9,8 +9,7 @@
             margin-left: 11px;
             gap: 10px;
           ">
-          <img loading="lazy" alt="" src="@/assets/xiaozhi-logo.png" style="width: 42px; height: 42px" />
-          <img loading="lazy" alt="" :src="xiaozhiAiIcon" style="height: 20px" />
+          <img loading="lazy" alt="" src="@/assets/windify.png" style="width: 200px; height: auto; object-fit: contain" />
         </div>
       </el-header>
       <div class="login-person">

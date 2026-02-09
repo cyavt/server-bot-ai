@@ -695,59 +695,100 @@ export default {
 .nav-panel {
   min-width: 242px;
   height: 100%;
-  border-right: 1px solid #ebeef5;
+  border-right: 1px solid var(--border-color-light);
   background: linear-gradient(
-      120deg,
-      rgba(107, 140, 255, 0.3) 0%,
-      rgba(169, 102, 255, 0.3) 25%,
-      transparent 60%
+      135deg,
+      var(--primary-blue-lightest) 0%,
+      var(--primary-orange-lightest) 50%,
+      transparent 80%
     ),
     url("../assets/model/model.png") no-repeat center / cover;
-  padding: 16px 0;
+  padding: var(--spacing-4) 0;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
+  box-shadow: var(--shadow-sm);
+}
+
+.nav-panel .el-menu {
+  background: transparent;
+  border: none;
 }
 
 .nav-panel .el-menu-item {
-  height: 50px;
-  background: #e9f0ff;
-  line-height: 50px;
-  border-radius: 4px 0 0 4px !important;
-  transition: all 0.3s;
+  height: 48px;
+  background: var(--primary-blue-lightest);
+  line-height: 48px;
+  border-radius: var(--radius-md) 0 0 var(--radius-md) !important;
+  transition: all var(--transition-base);
   display: flex !important;
   justify-content: flex-end;
-  padding-right: 12px !important;
-  width: fit-content;
-  margin: 8px 0 8px auto;
-  min-width: unset;
+  align-items: center;
+  padding-right: var(--spacing-3) !important;
+  width: 220px; /* Chiều rộng cố định */
+  min-width: 220px; /* Đảm bảo không nhỏ hơn */
+  max-width: 220px; /* Đảm bảo không lớn hơn */
+  margin: var(--spacing-2) 0 var(--spacing-2) auto;
+  border: 1px solid transparent;
+  box-shadow: var(--shadow-xs);
+  
+  &:hover {
+    background: var(--primary-blue-lighter);
+    transform: translateX(-2px);
+    box-shadow: var(--shadow-sm);
+    border-color: var(--primary-blue-lighter);
+  }
 }
 
 .nav-panel .el-menu-item.is-active {
-  background: #5778ff;
+  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-orange) 100%);
   position: relative;
   padding-left: 40px !important;
-}
-
-.nav-panel .el-menu-item.is-active::before {
-  content: "";
-  position: absolute;
-  left: 15px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 13px;
-  height: 13px;
-  background: #fff;
-  border-radius: 50%;
-  box-shadow: 0 0 4px rgba(64, 158, 255, 0.5);
+  box-shadow: var(--shadow-blue-md);
+  border-color: var(--primary-blue);
+  
+  &::before {
+    content: "";
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 8px;
+    height: 8px;
+    background: #fff;
+    border-radius: var(--radius-sm);
+    box-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
+  }
+  
+  &::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: #fff;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  }
 }
 
 .menu-text {
-  font-size: 14px;
-  color: #606266;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
   text-align: right;
   width: 100%;
-  padding-right: 8px;
+  padding-right: var(--spacing-2);
+  padding-left: var(--spacing-2);
+  transition: color var(--transition-base);
+  white-space: nowrap; /* Không xuống dòng */
+  overflow: hidden; /* Ẩn phần tràn */
+  text-overflow: ellipsis; /* Hiển thị ... nếu quá dài */
+}
+
+.nav-panel .el-menu-item.is-active .menu-text {
+  color: #fff;
+  font-weight: var(--font-weight-semibold);
 }
 
 .content-area {
@@ -962,9 +1003,7 @@ export default {
   color: #303133 !important;
 }
 
-::v-deep .nav-panel .el-menu-item.is-active .menu-text {
-  color: #fff !important;
-}
+/* Menu text color is now handled by direct styling above */
 
 ::v-deep .data-table {
   &.el-table::before,

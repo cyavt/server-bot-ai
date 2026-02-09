@@ -646,12 +646,30 @@ export default {
 
 <style lang="scss" scoped>
 .header {
-  background: #f6fcfe66;
-  border: 1px solid #fff;
+  background: linear-gradient(135deg, 
+    var(--primary-blue-lightest) 0%, 
+    rgba(255, 255, 255, 0.95) 50%, 
+    var(--primary-orange-lightest) 100%);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   height: 63px !important;
   min-width: 900px;
-  /* Đặt chiều rộng tối thiểu để tránh nén quá mức */
   overflow: visible;
+  position: relative;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, 
+      transparent 0%, 
+      var(--primary-blue-lighter) 50%, 
+      transparent 100%);
+  }
 }
 
 .header-container {
@@ -686,6 +704,7 @@ export default {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
+  padding-right: 30px;
 }
 
 .header-right {
@@ -698,14 +717,14 @@ export default {
 
 .equipment-management {
   height: 30px;
-  border-radius: 15px;
-  background: #deeafe;
+  border-radius: 6px;
+  background: var(--primary-blue-lighter);
   display: flex;
   justify-content: center;
   font-size: 14px;
   font-weight: 500;
   gap: 7px;
-  color: #3d4566;
+  color: var(--text-primary);
   margin-left: 1px;
   align-items: center;
   transition: all 0.3s ease;
@@ -714,11 +733,32 @@ export default {
   /* Ngăn nút điều hướng bị nén */
   padding: 0 15px;
   position: relative;
+  
+  &:hover {
+    background: var(--primary-blue-light);
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(74, 144, 226, 0.3);
+  }
 }
 
 .equipment-management.active-tab {
-  background: #5778ff !important;
+  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-orange) 100%) !important;
   color: #fff !important;
+  box-shadow: var(--shadow-blue-md);
+  font-weight: var(--font-weight-semibold);
+  
+  &::before {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: var(--radius-md);
+  }
 }
 
 .equipment-management img {
@@ -818,19 +858,30 @@ export default {
   height: 18px;
   border-radius: 9px;
   background-color: #fff;
-  border: 1px solid #e4e6ef;
+  border: 1px solid var(--border-color);
   padding-left: 8px;
   font-size: 9px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 2px rgba(74, 144, 226, 0.1);
   width: 100%;
+  transition: all 0.3s ease;
+  
+  &:focus {
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 2px var(--primary-blue-lightest);
+  }
 }
 
 .search-icon {
   cursor: pointer;
-  color: #909399;
+  color: var(--primary-blue);
   margin-right: 3px;
   font-size: 9px;
   line-height: 18px;
+  transition: color 0.3s ease;
+  
+  &:hover {
+    color: var(--primary-orange);
+  }
 }
 
 .custom-search-input::v-deep .el-input__suffix-inner {

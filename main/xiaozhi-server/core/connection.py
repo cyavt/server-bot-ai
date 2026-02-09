@@ -857,6 +857,7 @@ class ConnectionHandler:
                     ),
                     functions=functions,
                 )
+                self.logger.bind(tag=TAG).debug("Sử dụng LLM với function calling")
             else:
                 llm_responses = self.llm.response(
                     self.session_id,
@@ -864,6 +865,7 @@ class ConnectionHandler:
                         memory_str, self.config.get("voiceprint", {})
                     ),
                 )
+                self.logger.bind(tag=TAG).debug("Sử dụng LLM response thông thường")
         except Exception as e:
             # Xử lý exception message an toàn với Unicode
             try:
@@ -890,8 +892,10 @@ class ConnectionHandler:
         content_arguments = ""
         self.client_abort = False
         emotion_flag = True
+        response_received = False  # Đánh dấu đã nhận được phản hồi từ LLM
         try:
             for response in llm_responses:
+                response_received = True
                 if self.client_abort:
                     break
                 if self.intent_type == "function_call" and functions is not None:
@@ -955,6 +959,13 @@ class ConnectionHandler:
                                 content_detail=content,
                             )
                         )
+            
+            # Log số lượng phản hồi đã nhận được
+            if response_received:
+                self.logger.bind(tag=TAG).debug(
+                    f"Đã nhận {len(response_message)} đoạn phản hồi từ LLM, "
+                    f"tổng độ dài: {sum(len(m) for m in response_message)} ký tự"
+                )
         except Exception as e:
             # Xử lý exception message an toàn với Unicode
             try:
@@ -1001,6 +1012,33 @@ class ConnectionHandler:
                     )
                 )
             return
+        
+        # Kiểm tra xem LLM có trả về phản hồi không
+        if not response_received:
+            self.logger.bind(tag=TAG).warning(
+                f"LLM không trả về phản hồi nào cho tin nhắn: {query}"
+            )
+            # Gửi phản hồi lỗi mặc định
+            error_response = get_system_error_response(self.config)
+            if error_response:
+                self.tts.tts_text_queue.put(
+                    TTSMessageDTO(
+                        sentence_id=self.sentence_id,
+                        sentence_type=SentenceType.MIDDLE,
+                        content_type=ContentType.TEXT,
+                        content_detail=error_response,
+                    )
+                )
+            if depth == 0:
+                self.tts.tts_text_queue.put(
+                    TTSMessageDTO(
+                        sentence_id=self.sentence_id,
+                        sentence_type=SentenceType.LAST,
+                        content_type=ContentType.ACTION,
+                    )
+                )
+            return None
+        
         # Xử lý function call
         if tool_call_flag:
             bHasError = False
@@ -1073,6 +1111,13 @@ class ConnectionHandler:
             text_buff = "".join(response_message)
             self.tts_MessageText = text_buff
             self.dialogue.put(Message(role="assistant", content=text_buff))
+        else:
+            # Cảnh báo khi không có nội dung phản hồi
+            if not tool_call_flag:
+                self.logger.bind(tag=TAG).warning(
+                    f"LLM trả về phản hồi rỗng cho tin nhắn: {query}. "
+                    f"response_received={response_received}, tool_call_flag={tool_call_flag}"
+                )
         if depth == 0:
             self.tts.tts_text_queue.put(
                 TTSMessageDTO(

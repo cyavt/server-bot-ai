@@ -43,16 +43,30 @@ module.exports = defineConfig({
   devServer: {
     host: process.env.VUE_APP_DEV_HOST || '0.0.0.0',
     port: Number(process.env.VUE_APP_DEV_PORT || 8001), // 默认 8001
+    hot: true, // 启用热模块替换 (HMR)
+    liveReload: true, // 启用实时重载
+    open: false, // 不自动打开浏览器
     proxy: {
       '/xiaozhi': {
         // Local dev default is 127.0.0.1:8002 (nginx container or local)
         // In docker hot-reload, override with VUE_APP_API_PROXY_TARGET, e.g. http://xiaozhi-esp32-server-web:8002
         target: process.env.VUE_APP_API_PROXY_TARGET || 'http://127.0.0.1:8002',
-        changeOrigin: true
+        changeOrigin: true,
+        ws: true, // 启用 WebSocket 代理以支持 HMR
       }
     },
     client: {
-      overlay: false, // 不显示 webpack 错误覆盖层
+      overlay: {
+        errors: true,
+        warnings: false, // 不显示警告覆盖层，只显示错误
+      },
+      webSocketURL: 'auto://0.0.0.0:0/ws', // 自动检测 WebSocket URL
+    },
+    watchFiles: {
+      paths: ['src/**/*', 'public/**/*'], // 监听文件变化
+      options: {
+        usePolling: false, // 在 Windows 上如果 HMR 不工作，可以设置为 true
+      }
     },
   },
   publicPath: process.env.VUE_APP_PUBLIC_PATH || "/",
@@ -90,10 +104,15 @@ module.exports = defineConfig({
       }
     });
 
-    // 启用优化设置
-    config.optimization.usedExports(true);
-    config.optimization.concatenateModules(true);
-    config.optimization.minimize(true);
+    // 启用优化设置 (仅在 production mode)
+    if (process.env.NODE_ENV === 'production') {
+      config.optimization.usedExports(true);
+      config.optimization.concatenateModules(true);
+      config.optimization.minimize(true);
+    } else {
+      // Development mode: 禁用 minimize 以保持 HMR 工作
+      config.optimization.minimize(false);
+    }
   },
   configureWebpack: config => {
     if (process.env.NODE_ENV === 'production') {

@@ -38,14 +38,14 @@ spring:
             multi-statement-allow: true
   data:
     redis:
-      host: 127.0.0.1         # Địa chỉ máy chủ Redis
-      port: 6379              # Cổng kết nối máy chủ Redis
-      password:              # Mật khẩu kết nối máy chủ Redis (mặc định để trống)
-      database: 0            # Chỉ mục cơ sở dữ liệu Redis (mặc định là 0)
-      timeout: 10000ms       # Thời gian chờ kết nối (mili giây)
+      host: 127.0.0.1         # Redis服务器地址
+      port: 6379              # Redis服务器连接端口
+      password:              # Redis服务器连接密码（默认为空）
+      database: 0            # Redis数据库索引（默认为0）
+      timeout: 10000ms       # 连接超时时间（毫秒）
       lettuce:
         pool:
-          max-active: 8      # Số kết nối tối đa trong pool (sử dụng giá trị âm nghĩa là không giới hạn)
-          max-idle: 8        # Số kết nối rảnh tối đa trong pool
-          min-idle: 0        # Số kết nối rảnh tối thiểu trong pool
-        shutdown-timeout: 100ms  # Thời gian chờ đóng client một cách nhẹ nhàng
+          max-active: 8      # 连接池最大连接数（使用负值表示没有限制）
+          max-idle: 8        # 连接池中的最大空闲连接
+          min-idle: 0        # 连接池中的最小空闲连接
+        shutdown-timeout: 100ms  # 客户端优雅关闭的等待时间

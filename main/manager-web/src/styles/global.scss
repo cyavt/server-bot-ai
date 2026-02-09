@@ -1,4 +1,328 @@
-// 覆盖 autofill 样式
+// ============================================
+// Professional Design System
+// ============================================
+
+:root {
+  // ============================================
+  // Color Palette - Orange & Blue Theme
+  // ============================================
+  
+  // Primary Orange Colors (Refined)
+  --primary-orange: #FF6B35;
+  --primary-orange-light: #FF8C5A;
+  --primary-orange-dark: #E55A2B;
+  --primary-orange-lighter: #FFB899;
+  --primary-orange-lightest: #FFF4F0;
+  
+  // Primary Blue Colors (Refined)
+  --primary-blue: #4A90E2;
+  --primary-blue-light: #6BA8F0;
+  --primary-blue-dark: #3A7BC8;
+  --primary-blue-lighter: #B8D4F5;
+  --primary-blue-lightest: #F0F7FF;
+  
+  // Secondary Colors
+  --secondary-orange: #FF8C42;
+  --secondary-blue: #5B9BD5;
+  
+  // Neutral Colors (Professional Grays)
+  --text-primary: #1F2937;
+  --text-secondary: #4B5563;
+  --text-tertiary: #9CA3AF;
+  --text-quaternary: #D1D5DB;
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F9FAFB;
+  --bg-tertiary: #F3F4F6;
+  --bg-quaternary: #E5E7EB;
+  --border-color: #E5E7EB;
+  --border-color-light: #F3F4F6;
+  --border-color-dark: #D1D5DB;
+  
+  // Status Colors (Refined)
+  --success-color: #10B981;
+  --success-light: #D1FAE5;
+  --warning-color: #F59E0B;
+  --warning-light: #FEF3C7;
+  --error-color: #EF4444;
+  --error-light: #FEE2E2;
+  --info-color: #4A90E2;
+  --info-light: #DBEAFE;
+  
+  // ============================================
+  // Typography System
+  // ============================================
+  --font-family-primary: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  --font-family-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+  
+  --font-size-xs: 10px;
+  --font-size-sm: 12px;
+  --font-size-base: 14px;
+  --font-size-md: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 30px;
+  --font-size-4xl: 36px;
+  
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+  
+  // ============================================
+  // Spacing System (8px base)
+  // ============================================
+  --spacing-0: 0;
+  --spacing-1: 4px;
+  --spacing-2: 8px;
+  --spacing-3: 12px;
+  --spacing-4: 16px;
+  --spacing-5: 20px;
+  --spacing-6: 24px;
+  --spacing-8: 32px;
+  --spacing-10: 40px;
+  --spacing-12: 48px;
+  --spacing-16: 64px;
+  --spacing-20: 80px;
+  
+  // ============================================
+  // Border Radius System (Reduced for more square design)
+  // ============================================
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 6px;
+  --radius-xl: 8px;
+  --radius-2xl: 10px;
+  --radius-full: 9999px;
+  
+  // ============================================
+  // Shadow System (Professional Elevation)
+  // ============================================
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  
+  // Colored Shadows (Theme-aware)
+  --shadow-blue-sm: 0 2px 8px rgba(74, 144, 226, 0.15);
+  --shadow-blue-md: 0 4px 12px rgba(74, 144, 226, 0.2);
+  --shadow-blue-lg: 0 8px 24px rgba(74, 144, 226, 0.25);
+  --shadow-orange-sm: 0 2px 8px rgba(255, 107, 53, 0.15);
+  --shadow-orange-md: 0 4px 12px rgba(255, 107, 53, 0.2);
+  --shadow-orange-lg: 0 8px 24px rgba(255, 107, 53, 0.25);
+  
+  // ============================================
+  // Transition System
+  // ============================================
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-bounce: 500ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  
+  // ============================================
+  // Z-Index System
+  // ============================================
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+}
+
+// ============================================
+// Element UI Theme Overrides
+// ============================================
+$--color-primary: var(--primary-blue);
+$--color-success: var(--success-color);
+$--color-warning: var(--warning-color);
+$--color-danger: var(--error-color);
+$--color-info: var(--info-color);
+
+// ============================================
+// Professional Button Styles
+// ============================================
+.el-button {
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-sm);
+  
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
+  
+  &:active {
+    transform: translateY(0);
+    box-shadow: var(--shadow-sm);
+  }
+}
+
+.el-button--primary {
+  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-light) 100%);
+  border: none;
+  color: #fff;
+  box-shadow: var(--shadow-blue-sm);
+  
+  &:hover {
+    background: linear-gradient(135deg, var(--primary-blue-light) 0%, var(--primary-blue) 100%);
+    box-shadow: var(--shadow-blue-md);
+  }
+  
+  &:active {
+    background: linear-gradient(135deg, var(--primary-blue-dark) 0%, var(--primary-blue) 100%);
+    box-shadow: var(--shadow-blue-sm);
+  }
+  
+  &:focus {
+    box-shadow: var(--shadow-blue-md), 0 0 0 3px var(--primary-blue-lightest);
+  }
+}
+
+.el-button--warning {
+  background: linear-gradient(135deg, var(--primary-orange) 0%, var(--primary-orange-light) 100%);
+  border: none;
+  color: #fff;
+  box-shadow: var(--shadow-orange-sm);
+  
+  &:hover {
+    background: linear-gradient(135deg, var(--primary-orange-light) 0%, var(--primary-orange) 100%);
+    box-shadow: var(--shadow-orange-md);
+  }
+  
+  &:active {
+    background: linear-gradient(135deg, var(--primary-orange-dark) 0%, var(--primary-orange) 100%);
+    box-shadow: var(--shadow-orange-sm);
+  }
+  
+  &:focus {
+    box-shadow: var(--shadow-orange-md), 0 0 0 3px var(--primary-orange-lightest);
+  }
+}
+
+// ============================================
+// Professional Link Styles
+// ============================================
+.el-link--primary {
+  color: var(--primary-blue) !important;
+  transition: color var(--transition-base);
+  
+  &:hover {
+    color: var(--primary-orange) !important;
+  }
+}
+
+// ============================================
+// Professional Tabs
+// ============================================
+.el-tabs__active-bar {
+  background: linear-gradient(90deg, var(--primary-blue) 0%, var(--primary-orange) 100%) !important;
+  height: 3px !important;
+  border-radius: var(--radius-full);
+}
+
+.el-tabs__item {
+  transition: color var(--transition-base);
+  
+  &.is-active {
+    color: var(--primary-blue) !important;
+    font-weight: var(--font-weight-semibold);
+  }
+  
+  &:hover {
+    color: var(--primary-orange) !important;
+  }
+}
+
+// ============================================
+// Professional Form Controls
+// ============================================
+.el-checkbox__input.is-checked .el-checkbox__inner {
+  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-light) 100%);
+  border-color: var(--primary-blue) !important;
+  box-shadow: var(--shadow-blue-sm);
+}
+
+.el-radio__input.is-checked .el-radio__inner {
+  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-light) 100%);
+  border-color: var(--primary-blue) !important;
+  box-shadow: var(--shadow-blue-sm);
+}
+
+.el-switch.is-checked .el-switch__core {
+  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-orange) 100%) !important;
+  box-shadow: var(--shadow-blue-sm);
+}
+
+.el-input__inner {
+  transition: all var(--transition-base);
+  border-color: var(--border-color);
+  
+  &:focus {
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px var(--primary-blue-lightest);
+  }
+}
+
+.el-select .el-input.is-focus .el-input__inner {
+  border-color: var(--primary-blue);
+}
+
+// ============================================
+// Professional Pagination
+// ============================================
+.el-pagination.is-background .el-pager li:not(.disabled).active {
+  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-light) 100%) !important;
+  color: #fff !important;
+  box-shadow: var(--shadow-blue-sm);
+}
+
+// ============================================
+// Professional Cards & Containers
+// ============================================
+.el-card {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color-light);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-base);
+  
+  &:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+  }
+}
+
+// ============================================
+// Professional Dialogs
+// ============================================
+.el-dialog {
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-2xl);
+}
+
+.el-dialog__header {
+  padding: var(--spacing-6) var(--spacing-6) var(--spacing-4);
+  border-bottom: 1px solid var(--border-color-light);
+}
+
+.el-dialog__title {
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  font-size: var(--font-size-lg);
+}
+
+// ============================================
+// Autofill Styles
+// ============================================
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
@@ -19,4 +343,27 @@ select:-webkit-autofill:focus {
 
 .el-icon-video-play, .el-icon-video-pause { 
   font-size: 18px !important;
+}
+
+// ============================================
+// Professional Message/Notification Styles
+// ============================================
+.el-message {
+  border-radius: var(--radius-md) !important;
+  padding: var(--spacing-4) var(--spacing-5) !important;
+  
+  .el-message__content {
+    padding-left: var(--spacing-2) !important;
+  }
+}
+
+// Ensure all message types have good contrast
+.el-message--success,
+.el-message--warning,
+.el-message--error,
+.el-message--info {
+  .el-message__content {
+    color: #FFFFFF !important;
+    font-weight: var(--font-weight-medium) !important;
+  }
 }

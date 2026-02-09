@@ -1,13 +1,6 @@
-# Hot reload (HMR) for manager-web (Vue) while keeping backend (manager-api + nginx) in Docker.
-#
-# Usage (from E:\_\SERVER\main\xiaozhi-server):
-#   docker compose -f docker-compose_hotreload.yml up -d
-#   open http://localhost:8001  (HMR - Vue dev server)
-#   open http://localhost:8006/test_page.html  (Test page)
-#
-version: '3'
 
 services:
+  # Python Server - Hot Reload với volume mount
   xiaozhi-esp32-server:
     image: xiaozhi-server:local
     build:
@@ -17,13 +10,12 @@ services:
     depends_on:
       - xiaozhi-esp32-server-db
       - xiaozhi-esp32-server-redis
-      - xiaozhi-esp32-server-web
     restart: always
     networks:
       - default
     ports:
-      - "8000:8000"
-      - "8003:8003"
+      - "8000:8000"  # WebSocket service
+      - "8003:8003"  # HTTP service (OTA, Vision API)
     security_opt:
       - seccomp:unconfined
     environment:
@@ -33,35 +25,34 @@ services:
       - ./data:/opt/xiaozhi-esp32-server/data
       - ./models:/opt/xiaozhi-esp32-server/models
 
-  # Backend (manager-api + nginx) - build locally from source code
-  xiaozhi-esp32-server-web:
-    image: xiaozhi-web:local
+  # Backend API Development Mode
+  manager-api-dev:
+    image: manager-api:dev
     build:
       context: ../..
       dockerfile: Dockerfile-web
-    container_name: xiaozhi-esp32-server-web
-    restart: always
+    container_name: xiaozhi-manager-api-dev
+    restart: unless-stopped
     networks:
       - default
-    depends_on:
-      xiaozhi-esp32-server-db:
-        condition: service_healthy
-      xiaozhi-esp32-server-redis:
-        condition: service_healthy
     ports:
       - "8002:8002"
     environment:
       - TZ=Asia/Ho_Chi_Minh
+      - SPRING_PROFILES_ACTIVE=dev
       - SPRING_DATASOURCE_DRUID_URL=jdbc:mysql://xiaozhi-esp32-server-db:3306/xiaozhi_esp32_server?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Ho_Chi_Minh&nullCatalogMeansCurrent=true&connectTimeout=30000&socketTimeout=30000&autoReconnect=true&failOverReadOnly=false&maxReconnects=10
       - SPRING_DATASOURCE_DRUID_USERNAME=root
       - SPRING_DATASOURCE_DRUID_PASSWORD=123456
       - SPRING_DATA_REDIS_HOST=xiaozhi-esp32-server-redis
       - SPRING_DATA_REDIS_PASSWORD=
       - SPRING_DATA_REDIS_PORT=6379
-    volumes:
-      - ./uploadfile:/uploadfile
+    depends_on:
+      xiaozhi-esp32-server-db:
+        condition: service_healthy
+      xiaozhi-esp32-server-redis:
+        condition: service_healthy
 
-  # Frontend dev server (Vue CLI) - HMR at :8001
+  # Frontend (Vue)
   manager-web-dev:
     image: node:18
     container_name: xiaozhi-esp32-manager-web-dev
@@ -77,15 +68,16 @@ services:
       - CHOKIDAR_INTERVAL=1000
       - VUE_APP_DEV_HOST=0.0.0.0
       - VUE_APP_DEV_PORT=8001
-      - VUE_APP_API_PROXY_TARGET=http://xiaozhi-esp32-server-web:8002
+      - VUE_APP_API_PROXY_TARGET=http://manager-api-dev:8002
       - VUE_APP_API_BASE_URL=/xiaozhi
     volumes:
       - ../manager-web:/app
-      # Keep node_modules inside container (avoid Windows fs perf issues)
       - manager-web-node-modules:/app/node_modules
+    depends_on:
+      - manager-api-dev
     command: sh -lc "npm install && npm run serve"
 
-  # Test page static server - serve test_page.html at :8006 with auto-reload
+  # Test page static server - serve tại port 8006
   test-page:
     image: node:18-alpine
     container_name: xiaozhi-esp32-test-page
@@ -103,8 +95,9 @@ services:
       - CHOKIDAR_INTERVAL=1000
     command: sh -lc "npm install -g live-server && live-server --port=8006 --host=0.0.0.0 --open=/test_page.html --watch=/app --no-browser"
 
+  # MySQL Database
   xiaozhi-esp32-server-db:
-    image: mysql:latest
+    image: mysql:9.6
     container_name: xiaozhi-esp32-server-db
     healthcheck:
       test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
@@ -124,12 +117,14 @@ services:
       - MYSQL_DATABASE=xiaozhi_esp32_server
       - MYSQL_INITDB_ARGS="--character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci"
 
+  # Redis Cache
   xiaozhi-esp32-server-redis:
     image: redis:8.0
-    expose:
-      - 6379
+    ports:
+      - "6379:6379"  # Map port để có thể truy cập từ host
     container_name: xiaozhi-esp32-server-redis
     restart: always
+    command: redis-server --protected-mode no  # Cho phép truy cập từ host
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -139,8 +134,10 @@ services:
       - default
 
 volumes:
+  # Cache node_modules cho Vue dev server
   manager-web-node-modules:
 
 networks:
   default:
-
+    name: main_default
+    driver: bridge

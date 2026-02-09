@@ -7,11 +7,19 @@
 
 <style lang="scss">
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
+  font-family: var(--font-family-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
-  color: #2c3e50;
+  color: var(--text-primary);
+  background: linear-gradient(135deg, 
+    var(--primary-blue-lightest) 0%, 
+    #ffffff 30%, 
+    #ffffff 70%, 
+    var(--primary-orange-lightest) 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  line-height: var(--line-height-normal);
 }
 
 nav {
@@ -19,17 +27,17 @@ nav {
 
   a {
     font-weight: bold;
-    color: #2c3e50;
+    color: var(--text-primary);
 
     &.router-link-exact-active {
-      color: #42b983;
+      color: var(--primary-blue);
     }
   }
 }
 
 .copyright {
   text-align: center;
-  color: rgb(0, 0, 0);
+  color: var(--text-secondary);
   font-size: 12px;
   font-weight: 400;
   margin-top: auto;
@@ -43,6 +51,67 @@ nav {
 
 .el-message {
   top: 70px !important;
+  box-shadow: var(--shadow-lg) !important;
+  border: none !important;
+  min-width: 380px !important;
+  
+  .el-message__content {
+    color: #FFFFFF !important;
+    font-weight: var(--font-weight-medium) !important;
+    font-size: var(--font-size-base) !important;
+    line-height: var(--line-height-normal) !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+  }
+  
+  .el-message__icon {
+    color: #FFFFFF !important;
+    font-size: 18px !important;
+  }
+  
+  .el-message__closeBtn {
+    color: rgba(255, 255, 255, 0.9) !important;
+    
+    &:hover {
+      color: #FFFFFF !important;
+    }
+  }
+}
+
+// Update message colors to match theme with better contrast
+.el-message--success {
+  background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%) !important;
+  border-left: 4px solid #FFFFFF !important;
+  
+  .el-message__icon {
+    color: #FFFFFF !important;
+  }
+}
+
+.el-message--warning {
+  background: linear-gradient(135deg, var(--warning-color) 0%, #D97706 100%) !important;
+  border-left: 4px solid #FFFFFF !important;
+  
+  .el-message__icon {
+    color: #FFFFFF !important;
+  }
+}
+
+.el-message--error {
+  background: linear-gradient(135deg, var(--error-color) 0%, #DC2626 100%) !important;
+  border-left: 4px solid #FFFFFF !important;
+  
+  .el-message__icon {
+    color: #FFFFFF !important;
+  }
+}
+
+.el-message--info {
+  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%) !important;
+  border-left: 4px solid #FFFFFF !important;
+  
+  .el-message__icon {
+    color: #FFFFFF !important;
+  }
 }
 </style>
 <script>

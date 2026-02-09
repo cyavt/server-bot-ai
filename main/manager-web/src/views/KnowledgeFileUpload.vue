@@ -79,7 +79,7 @@
                   {{ $t('knowledgeFileUpload.batchDelete') }}
                 </el-button>
                 <el-button type="primary" icon="el-icon-search" @click="showRetrievalTestDialog"
-                  style="background-color: #409EFF; border-color: #409EFF;">
+                  style="background-color: var(--primary-blue); border-color: var(--primary-blue);">
                   {{ $t('knowledgeFileUpload.retrievalTest') }}
                 </el-button>
               </div>
